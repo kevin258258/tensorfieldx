@@ -131,38 +131,73 @@ const sortedNotes = allNotes.sort(
 <script>
     // ... Math Hero Script ...
     // (保留之前的 Script 代码，不需要修改)
-  const formulas = [
-        // 1. 薛定谔方程 (量子力学核心)
-        { tex: "i\\hbar\\frac{\\partial}{\\partial t}\\Psi = \\hat{H}\\Psi", link: "https://en.wikipedia.org/wiki/Schr%C3%B6dinger_equation" },
-        // 2. 爱因斯坦场方程 (广义相对论)
-        { tex: "R_{\\mu\\nu} - \\frac{1}{2}Rg_{\\mu\\nu} = \\frac{8\\pi G}{c^4}T_{\\mu\\nu}", link: "https://en.wikipedia.org/wiki/Einstein_field_equations" },
-        // 3. 麦克斯韦方程组 - 微分形式 (电磁学)
-        { tex: "\\nabla \\times \\mathbf{E} = -\\frac{\\partial \\mathbf{B}}{\\partial t}", link: "https://en.wikipedia.org/wiki/Maxwell%27s_equations" },
-        // 4. 狄拉克方程 (相对论量子力学)
-        { tex: "(i\\gamma^\\mu \\partial_\\mu - m)\\psi = 0", link: "https://en.wikipedia.org/wiki/Dirac_equation" },
-        // 5. 欧拉公式 (数学之美)
-        { tex: "e^{i\\pi} + 1 = 0", link: "https://en.wikipedia.org/wiki/Euler%27s_identity" },
-        // 6. 香农熵 (信息论基础)
-        { tex: "H(X) = -\\sum_{i=1}^n P(x_i) \\log P(x_i)", link: "https://en.wikipedia.org/wiki/Entropy_(information_theory)" },
-        // 7. 贝叶斯定理 (统计推断)
-        { tex: "P(A|B) = \\frac{P(B|A)P(A)}{P(B)}", link: "https://en.wikipedia.org/wiki/Bayes%27_theorem" },
-        // 8. 纳维-斯托克斯方程 (流体力学)
-        { tex: "\\rho(\\frac{\\partial \\mathbf{u}}{\\partial t} + \\mathbf{u} \\cdot \\nabla \\mathbf{u}) = -\\nabla p + \\mu \\nabla^2 \\mathbf{u}", link: "https://en.wikipedia.org/wiki/Navier%E2%80%93Stokes_equations" },
-        // 9. Transformer Attention (深度学习)
-        { tex: "\\text{Attn}(Q, K, V) = \\text{softmax}(\\frac{QK^T}{\\sqrt{d_k}})V", link: "https://en.wikipedia.org/wiki/Attention_(machine_learning)" },
-        // 10. 最小作用量原理 (物理统一框架)
-        { tex: "\\delta S = \\delta \\int_{t_1}^{t_2} L(q, \\dot{q}, t) dt = 0", link: "https://en.wikipedia.org/wiki/Principle_of_least_action" },
-        // 11. 傅里叶变换 (信号处理)
-        { tex: "\\hat{f}(\\xi) = \\int_{-\\infty}^{\\infty} f(x) e^{-2\\pi i x \\xi} dx", link: "https://en.wikipedia.org/wiki/Fourier_transform" },
-        // 12. 交叉熵损失函数 (机器学习)
-        { tex: "\\mathcal{L} = -\\frac{1}{N} \\sum_{i=1}^N [y_i \\log(\\hat{y}_i) + (1-y_i) \\log(1-\\hat{y}_i)]", link: "https://en.wikipedia.org/wiki/Cross_entropy" },
-        // 13. 海森堡不确定性原理 (量子力学)
-        { tex: "\\sigma_x \\sigma_p \\geq \\frac{\\hbar}{2}", link: "https://en.wikipedia.org/wiki/Uncertainty_principle" },
-        // 14. 黎曼 zeta 函数 (数论)
-        { tex: "\\zeta(s) = \\sum_{n=1}^{\\infty} \\frac{1}{n^s}", link: "https://en.wikipedia.org/wiki/Riemann_zeta_function" },
-        // 15. 能量-动量关系 (狭义相对论)
-        { tex: "E^2 = (pc)^2 + (mc^2)^2", link: "https://en.wikipedia.org/wiki/Energy%E2%80%93momentum_relation" }
-    ];
+ const formulas = [
+    // --- 物理学 (Physics) ---
+    // 1. 薛定谔方程 (量子力学) - 极其紧凑的形式
+    { tex: "i\\hbar\\dot{\\Psi} = \\hat{H}\\Psi", link: "https://en.wikipedia.org/wiki/Schr%C3%B6dinger_equation" },
+    // 2. 质能方程 (狭义相对论) - 标志性极短公式
+    { tex: "E = mc^2", link: "https://en.wikipedia.org/wiki/Mass%E2%80%93energy_equivalence" },
+    // 3. 爱因斯坦场方程 (广义相对论) - 紧凑张量形式
+    { tex: "G_{\\mu\\nu} + \\Lambda g_{\\mu\\nu} = \\kappa T_{\\mu\\nu}", link: "https://en.wikipedia.org/wiki/Einstein_field_equations" },
+    // 4. 狄拉克方程 (相对论量子力学)
+    { tex: "(i\\gamma^\\mu \\partial_\\mu - m)\\psi = 0", link: "https://en.wikipedia.org/wiki/Dirac_equation" },
+    // 5. 海森堡不确定性原理 (量子力学)
+    { tex: "\\Delta x \\Delta p \\geq \\frac{\\hbar}{2}", link: "https://en.wikipedia.org/wiki/Uncertainty_principle" },
+    // 6. 麦克斯韦方程 (高斯定律) - 选用最短的一个
+    { tex: "\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}", link: "https://en.wikipedia.org/wiki/Maxwell%27s_equations" },
+    // 7. 玻尔兹曼熵 (热力学) - 墓志铭上的公式
+    { tex: "S = k_B \\ln \\Omega", link: "https://en.wikipedia.org/wiki/Boltzmann%27s_entropy_formula" },
+    // 8. 普朗克关系式 (量子理论基础)
+    { tex: "E = h\\nu", link: "https://en.wikipedia.org/wiki/Planck_relation" },
+    // 9. 热力学第二定律 (熵增)
+    { tex: "dS \\geq 0", link: "https://en.wikipedia.org/wiki/Second_law_of_thermodynamics" },
+    // 10. 波动方程 (经典物理)
+    { tex: "\\frac{\\partial^2 u}{\\partial t^2} = c^2 \\nabla^2 u", link: "https://en.wikipedia.org/wiki/Wave_equation" },
+    // 11. 德布罗意波长 (波粒二象性)
+    { tex: "\\lambda = \\frac{h}{p}", link: "https://en.wikipedia.org/wiki/Matter_wave" },
+    // 12. 胡克定律 (经典力学) - 极简
+    { tex: "F = -kx", link: "https://en.wikipedia.org/wiki/Hooke%27s_law" },
+
+    // --- 数学 (Mathematics) ---
+    // 13. 欧拉公式 (数学最美公式)
+    { tex: "e^{i\\pi} + 1 = 0", link: "https://en.wikipedia.org/wiki/Euler%27s_identity" },
+    // 14. 傅里叶变换 (你的基准长度)
+    { tex: "\\hat{f}(\\xi) = \\int f(x) e^{-2\\pi i x \\xi} dx", link: "https://en.wikipedia.org/wiki/Fourier_transform" },
+    // 15. 贝叶斯定理 (概率论)
+    { tex: "P(A|B) = \\frac{P(B|A)P(A)}{P(B)}", link: "https://en.wikipedia.org/wiki/Bayes%27_theorem" },
+    // 16. 微积分基本定理 (微积分)
+    { tex: "\\int_a^b f'(x) dx = f(b) - f(a)", link: "https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus" },
+    // 17. 黎曼 Zeta 函数 (数论)
+    { tex: "\\zeta(s) = \\sum_{n=1}^{\\infty} n^{-s}", link: "https://en.wikipedia.org/wiki/Riemann_zeta_function" },
+    // 18. 柯西-施瓦茨不等式 (线性代数)
+    { tex: "|\\langle \\mathbf{u},\\mathbf{v} \\rangle|^2 \\leq \\langle \\mathbf{u},\\mathbf{u} \\rangle \\cdot \\langle \\mathbf{v},\\mathbf{v} \\rangle", link: "https://en.wikipedia.org/wiki/Cauchy%E2%80%93Schwarz_inequality" },
+    // 19. 黄金分割比 (几何)
+    { tex: "\\phi = \\frac{1 + \\sqrt{5}}{2}", link: "https://en.wikipedia.org/wiki/Golden_ratio" },
+    // 20. 正态分布概率密度 (简化版，去掉长系数)
+    { tex: "f(x) \\propto e^{-\\frac{1}{2}x^2}", link: "https://en.wikipedia.org/wiki/Normal_distribution" },
+    // 21. 斯托克斯定理 (向量分析)
+    { tex: "\\int_{\\partial\\Omega} \\omega = \\int_\\Omega d\\omega", link: "https://en.wikipedia.org/wiki/Stokes%27_theorem" },
+
+    // --- 人工智能 (AI / CS) ---
+    // 22. 梯度下降更新规则 (优化算法)
+    { tex: "\\theta_{t+1} = \\theta_t - \\alpha \\nabla J(\\theta)", link: "https://en.wikipedia.org/wiki/Gradient_descent" },
+    // 23. Attention 注意力机制 (Transformer核心) - 紧凑版
+    { tex: "\\text{Attention}(Q,K,V) = \\text{softmax}(\\frac{QK^T}{\\sqrt{d}})V", link: "https://en.wikipedia.org/wiki/Attention_(machine_learning)" },
+    // 24. Sigmoid 激活函数
+    { tex: "\\sigma(z) = \\frac{1}{1 + e^{-z}}", link: "https://en.wikipedia.org/wiki/Sigmoid_function" },
+    // 25. ReLU 激活函数 (极简)
+    { tex: "f(x) = \\max(0, x)", link: "https://en.wikipedia.org/wiki/Rectifier_(neural_networks)" },
+    // 26. 贝尔曼方程 (强化学习)
+    { tex: "V(s) = \\max_a (R + \\gamma \\sum P V(s'))", link: "https://en.wikipedia.org/wiki/Bellman_equation" },
+    // 27. KL 散度 (信息论/机器学习) - 选用求和形式，不用积分
+    { tex: "D_{KL}(P||Q) = \\sum P(x) \\ln \\frac{P(x)}{Q(x)}", link: "https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence" },
+    // 28. 大O表示法 (算法复杂度)
+    { tex: "f(x) = O(g(x))", link: "https://en.wikipedia.org/wiki/Big_O_notation" },
+    // 29. 逻辑回归模型
+    { tex: "P(Y=1) = \\frac{1}{1 + e^{-(\\beta_0 + \\beta x)}}", link: "https://en.wikipedia.org/wiki/Logistic_regression" },
+    // 30. P vs NP 问题 (计算机科学皇冠)
+    { tex: "P \\overset{?}{=} NP", link: "https://en.wikipedia.org/wiki/P_versus_NP_problem" }
+];
 
     function initMathHero() {
         // ... 逻辑同上 ...
