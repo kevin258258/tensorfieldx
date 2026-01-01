@@ -45,7 +45,7 @@ const years = Object.keys(notesByYear).sort((a, b) => b - a);
                     <div class="space-y-12">
                         {notesByYear[year].map(note => (
                             <article class="group relative">
-                                <a href={`/tensorfieldx/notes/${note.slug}`} class="block">
+                                <a href={`/notes/${note.slug}`} class="block">
                                     <div class="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-8">
                                         <time class="font-mono text-xs text-concrete min-w-[120px] pt-1">
                                             {note.data.pubDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}

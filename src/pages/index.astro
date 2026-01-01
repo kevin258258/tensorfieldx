@@ -74,7 +74,7 @@ const sortedNotes = allNotes.sort(
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/10">
-                <a href="/tensorfieldx/notes" class="group md:col-span-2 relative border-b md:border-b-0 md:border-r border-white/10 bg-void p-12 flex flex-col justify-between hover:bg-white/5 transition-colors duration-0">
+                <a href="/notes" class="group md:col-span-2 relative border-b md:border-b-0 md:border-r border-white/10 bg-void p-12 flex flex-col justify-between hover:bg-white/5 transition-colors duration-0">
                     <span class="absolute right-4 bottom-0 text-[180px] font-serif font-bold text-white/5 group-hover:text-accent/10 transition-colors leading-none">N</span>
                     <div>
                         <h3 class="text-4xl font-serif font-bold text-white group-hover:text-accent transition-colors">Notes</h3>
@@ -88,12 +88,12 @@ const sortedNotes = allNotes.sort(
                 </a>
 
                 <div class="flex flex-col">
-                    <a href="/tensorfieldx/projects" class="group flex-1 relative border-b border-white/10 bg-void p-8 flex flex-col justify-center hover:bg-white/5 transition-colors duration-0">
+                    <a href="/projects" class="group flex-1 relative border-b border-white/10 bg-void p-8 flex flex-col justify-center hover:bg-white/5 transition-colors duration-0">
                         <div class="absolute top-4 right-4 text-[10px] font-mono border border-white/20 px-1 text-concrete">EXE</div>
                         <h3 class="text-2xl font-serif font-bold mb-2 text-white group-hover:text-accent transition-colors">Archives</h3>
                         <p class="font-mono text-[10px] text-concrete">Experiments & Coursework.</p>
                     </a>
-                    <a href="/tensorfieldx/about" class="group flex-1 relative bg-void p-8 flex flex-col justify-center hover:bg-white/5 transition-colors duration-0">
+                    <a href="/about" class="group flex-1 relative bg-void p-8 flex flex-col justify-center hover:bg-white/5 transition-colors duration-0">
                         <div class="absolute top-4 right-4 text-[10px] font-mono border border-white/20 px-1 text-concrete">USR</div>
                         <h3 class="text-2xl font-serif font-bold mb-2 text-white group-hover:text-accent transition-colors">About</h3>
                         <p class="font-mono text-[10px] text-concrete">Profile & Contact.</p>
@@ -110,7 +110,7 @@ const sortedNotes = allNotes.sort(
                 {sortedNotes.slice(0, 5).map((note, index) => {
                     const hexId = `0x${(sortedNotes.length - index).toString(16).padStart(2, '0').toUpperCase()}`;
                     return (
-                        <a href={`/tensorfieldx/notes/${note.slug}`} class="group grid grid-cols-12 gap-4 px-4 py-6 items-baseline border-b border-white/5 last:border-0 hover:bg-accent hover:text-white transition-colors duration-0">
+                        <a href={`/notes/${note.slug}`} class="group grid grid-cols-12 gap-4 px-4 py-6 items-baseline border-b border-white/5 last:border-0 hover:bg-accent hover:text-white transition-colors duration-0">
                             <div class="col-span-2 md:col-span-1 font-mono text-xs text-concrete group-hover:text-white font-bold">{hexId}</div>
                             <div class="col-span-3 md:col-span-2 font-mono text-xs text-ink group-hover:text-white">{note.data.pubDate.toISOString().split('T')[0]}</div>
                             <div class="col-span-7 md:col-span-6"><h3 class="font-serif text-xl font-bold text-white group-hover:text-white">{note.data.title}</h3></div>
@@ -121,7 +121,7 @@ const sortedNotes = allNotes.sort(
                 })}
             </div>
             <div class="mt-12 text-center">
-                 <a href="/tensorfieldx/notes" class="inline-block border border-white/10 px-8 py-3 font-mono text-xs text-accent hover:bg-accent hover:text-white hover:border-accent transition-colors font-bold">VIEW_ALL_RECORDS</a>
+                 <a href="/notes" class="inline-block border border-white/10 px-8 py-3 font-mono text-xs text-accent hover:bg-accent hover:text-white hover:border-accent transition-colors font-bold">VIEW_ALL_RECORDS</a>
             </div>
         </div>
 	</section>

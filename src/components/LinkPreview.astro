@@ -18,7 +18,7 @@
 <script>
     // 1. 获取全站数据索引
     let linkData = {};
-    fetch('/tensorfieldx/link-preview.json')
+    fetch('/link-preview.json')
         .then(res => res.json())
         .then(data => { linkData = data; });
 
@@ -33,7 +33,7 @@
     // 2. 监听全局鼠标移动 (这是为了让 Tooltip 跟随鼠标，更像 HUD)
     document.addEventListener('astro:page-load', () => {
         // 只选择站内链接
-        const links = document.querySelectorAll('a[href^="/tensorfieldx/notes/"]');
+        const links = document.querySelectorAll('a[href^="/notes/"]');
 
         links.forEach(link => {
             link.addEventListener('mouseenter', (e) => {

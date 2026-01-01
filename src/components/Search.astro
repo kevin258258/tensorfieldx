@@ -57,7 +57,7 @@
         async function loadIndex() {
             if (isDataLoaded) return;
             try {
-                const res = await fetch('/tensorfieldx/link-preview.json');
+                const res = await fetch('/link-preview.json');
                 const data = await res.json();
                 // 显式类型转换
                 searchIndex = Object.entries(data).map(([url, meta]: [string, any]) => ({
