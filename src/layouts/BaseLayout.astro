@@ -101,6 +101,24 @@ const { title } = Astro.props;
     /* 隐藏滚动条但保留功能，维持美观 */
     scrollbar-width: none; 
 }
+/* 针对所有 Markdown 生成的公式 */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #1A66FF transparent; /* 滚动条也用瑞士蓝 */
+  padding: 1rem 0;
+}
+
+/* 隐藏移动端的丑陋滚动条，保持平面设计感 */
+@media (max-width: 768px) {
+  .katex-display {
+    scrollbar-width: none;
+  }
+  .katex-display::-webkit-scrollbar {
+    display: none;
+  }
+}
 
 
 .katex-display::-webkit-scrollbar {
