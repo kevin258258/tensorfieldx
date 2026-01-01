@@ -1,68 +1,189 @@
 ---
+// src/pages/projects.astro
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-// 这里先手动写几个项目，之后可以像 Notes 一样改成从 Markdown 读取
+// 1. 定义项目数据 (模拟数据库)
 const projects = [
-  {
-    title: "vLLM Inference Cluster",
-    description: "Configured high-performance LLM serving environment on HPC. Optimized CUDA kernels for reduced latency.",
-    tech: ["Python", "CUDA", "HPC"],
-    status: "DEPLOYED",
-    link: "#"
-  },
-  {
-    title: "CS61C: RISC-V CPU",
-    description: "Implemented a 5-stage pipelined CPU in Verilog. Handling hazards and forwarding logic.",
-    tech: ["Verilog", "RISC-V", "Logisim"],
-    status: "COMPLETED",
-    link: "#"
-  },
-  {
-    title: "TensorField Render Engine",
-    description: "A physically based renderer written from scratch. Exploring path tracing and global illumination.",
-    tech: ["C++", "OpenGL", "Physics"],
-    status: "IN_PROGRESS",
-    link: "#"
-  }
+    {
+        id: "PRJ_01",
+        title: "vLLM Inference Cluster",
+        status: "DEPLOYED",
+        description: "Configured high-performance LLM serving environment on HPC. Optimized CUDA kernels for reduced latency.",
+        tech: ["Python", "CUDA", "HPC"],
+        year: "2025",
+        link: "#"
+    },
+    {
+        id: "PRJ_02",
+        title: "TensorField Render Engine",
+        status: "IN_PROGRESS",
+        description: "A physically based renderer written from scratch. Exploring path tracing and global illumination.",
+        tech: ["C++", "OpenGL", "Physics"],
+        year: "2026",
+        link: "#"
+    },
+    {
+        id: "PRJ_03",
+        title: "CS61C: RISC-V CPU",
+        status: "COMPLETED",
+        description: "Implemented a 5-stage pipelined CPU in Verilog. Handling hazards and forwarding logic.",
+        tech: ["Verilog", "RISC-V", "Logisim"],
+        year: "2024",
+        link: "#"
+    },
+    {
+        id: "PRJ_04",
+        title: "Neural Style Transfer CLI",
+        status: "ARCHIVED",
+        description: "Command line tool for style transfer using VGG19. Supports real-time video processing.",
+        tech: ["PyTorch", "Python", "CV"],
+        year: "2023",
+        link: "#"
+    }
 ];
+
+// 2. 提取所有技术栈 (用于左侧过滤器)
+const allTech = [...new Set(projects.flatMap(p => p.tech))];
+
+// 3. 状态颜色映射
+const getStatusColor = (status) => {
+    switch(status) {
+        case 'DEPLOYED': return 'text-acid-green border-acid-green';
+        case 'IN_PROGRESS': return 'text-yellow-400 border-yellow-400';
+        case 'COMPLETED': return 'text-blue-400 border-blue-400';
+        case 'ARCHIVED': return 'text-gray-500 border-gray-500';
+        default: return 'text-white border-white';
+    }
+};
+
+const sessionID = "EXE_" + Math.random().toString(36).substring(7).toUpperCase();
 ---
 
-<BaseLayout title="Projects">
-  <header class="mb-12 border-b border-white/10 pb-8">
-    <h1 class="text-6xl font-serif mb-4">Projects</h1>
-    <p class="text-gray-400 font-mono text-sm">
-      // ENGINEERING_ARCHIVE // EXECUTABLES
-    </p>
-  </header>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {projects.map(project => (
-      <div class="group border border-white/20 bg-white/5 p-6 hover:border-acid-green/50 transition-all hover:-translate-y-1">
+<BaseLayout title="Engineering Blueprints">
+    
+    <div class="max-w-[98vw] lg:max-w-[1600px] mx-auto px-4 mt-8 lg:mt-16">
         
-        <div class="flex justify-between items-start mb-4">
-          <div class="font-mono text-xs text-acid-green border border-acid-green/30 px-2 py-1">
-            {project.status}
-          </div>
-          <div class="text-gray-600 group-hover:text-acid-green transition-colors">↗</div>
+        <header class="mb-12 border-b border-white/10 pb-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-3 flex flex-col justify-end">
+                <span class="font-mono text-xs text-acid-green">:: REPO_ACCESS_OK</span>
+                <span class="font-mono text-[10px] text-gray-500">ID: {sessionID}</span>
+            </div>
+            
+            <div class="lg:col-span-6">
+                <h1 class="text-4xl md:text-6xl font-serif font-bold text-white leading-none">
+                    Engineering <span class="italic text-gray-500">Blueprints</span>
+                </h1>
+            </div>
+
+            <div class="lg:col-span-3 flex flex-col justify-end text-right">
+                <div class="font-mono text-[10px] text-gray-500 flex flex-col gap-1">
+                    <span>ACTIVE_TASKS: {projects.filter(p => p.status !== 'ARCHIVED').length}</span>
+                    <span>COMPILATION: 100%</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 relative">
+            
+            <aside class="hidden lg:block lg:col-span-3 relative">
+                <div class="sticky top-32">
+                    <div class="mb-8">
+                        <h3 class="font-mono text-[10px] text-gray-500 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">
+                            // Tech_Stack
+                        </h3>
+                        <div class="flex flex-col gap-2">
+                            {allTech.map(t => (
+                                <div class="flex items-center gap-2 group cursor-pointer">
+                                    <div class="w-1 h-1 bg-gray-600 group-hover:bg-acid-green transition-colors"></div>
+                                    <span class="text-xs font-mono text-gray-400 group-hover:text-white transition-colors">{t}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div class="mt-12 p-4 border border-white/10 bg-white/5 font-mono text-[10px] text-gray-500">
+                        <div class="mb-2 text-white">BUILD_LOG:</div>
+                        <div class="opacity-50">
+                            > npm install world<br/>
+                            > make universe<br/>
+                            > linking libraries...<br/>
+                            > <span class="text-acid-green">SUCCESS</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="lg:col-span-6 flex flex-col gap-4 min-h-screen">
+                {projects.map((project, index) => {
+                     const statusClass = getStatusColor(project.status);
+                     return (
+                        <a href={project.link} class="group relative block bg-[#0A0F1C] border border-white/10 p-0 hover:border-white/30 transition-all duration-300 overflow-hidden">
+                            
+                            <div class="flex justify-between items-center bg-white/5 px-6 py-2 border-b border-white/10">
+                                <span class={`font-mono text-[10px] px-1.5 py-0.5 border ${statusClass} rounded-sm`}>
+                                    {project.status}
+                                </span>
+                                <span class="font-mono text-[10px] text-gray-600">{project.id} // {project.year}</span>
+                            </div>
+
+                            <div class="p-6 relative">
+                                <span class="absolute right-4 top-4 text-8xl font-serif font-bold text-white/[0.03] pointer-events-none group-hover:text-white/[0.05] transition-colors">
+                                    {project.title.charAt(0)}
+                                </span>
+
+                                <h2 class="text-2xl font-serif font-bold text-gray-100 mb-4 group-hover:text-acid-green transition-colors">
+                                    {project.title}
+                                </h2>
+                                
+                                <p class="font-mono text-xs text-gray-400 leading-relaxed mb-6 max-w-md">
+                                    {project.description}
+                                </p>
+
+                                <div class="flex flex-wrap gap-2">
+                                    {project.tech.map(t => (
+                                        <span class="text-[10px] font-mono text-gray-500 border border-white/10 px-2 py-1 group-hover:border-white/30 group-hover:text-gray-300 transition-colors">
+                                            {t}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div class="h-0.5 w-full bg-white/5 mt-2">
+                                <div class="h-full bg-acid-green w-0 group-hover:w-full transition-all duration-700 ease-in-out"></div>
+                            </div>
+                        </a>
+                     )
+                })}
+
+                <div class="text-center py-12">
+                    <span class="font-mono text-[10px] text-gray-600 animate-pulse">// EOF_PROJECTS</span>
+                </div>
+            </main>
+
+            <aside class="hidden lg:block lg:col-span-3 relative">
+                <div class="sticky top-32 border-l border-white/10 pl-8">
+                     <h3 class="font-mono text-[10px] text-gray-500 uppercase tracking-widest mb-4">
+                        // CORE_LOAD
+                     </h3>
+                     <div class="flex gap-1 h-32 items-end mb-2">
+                        {[...Array(12)].map(() => (
+                            <div class="w-2 bg-white/10 hover:bg-acid-green transition-colors duration-300" 
+                                 style={`height: ${Math.random() * 100}%`}></div>
+                        ))}
+                     </div>
+                     <div class="flex justify-between text-[10px] font-mono text-gray-600">
+                        <span>0%</span>
+                        <span>100%</span>
+                     </div>
+
+                     <div class="mt-8 pt-8 border-t border-white/10">
+                        <div class="font-mono text-[10px] text-gray-500 mb-2">LAST_COMMIT:</div>
+                        <div class="font-mono text-xs text-white">feat: optimize ray tracing kernel</div>
+                        <div class="font-mono text-[10px] text-gray-600 mt-1">2 hours ago</div>
+                     </div>
+                </div>
+            </aside>
+
         </div>
-
-        <h3 class="text-2xl font-serif font-bold mb-3 group-hover:text-white transition-colors">
-          {project.title}
-        </h3>
-        
-        <p class="text-gray-400 text-sm mb-6 leading-relaxed">
-          {project.description}
-        </p>
-
-        <div class="flex flex-wrap gap-2 mt-auto">
-          {project.tech.map(t => (
-            <span class="text-xs font-mono text-gray-500 bg-white/5 px-2 py-1 rounded">
-              #{t}
-            </span>
-          ))}
-        </div>
-
-      </div>
-    ))}
-  </div>
+    </div>
 </BaseLayout>
