@@ -131,72 +131,72 @@ const sortedNotes = allNotes.sort(
 <script>
     // ... Math Hero Script ...
     // (保留之前的 Script 代码，不需要修改)
- const formulas = [
-    // --- 物理学 (Physics) ---
-    // 1. 薛定谔方程 (量子力学) - 极其紧凑的形式
-    { tex: "i\\hbar\\dot{\\Psi} = \\hat{H}\\Psi", link: "https://en.wikipedia.org/wiki/Schr%C3%B6dinger_equation" },
-    // 2. 质能方程 (狭义相对论) - 标志性极短公式
-    { tex: "E = mc^2", link: "https://en.wikipedia.org/wiki/Mass%E2%80%93energy_equivalence" },
-    // 3. 爱因斯坦场方程 (广义相对论) - 紧凑张量形式
-    { tex: "G_{\\mu\\nu} + \\Lambda g_{\\mu\\nu} = \\kappa T_{\\mu\\nu}", link: "https://en.wikipedia.org/wiki/Einstein_field_equations" },
-    // 4. 狄拉克方程 (相对论量子力学)
-    { tex: "(i\\gamma^\\mu \\partial_\\mu - m)\\psi = 0", link: "https://en.wikipedia.org/wiki/Dirac_equation" },
-    // 5. 海森堡不确定性原理 (量子力学)
-    { tex: "\\Delta x \\Delta p \\geq \\frac{\\hbar}{2}", link: "https://en.wikipedia.org/wiki/Uncertainty_principle" },
-    // 6. 麦克斯韦方程 (高斯定律) - 选用最短的一个
-    { tex: "\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}", link: "https://en.wikipedia.org/wiki/Maxwell%27s_equations" },
-    // 7. 玻尔兹曼熵 (热力学) - 墓志铭上的公式
-    { tex: "S = k_B \\ln \\Omega", link: "https://en.wikipedia.org/wiki/Boltzmann%27s_entropy_formula" },
-    // 8. 普朗克关系式 (量子理论基础)
-    { tex: "E = h\\nu", link: "https://en.wikipedia.org/wiki/Planck_relation" },
-    // 9. 热力学第二定律 (熵增)
-    { tex: "dS \\geq 0", link: "https://en.wikipedia.org/wiki/Second_law_of_thermodynamics" },
-    // 10. 波动方程 (经典物理)
-    { tex: "\\frac{\\partial^2 u}{\\partial t^2} = c^2 \\nabla^2 u", link: "https://en.wikipedia.org/wiki/Wave_equation" },
-    // 11. 德布罗意波长 (波粒二象性)
-    { tex: "\\lambda = \\frac{h}{p}", link: "https://en.wikipedia.org/wiki/Matter_wave" },
-    // 12. 胡克定律 (经典力学) - 极简
-    { tex: "F = -kx", link: "https://en.wikipedia.org/wiki/Hooke%27s_law" },
+const formulas = [
+    // --- 理论物理 (Theoretical Physics: QFT & GR) ---
+    // 1. 路径积分 (量子场论) - 费曼的终极浪漫，一切物理皆为路径求和
+    { tex: "Z = \\int \\mathcal{D}\\phi \\, e^{iS[\\phi]}", link: "https://en.wikipedia.org/wiki/Path_integral_formulation" },
+    // 2. 杨-米尔斯作用量 (规范场论) - 标准模型的数学基础
+    { tex: "S_{YM} = -\\frac{1}{2} \\int \\text{Tr}(F_{\\mu\\nu}F^{\\mu\\nu}) d^4x", link: "https://en.wikipedia.org/wiki/Yang%E2%80%93Mills_theory" },
+    // 3. 爱因斯坦场方程 (广义相对论) - 时空弯曲的本质
+    { tex: "R_{\\mu\\nu} - \\frac{1}{2}Rg_{\\mu\\nu} = 8\\pi G T_{\\mu\\nu}", link: "https://en.wikipedia.org/wiki/Einstein_field_equations" },
+    // 4. 狄拉克方程 (QED) - 协变形式，自旋与反物质的起源
+    { tex: "(i\\gamma^\\mu D_\\mu - m)\\psi = 0", link: "https://en.wikipedia.org/wiki/Dirac_equation" },
+    // 5. 正则对易关系 (量子力学) - 场算符的量子化条件
+    { tex: "[\\hat{\\phi}(x), \\hat{\\pi}(y)] = i\\hbar \\delta(x-y)", link: "https://en.wikipedia.org/wiki/Canonical_quantization" },
+    // 6. 卡伦-西曼齐克方程 (重整化群) - 描述物理规律随能量尺度的变化
+    { tex: "(\\mu \\frac{\\partial}{\\partial \\mu} + \\beta \\frac{\\partial}{\\partial g}) \\Gamma^{(n)} = 0", link: "https://en.wikipedia.org/wiki/Callan%E2%80%93Symanzik_equation" },
+    // 7. 测地线方程 (微分几何/GR) - 弯曲时空中的“直线”
+    { tex: "\\frac{d^2x^\\mu}{d\\tau^2} + \\Gamma^\\mu_{\\alpha\\beta} \\frac{dx^\\alpha}{d\\tau} \\frac{dx^\\beta}{d\\tau} = 0", link: "https://en.wikipedia.org/wiki/Geodesic" },
+    // 8. 诺特定理 (理论力学) - 对称性对应守恒定律
+    { tex: "\\partial_\\mu j^\\mu = 0", link: "https://en.wikipedia.org/wiki/Noether%27s_theorem" },
+    // 9. 密度矩阵演化 (开放量子系统) - 冯·诺依曼方程
+    { tex: "i\\hbar \\frac{\\partial \\rho}{\\partial t} = [H, \\rho]", link: "https://en.wikipedia.org/wiki/Density_matrix" },
+    // 10. 贝肯斯坦-霍金熵 (黑洞热力学) - 信息与引力的交汇
+    { tex: "S_{BH} = \\frac{k_B A}{4 l_P^2}", link: "https://en.wikipedia.org/wiki/Black_hole_thermodynamics" },
 
-    // --- 数学 (Mathematics) ---
-    // 13. 欧拉公式 (数学最美公式)
-    { tex: "e^{i\\pi} + 1 = 0", link: "https://en.wikipedia.org/wiki/Euler%27s_identity" },
-    // 14. 傅里叶变换 (你的基准长度)
-    { tex: "\\hat{f}(\\xi) = \\int f(x) e^{-2\\pi i x \\xi} dx", link: "https://en.wikipedia.org/wiki/Fourier_transform" },
-    // 15. 贝叶斯定理 (概率论)
-    { tex: "P(A|B) = \\frac{P(B|A)P(A)}{P(B)}", link: "https://en.wikipedia.org/wiki/Bayes%27_theorem" },
-    // 16. 微积分基本定理 (微积分)
-    { tex: "\\int_a^b f'(x) dx = f(b) - f(a)", link: "https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus" },
-    // 17. 黎曼 Zeta 函数 (数论)
-    { tex: "\\zeta(s) = \\sum_{n=1}^{\\infty} n^{-s}", link: "https://en.wikipedia.org/wiki/Riemann_zeta_function" },
-    // 18. 柯西-施瓦茨不等式 (线性代数)
-    { tex: "|\\langle \\mathbf{u},\\mathbf{v} \\rangle|^2 \\leq \\langle \\mathbf{u},\\mathbf{u} \\rangle \\cdot \\langle \\mathbf{v},\\mathbf{v} \\rangle", link: "https://en.wikipedia.org/wiki/Cauchy%E2%80%93Schwarz_inequality" },
-    // 19. 黄金分割比 (几何)
-    { tex: "\\phi = \\frac{1 + \\sqrt{5}}{2}", link: "https://en.wikipedia.org/wiki/Golden_ratio" },
-    // 20. 正态分布概率密度 (简化版，去掉长系数)
-    { tex: "f(x) \\propto e^{-\\frac{1}{2}x^2}", link: "https://en.wikipedia.org/wiki/Normal_distribution" },
-    // 21. 斯托克斯定理 (向量分析)
-    { tex: "\\int_{\\partial\\Omega} \\omega = \\int_\\Omega d\\omega", link: "https://en.wikipedia.org/wiki/Stokes%27_theorem" },
+    // --- 高等数学 (Advanced Math: Functional & Topology) ---
+    // 11. 阿蒂亚-辛格指标定理 (拓扑/几何) - 分析与拓扑的深刻联系
+    { tex: "\\text{ind}(\\mathcal{D}) = \\int_{\\mathcal{M}} \\text{ch}(E) \\wedge \\hat{A}(\\mathcal{M})", link: "https://en.wikipedia.org/wiki/Atiyah%E2%80%93Singer_index_theorem" },
+    // 12. 斯托克斯定理 (微分流形) - 所有的微积分归结于此
+    { tex: "\\int_{\\partial\\Omega} \\omega = \\int_\\Omega d\\omega", link: "https://en.wikipedia.org/wiki/Generalized_Stokes_theorem" },
+    // 13. 里奇流 (几何分析) - 庞加莱猜想的证明工具
+    { tex: "\\frac{\\partial g_{ij}}{\\partial t} = -2R_{ij}", link: "https://en.wikipedia.org/wiki/Ricci_flow" },
+    // 14. 里斯表示定理 (泛函分析) - 希尔伯特空间的对偶性
+    { tex: "f(x) = \\langle x, y \\rangle", link: "https://en.wikipedia.org/wiki/Riesz_representation_theorem" },
+    // 15. 留数定理 (复变函数) - 围道积分的核心
+    { tex: "\\oint_\\gamma f(z) dz = 2\\pi i \\sum \\text{Res}(f, a_k)", link: "https://en.wikipedia.org/wiki/Residue_theorem" },
+    // 16. 巴拿赫不动点定理 (度量空间) - 压缩映射
+    { tex: "d(T(x), T(y)) \\leq q d(x, y)", link: "https://en.wikipedia.org/wiki/Banach_fixed-point_theorem" },
+    // 17. 德拉姆上同调 (代数拓扑) - 微分形式与拓扑
+    { tex: "H^k_{dR}(M) = \\frac{\\ker d_k}{\\text{im } d_{k-1}}", link: "https://en.wikipedia.org/wiki/De_Rham_cohomology" },
+    // 18. 李导数 (微分几何) - 张量场的导数
+    { tex: "\\mathcal{L}_X Y = [X, Y]", link: "https://en.wikipedia.org/wiki/Lie_derivative" },
+    // 19. 庞加莱对偶 (代数拓扑)
+    { tex: "H^k(M) \\cong H_{n-k}(M)", link: "https://en.wikipedia.org/wiki/Poincar%C3%A9_duality" },
+    // 20. 谱定理 (算子理论) - 算子的对角化
+    { tex: "A = \\int \\lambda dE(\\lambda)", link: "https://en.wikipedia.org/wiki/Spectral_theorem" },
 
-    // --- 人工智能 (AI / CS) ---
-    // 22. 梯度下降更新规则 (优化算法)
-    { tex: "\\theta_{t+1} = \\theta_t - \\alpha \\nabla J(\\theta)", link: "https://en.wikipedia.org/wiki/Gradient_descent" },
-    // 23. Attention 注意力机制 (Transformer核心) - 紧凑版
-    { tex: "\\text{Attention}(Q,K,V) = \\text{softmax}(\\frac{QK^T}{\\sqrt{d}})V", link: "https://en.wikipedia.org/wiki/Attention_(machine_learning)" },
-    // 24. Sigmoid 激活函数
-    { tex: "\\sigma(z) = \\frac{1}{1 + e^{-z}}", link: "https://en.wikipedia.org/wiki/Sigmoid_function" },
-    // 25. ReLU 激活函数 (极简)
-    { tex: "f(x) = \\max(0, x)", link: "https://en.wikipedia.org/wiki/Rectifier_(neural_networks)" },
-    // 26. 贝尔曼方程 (强化学习)
-    { tex: "V(s) = \\max_a (R + \\gamma \\sum P V(s'))", link: "https://en.wikipedia.org/wiki/Bellman_equation" },
-    // 27. KL 散度 (信息论/机器学习) - 选用求和形式，不用积分
-    { tex: "D_{KL}(P||Q) = \\sum P(x) \\ln \\frac{P(x)}{Q(x)}", link: "https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence" },
-    // 28. 大O表示法 (算法复杂度)
-    { tex: "f(x) = O(g(x))", link: "https://en.wikipedia.org/wiki/Big_O_notation" },
-    // 29. 逻辑回归模型
-    { tex: "P(Y=1) = \\frac{1}{1 + e^{-(\\beta_0 + \\beta x)}}", link: "https://en.wikipedia.org/wiki/Logistic_regression" },
-    // 30. P vs NP 问题 (计算机科学皇冠)
-    { tex: "P \\overset{?}{=} NP", link: "https://en.wikipedia.org/wiki/P_versus_NP_problem" }
+    // --- 理论计算机科学与AI (Theoretical CS & AI) ---
+    // 21. ELBO (变分推断) - VAE与生成模型的核心
+    { tex: "\\mathcal{L} = \\mathbb{E}_q[\\ln p(x|z)] - D_{KL}(q||p)", link: "https://en.wikipedia.org/wiki/Evidence_lower_bound" },
+    // 22. 再生核希尔伯特空间 (RKHS) - 核方法的数学基础
+    { tex: "f(x) = \\langle f, K_x \\rangle_{\\mathcal{H}}", link: "https://en.wikipedia.org/wiki/Reproducing_kernel_Hilbert_space" },
+    // 23. 最优传输 (Wasserstein Distance) - GANs的高级度量
+    { tex: "W_p(\\mu, \\nu) = (\\inf_{\\gamma} \\int d(x,y)^p d\\gamma)^{1/p}", link: "https://en.wikipedia.org/wiki/Wasserstein_metric" },
+    // 24. Y组合子 (Lambda演算) - 函数式编程的递归之源
+    { tex: "Y = \\lambda f.(\\lambda x.f(xx))(\\lambda x.f(xx))", link: "https://en.wikipedia.org/wiki/Fixed-point_combinator" },
+    // 25. VC维 (统计学习理论) - 机器学习可学习性的界
+    { tex: "P(\\text{error}) \\leq O(\\sqrt{\\frac{d_{VC}}{n}})", link: "https://en.wikipedia.org/wiki/Vapnik%E2%80%93Chervonenkis_dimension" },
+    // 26. 拉普拉斯-贝尔特拉米算子 (流形学习/几何深度学习)
+    { tex: "\\Delta f = \\text{div}(\\nabla f)", link: "https://en.wikipedia.org/wiki/Laplace%E2%80%93Beltrami_operator" },
+    // 27. 注意力机制 (Transformer) - 矩阵形式
+    { tex: "\\text{softmax}(\\frac{QK^T}{\\sqrt{d_k}})V", link: "https://en.wikipedia.org/wiki/Attention_(machine_learning)" },
+    // 28. 香农信道容量 (信息论)
+    { tex: "C = \\sup_{p(x)} I(X;Y)", link: "https://en.wikipedia.org/wiki/Channel_capacity" },
+    // 29. 奇异值分解 (线性代数) - 数据压缩与降维
+    { tex: "A = U \\Sigma V^T", link: "https://en.wikipedia.org/wiki/Singular_value_decomposition" },
+    // 30. 海森矩阵 (优化理论) - 二阶导数矩阵
+    { tex: "H_{ij} = \\frac{\\partial^2 f}{\\partial x_i \\partial x_j}", link: "https://en.wikipedia.org/wiki/Hessian_matrix" }
 ];
 
     function initMathHero() {
