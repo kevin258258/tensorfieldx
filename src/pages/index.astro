@@ -7,7 +7,7 @@ const sortedNotes = allNotes.sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
-const formula = "S = -k \\sum p_i \\ln p_i";
+// 这里不需要 server-side 的 formula 变量了，全部移交给 client-side script 处理
 ---
 
 <BaseLayout title="Home">
@@ -18,10 +18,22 @@ const formula = "S = -k \\sum p_i \\ln p_i";
             :: SYSTEM_READY
         </div>
 
-		<div class="relative z-10 text-center">
-            <div class="text-3xl md:text-5xl lg:text-7xl font-serif text-white/90 mb-8 opacity-80 hover:opacity-100 transition-opacity cursor-help mix-blend-overlay">
-                $$ {formula} $$
-            </div>
+		<div class="relative z-10 text-center w-full max-w-4xl">
+            
+            <a id="math-link" href="#" target="_blank" class="block group relative min-h-[120px] flex flex-col justify-center items-center mb-8 cursor-help transition-all duration-300">
+                
+                <div id="formula-raw" class="font-mono text-sm md:text-base text-acid-green/80 bg-black/20 px-4 py-2 rounded border border-transparent group-hover:border-acid-green/30 transition-all">
+                    </div>
+
+                <div id="formula-render" class="hidden text-3xl md:text-5xl lg:text-6xl font-serif text-white/90 opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300 mix-blend-overlay">
+                    </div>
+
+                <div class="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <span class="font-mono text-[10px] text-gray-500 bg-black px-2 py-1 border border-white/10">
+                        [CLICK TO DECRYPT SOURCE]
+                    </span>
+                </div>
+            </a>
             
             <h1 class="font-serif text-6xl md:text-8xl lg:text-9xl leading-none tracking-tighter mix-blend-difference">
                 Tensor<span class="text-acid-green font-normal italic">Field</span>X
@@ -34,37 +46,19 @@ const formula = "S = -k \\sum p_i \\ln p_i";
         <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12">
             
             <div class="lg:col-span-4 p-8 border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col justify-center">
-                <div class="font-mono text-[10px] text-gray-500 mb-4 tracking-widest">
-                    // PROFILE
-                </div>
-                
+                <div class="font-mono text-[10px] text-gray-500 mb-4 tracking-widest">// PROFILE</div>
                 <div class="flex items-center gap-4 mb-6">
-                    <div class="w-12 h-12 border border-acid-green flex items-center justify-center text-acid-green font-serif italic text-2xl bg-acid-green/10">
-                        T
-                    </div>
-                    <div>
-                        <h3 class="text-white font-serif text-xl">Feixiang Tao</h3>
-                        <p class="text-acid-green font-mono text-xs">CS Freshman @ SUSTech</p>
-                    </div>
+                    <div class="w-12 h-12 border border-acid-green flex items-center justify-center text-acid-green font-serif italic text-2xl bg-acid-green/10">T</div>
+                    <div><h3 class="text-white font-serif text-xl">Feixiang Tao</h3><p class="text-acid-green font-mono text-xs">CS Freshman @ SUSTech</p></div>
                 </div>
-
                 <ul class="space-y-2 font-mono text-xs text-gray-400">
-                    <li class="flex justify-between">
-                        <span>MAJOR:</span>
-                        <span class="text-white">Computer Science</span>
-                    </li>
-                    <li class="flex justify-between">
-                        <span>INTERESTS:</span>
-                        <span class="text-white">Physics / Math / AI</span>
-                    </li>
+                    <li class="flex justify-between"><span>MAJOR:</span><span class="text-white">Computer Science</span></li>
+                    <li class="flex justify-between"><span>INTERESTS:</span><span class="text-white">Physics / Math / AI</span></li>
                 </ul>
             </div>
 
             <div class="lg:col-span-8 p-8 flex flex-col justify-center relative overflow-hidden">
-                <div class="absolute top-[-20px] right-[-20px] text-[100px] font-serif text-white/5 pointer-events-none select-none">
-                    HELLO
-                </div>
-
+                <div class="absolute top-[-20px] right-[-20px] text-[100px] font-serif text-white/5 pointer-events-none select-none">HELLO</div>
                 <div class="prose prose-invert max-w-none">
                     <p class="font-serif text-xl md:text-2xl leading-relaxed text-gray-200">
                         "Documenting my undergraduate journey at <span class="text-acid-green border-b border-acid-green/30">SUSTech</span>."
@@ -76,41 +70,25 @@ const formula = "S = -k \\sum p_i \\ln p_i";
                     </p>
                 </div>
             </div>
-
         </div>
     </section>
 
 
 	<section class="py-20 border-b border-white/10 bg-void-blue/50 backdrop-blur-sm">
         <div class="max-w-7xl mx-auto px-6">
-            
-            <div class="font-mono text-xs text-gray-500 mb-8 flex items-center gap-2">
-                <span class="w-2 h-2 bg-acid-green rounded-full"></span>
-                SELECT MODULE:
-            </div>
-
+            <div class="font-mono text-xs text-gray-500 mb-8 flex items-center gap-2"><span class="w-2 h-2 bg-acid-green rounded-full"></span>SELECT MODULE:</div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto md:h-[400px]">
                 <a href="/tensorfieldx/notes" class="group md:col-span-2 relative border border-white/20 bg-white/5 p-8 flex flex-col justify-between hover:border-acid-green hover:bg-white/10 transition-all duration-300 overflow-hidden">
                     <span class="absolute right-[-20px] bottom-[-20px] text-[150px] font-serif font-bold text-white/5 group-hover:text-white/10 transition-colors leading-none">N</span>
-                    <div>
-                        <h3 class="text-3xl font-serif font-bold group-hover:text-acid-green transition-colors">Research Notes</h3>
-                        <p class="font-mono text-xs text-gray-400 mt-2 max-w-sm">
-                            Documentation of learning processes in Matrix Calculus, Statistical Mechanics, and System Architecture.
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-2 font-mono text-xs text-acid-green mt-8">
-                        <span>ACCESS_DB</span>
-                        <span class="group-hover:translate-x-2 transition-transform">→</span>
-                    </div>
+                    <div><h3 class="text-3xl font-serif font-bold group-hover:text-acid-green transition-colors">Research Notes</h3><p class="font-mono text-xs text-gray-400 mt-2 max-w-sm">Documentation of learning processes in Matrix Calculus, Statistical Mechanics, and System Architecture.</p></div>
+                    <div class="flex items-center gap-2 font-mono text-xs text-acid-green mt-8"><span>ACCESS_DB</span><span class="group-hover:translate-x-2 transition-transform">→</span></div>
                 </a>
-
                 <div class="flex flex-col gap-6">
                     <a href="/tensorfieldx/projects" class="group flex-1 relative border border-white/20 bg-white/5 p-6 flex flex-col justify-center hover:border-acid-green hover:bg-white/10 transition-all duration-300">
                         <div class="absolute top-2 right-2 text-[10px] font-mono border border-white/20 px-1 text-gray-500">EXE</div>
                         <h3 class="text-2xl font-serif font-bold mb-1 group-hover:text-acid-green transition-colors">Blueprints</h3>
                         <p class="font-mono text-[10px] text-gray-400">Engineering archives & compiled binaries.</p>
                     </a>
-
                     <a href="/tensorfieldx/about" class="group flex-1 relative border border-white/20 bg-white/5 p-6 flex flex-col justify-center hover:border-acid-green hover:bg-white/10 transition-all duration-300">
                         <div class="absolute top-2 right-2 text-[10px] font-mono border border-white/20 px-1 text-gray-500">USR</div>
                         <h3 class="text-2xl font-serif font-bold mb-1 group-hover:text-acid-green transition-colors">About Me</h3>
@@ -118,26 +96,13 @@ const formula = "S = -k \\sum p_i \\ln p_i";
                     </a>
                 </div>
             </div>
-
         </div>
     </section>
 
 
 	<section class="bg-void-blue py-20">
         <div class="max-w-7xl mx-auto px-6">
-            <h2 class="font-mono text-xs text-gray-500 mb-8 flex items-center gap-2">
-                <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
-                RECENT_LOGS:
-            </h2>
-
-            <div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-white/10 text-[10px] font-mono text-gray-500 tracking-widest uppercase">
-                <div class="col-span-2 md:col-span-1">ID</div>
-                <div class="col-span-3 md:col-span-2">Date</div>
-                <div class="col-span-7 md:col-span-6">Subject</div>
-                <div class="col-span-2 md:col-span-2 text-right hidden md:block">Tag</div>
-                <div class="col-span-1 text-right hidden md:block">Read</div>
-            </div>
-
+            <h2 class="font-mono text-xs text-gray-500 mb-8 flex items-center gap-2"><span class="w-2 h-2 bg-gray-500 rounded-full"></span>RECENT_LOGS:</h2>
             <div class="divide-y divide-white/5 border-t border-b border-white/10">
                 {sortedNotes.slice(0, 5).map((note, index) => {
                     const hexId = `0x${(sortedNotes.length - index).toString(16).padStart(2, '0').toUpperCase()}`;
@@ -145,22 +110,109 @@ const formula = "S = -k \\sum p_i \\ln p_i";
                         <a href={`/tensorfieldx/notes/${note.slug}`} class="group grid grid-cols-12 gap-4 px-4 py-6 items-baseline hover:bg-white hover:text-black transition-colors duration-200">
                             <div class="col-span-2 md:col-span-1 font-mono text-xs text-gray-600 group-hover:text-black/50">{hexId}</div>
                             <div class="col-span-3 md:col-span-2 font-mono text-xs text-acid-green group-hover:text-black">{note.data.pubDate.toISOString().split('T')[0]}</div>
-                            <div class="col-span-7 md:col-span-6">
-                                <h3 class="font-serif text-xl font-medium group-hover:font-bold">{note.data.title}</h3>
-                            </div>
+                            <div class="col-span-7 md:col-span-6"><h3 class="font-serif text-xl font-medium group-hover:font-bold">{note.data.title}</h3></div>
                             <div class="col-span-2 md:col-span-2 text-right hidden md:block font-mono text-xs text-gray-500 group-hover:text-black/70">[{note.data.tags?.[0]}]</div>
                             <div class="col-span-1 text-right hidden md:block font-mono text-xs text-gray-600 group-hover:text-black/50">~5m</div>
                         </a>
                     )
                 })}
             </div>
-            
             <div class="mt-12 text-center">
-                 <a href="/tensorfieldx/notes" class="inline-block border border-white/20 px-6 py-2 font-mono text-xs text-acid-green hover:bg-acid-green hover:text-black transition-colors">
-                    VIEW ALL RECORDS ->
-                 </a>
+                 <a href="/tensorfieldx/notes" class="inline-block border border-white/20 px-6 py-2 font-mono text-xs text-acid-green hover:bg-acid-green hover:text-black transition-colors">VIEW ALL RECORDS -></a>
             </div>
         </div>
 	</section>
 
 </BaseLayout>
+
+<script>
+    // 1. The Arsenal: 硬核公式库
+    const formulas = [
+        { tex: "i\\hbar\\frac{\\partial}{\\partial t}\\Psi = \\hat{H}\\Psi", link: "https://en.wikipedia.org/wiki/Schr%C3%B6dinger_equation" },
+        { tex: "R_{\\mu\\nu} - \\frac{1}{2}Rg_{\\mu\\nu} = \\frac{8\\pi G}{c^4}T_{\\mu\\nu}", link: "https://en.wikipedia.org/wiki/Einstein_field_equations" },
+        { tex: "H(X) = -\\sum_{i=1}^n P(x_i) \\log P(x_i)", link: "https://en.wikipedia.org/wiki/Entropy_(information_theory)" },
+        { tex: "P(A|B) = \\frac{P(B|A)P(A)}{P(B)}", link: "https://en.wikipedia.org/wiki/Bayes%27_theorem" },
+        { tex: "\\rho \\left(\\frac{\\partial \\mathbf{u}}{\\partial t} + \\mathbf{u} \\cdot \\nabla \\mathbf{u}\\right) = -\\nabla p + \\nu \\nabla^2 \\mathbf{u}", link: "https://en.wikipedia.org/wiki/Navier%E2%80%93Stokes_equations" },
+        { tex: "e^{i\\pi} + 1 = 0", link: "https://en.wikipedia.org/wiki/Euler%27s_identity" },
+        { tex: "\\text{Attention}(Q, K, V) = \\text{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right)V", link: "https://en.wikipedia.org/wiki/Attention_(machine_learning)" },
+        { tex: "\\hat{f}(\\xi) = \\int_{-\\infty}^{\\infty} f(x) e^{-2\\pi i x \\xi} dx", link: "https://en.wikipedia.org/wiki/Fourier_transform" },
+        { tex: "\\delta S = \\delta \\int_{t_1}^{t_2} L(q, \\dot{q}, t) dt = 0", link: "https://en.wikipedia.org/wiki/Principle_of_least_action" },
+        { tex: "f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2}", link: "https://en.wikipedia.org/wiki/Normal_distribution" },
+        { tex: "\\sigma_x \\sigma_p \\geq \\frac{\\hbar}{2}", link: "https://en.wikipedia.org/wiki/Uncertainty_principle" },
+        { tex: "E = mc^2", link: "https://en.wikipedia.org/wiki/Mass%E2%80%93energy_equivalence" }
+    ];
+
+    function initMathHero() {
+        const rawEl = document.getElementById('formula-raw');
+        const renderEl = document.getElementById('formula-render');
+        const linkEl = document.getElementById('math-link');
+
+        if (!renderEl || !linkEl) return;
+        
+        if(rawEl) rawEl.style.display = 'none'; // 确保原始框隐藏
+
+        // 1. 随机选择公式
+        const selected = formulas[Math.floor(Math.random() * formulas.length)];
+        linkEl.setAttribute('href', selected.link);
+
+        // 2. 准备容器
+        renderEl.classList.remove('hidden');
+        renderEl.innerHTML = ""; // 清空旧的
+
+        // 3. 渲染 (Safety Check)
+        // @ts-ignore
+        if (typeof window.katex === 'undefined') {
+            // 如果 KaTeX 还没加载完，直接显示源码，防止空白
+            renderEl.innerText = selected.tex;
+            renderEl.style.fontFamily = 'monospace';
+            return;
+        }
+
+        try {
+            // @ts-ignore
+            window.katex.render(selected.tex, renderEl, {
+                throwOnError: false,
+                displayMode: true
+            });
+        } catch (e) {
+            renderEl.innerText = selected.tex; // 渲染出错也回退到文本
+        }
+
+        // 4. 量子坍缩动画 (Robust Version)
+        // 选择所有具备“墨水”的元素：普通字符、运算符、关系符、括号
+        const symbols = renderEl.querySelectorAll('.katex-html .mord, .katex-html .mbin, .katex-html .mrel, .katex-html .mopen, .katex-html .mclose, .katex-html .mpunct, .katex-html .minner');
+        
+        if (symbols.length === 0) {
+            // 如果选不到（结构太复杂），直接显示整个容器，别搞特效了
+            renderEl.style.opacity = '1';
+            return;
+        }
+
+        // 先全部隐藏
+        symbols.forEach(el => {
+            (el as HTMLElement).style.opacity = '0';
+            (el as HTMLElement).style.transition = 'opacity 0.1s ease-out';
+        });
+
+        // 逐个显示
+        let delay = 0;
+        const step = 30; // 速度
+        
+        symbols.forEach((el) => {
+             setTimeout(() => {
+                (el as HTMLElement).style.opacity = '1';
+             }, delay);
+             delay += step;
+        });
+
+        // 【核心修复】安全兜底
+        // 无论上面发生了什么，1秒后强制所有内容可见
+        // 防止因为 CSS 选择器漏掉某些符号导致公式缺胳膊少腿
+        setTimeout(() => {
+            const allSpans = renderEl.querySelectorAll('span');
+            allSpans.forEach(el => el.style.opacity = '1');
+        }, delay + 500);
+    }
+
+    document.addEventListener('astro:page-load', initMathHero);
+</script>
