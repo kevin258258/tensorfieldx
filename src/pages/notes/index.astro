@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+// 1. 获取所有 notes 集合中的文章
+const allNotes = await getCollection('notes');
+
+// 2. 按日期倒序排列
+const sortedNotes = allNotes.sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<BaseLayout title="Notes">
+  <header class="mb-12 border-b border-white/10 pb-8">
+    <h1 class="text-6xl font-serif mb-4">Notes</h1>
+    <p class="text-gray-400 font-mono text-sm">
+      // SYSTEM_LOGS: {sortedNotes.length} ENTRIES FOUND
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 gap-px bg-white/10 border border-white/10">
+    {sortedNotes.map(note => (
+      // 这里的链接会自动指向详情页
+<a href={`/tensorfieldx/notes/${note.slug}`} class="group block bg-void-blue p-6 hover:bg-white/5 transition-colors relative">        <div class="flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+          
+          <h2 class="text-xl md:text-2xl font-bold font-serif group-hover:text-acid-green transition-colors">
+            {note.data.title}
+          </h2>
+          
+          <div class="flex items-center gap-4 text-xs font-mono text-gray-500">
+            {note.data.tags && (
+                <div class="flex gap-2">
+                    {note.data.tags.map(tag => (
+                        <span class="text-acid-green/80 border border-acid-green/30 px-1.5 py-0.5 rounded">
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+            )}
+            <time datetime={note.data.pubDate.toISOString()}>
+                {note.data.pubDate.toLocaleDateString('en-us')}
+            </time>
+          </div>
+
+        </div>
+      </a>
+    ))}
+  </div>
+</BaseLayout>
