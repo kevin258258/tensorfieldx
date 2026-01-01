@@ -2,7 +2,13 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 // 空数组：等待真实项目
-const projects = [];
+const projects = [{id: "01",
+        title: "未来项目预留",
+        status: "WIP",
+        description: "描述内容...",
+        tech: ["Python", "PyTorch"],
+        year: "2026",
+        link: "#"}];
 ---
 
 <BaseLayout title="Projects">
@@ -15,7 +21,7 @@ const projects = [];
                 <span class="font-mono text-xs font-bold text-accent tracking-widest uppercase">/// Engineering_Dir</span>
             </div>
             <h1 class="text-5xl md:text-7xl font-serif font-bold text-ink tracking-tight">
-                Project <span class="italic text-concrete/50">Archives</span>
+                Project <span class="italic text-accent">Archives</span>
             </h1>
         </header>
 
