@@ -5,23 +5,24 @@ export default {
 		extend: {
 			colors: {
 				// 背景：维持虚空黑
-				'void': '#050505', 
+				'void': '#050508', 
 				
-                // 强调色：切伦科夫蓝 (Cherenkov Blue) / 科学蓝
-                // 这种蓝在黑色上非常清晰，且不像绿色那么"黑客帝国"，不像红色那么"报警"
-				'accent': '#3B82F6', 
-                'accent-dark': '#1D4ED8', // 深一点的蓝，用于边框
-
-				// 文字分级 (大幅提亮)
-                'ink': '#E5E5E5',       // 正文：接近纯白，极高对比度
-				'concrete': '#A3A3A3',  // 辅助信息：浅灰，不再是暗灰
+                // 核心改动：瑞士蓝 / OYU蓝 (Swiss Blue / Azure)
+                // 比之前的 #0044CC 更亮，更有呼吸感，符合图二的色调
+				'accent': '#6495ED', 
+                
+				// 文字：
+                // Ink: 霜白，在黑底上清晰锐利
+                'ink': '#F0F0F0',       
+                // Concrete: 钛银色，用于辅助信息
+				'concrete': '#94A3B8',  
 			},
 			fontFamily: {
 				serif: ['"Playfair Display"', 'serif'],
 				mono: ['"JetBrains Mono"', 'monospace'],
 			},
 			backgroundImage: {
-				'void-gradient': 'radial-gradient(circle at 50% 0%, #1a1a1a 0%, #050505 100%)',
+				'void-gradient': 'radial-gradient(circle at 50% 0%, #0f1218 0%, #050508 100%)',
 			}
 		},
 	},

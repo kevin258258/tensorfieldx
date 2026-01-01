@@ -1,108 +1,77 @@
 ---
-// src/pages/notes/index.astro
-import { getCollection } from 'astro:content';
-// 👇 这里是 ../../ 因为我们在 pages/notes/ 目录里
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
 
 const allNotes = await getCollection('notes');
 const sortedNotes = allNotes.sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
-const allTags = [...new Set(allNotes.flatMap(note => note.data.tags || []))];
-const totalWords = allNotes.reduce((acc, note) => acc + note.body.length, 0);
-const sessionID = Math.random().toString(36).substring(7).toUpperCase();
+// 按年份分组
+const notesByYear = sortedNotes.reduce((acc, note) => {
+    const year = note.data.pubDate.getFullYear();
+    if (!acc[year]) acc[year] = [];
+    acc[year].push(note);
+    return acc;
+}, {});
+
+const years = Object.keys(notesByYear).sort((a, b) => b - a);
 ---
 
 <BaseLayout title="Research Notes">
-    
-    <div class="max-w-[98vw] lg:max-w-[1600px] mx-auto px-4 mt-8 lg:mt-16">
+    <div class="max-w-4xl mx-auto px-6 py-20">
         
-        <header class="mb-12 border-b border-white/10 pb-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-3 flex flex-col justify-end">
-                <span class="font-mono text-xs text-acid-green">:: DB_ACCESS_GRANTED</span>
-                <span class="font-mono text-[10px] text-gray-500">SESSION: {sessionID}</span>
+        <header class="mb-20">
+            <div class="font-mono text-xs text-accent font-bold mb-4 flex items-center gap-2">
+                <span class="w-2 h-2 bg-accent"></span>
+                /// DATABASE_INDEX
             </div>
-            
-            <div class="lg:col-span-6">
-                <h1 class="text-4xl md:text-6xl font-serif font-bold text-white leading-none">
-                    Research <span class="italic text-gray-500">Logs</span>
-                </h1>
-            </div>
-
-            <div class="lg:col-span-3 flex flex-col justify-end text-right">
-                <div class="font-mono text-[10px] text-gray-500 flex flex-col gap-1">
-                    <span>TOTAL: {sortedNotes.length}</span>
-                    <span>BUFFER: {(totalWords / 1024).toFixed(2)} KB</span>
-                </div>
-            </div>
+            <h1 class="text-5xl md:text-7xl font-serif font-bold text-white tracking-tight mb-6">
+                Research <span class="text-accent italic">Notes</span>.
+            </h1>
+            <p class="text-concrete font-mono text-sm max-w-xl leading-relaxed">
+                A chronological archive of derivations, technical analyses, and theoretical explorations in CS and Physics.
+            </p>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 relative">
-            
-            <aside class="hidden lg:block lg:col-span-3 relative">
-                <div class="sticky top-32">
-                    <div class="mb-8">
-                        <h3 class="font-mono text-[10px] text-gray-500 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">// Signal_Filters</h3>
-                        <div class="flex flex-wrap gap-2">
-                            {allTags.map(tag => (
-                                <span class="px-2 py-1 border border-white/10 text-[10px] font-mono text-gray-400 hover:border-acid-green hover:text-acid-green transition-colors cursor-pointer">
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
+        <div class="space-y-24">
+            {years.map(year => (
+                <section class="relative border-l border-white/10 pl-8 md:pl-12">
+                    <div class="absolute -left-[5px] top-0 w-2 h-2 bg-accent rounded-full"></div>
+                    <h2 class="text-2xl font-serif font-bold text-white mb-8 flex items-center">
+                        {year} <span class="text-accent ml-2 text-sm font-mono">[{notesByYear[year].length}]</span>
+                    </h2>
+                    
+                    <div class="space-y-12">
+                        {notesByYear[year].map(note => (
+                            <article class="group relative">
+                                <a href={`/tensorfieldx/notes/${note.slug}`} class="block">
+                                    <div class="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-8">
+                                        <time class="font-mono text-xs text-concrete min-w-[120px] pt-1">
+                                            {note.data.pubDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                        </time>
+                                        <div>
+                                            <h3 class="text-2xl font-serif font-bold text-white group-hover:text-accent transition-colors leading-snug">
+                                                {note.data.title}
+                                            </h3>
+                                            <p class="mt-3 text-concrete font-mono text-sm leading-relaxed line-clamp-2">
+                                                {note.data.description}
+                                            </p>
+                                            <div class="mt-4 flex gap-2">
+                                                {note.data.tags?.map(tag => (
+                                                    <span class="text-[10px] font-mono text-accent border border-accent/30 px-2 py-0.5 group-hover:bg-accent group-hover:text-black transition-colors">
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </article>
+                        ))}
                     </div>
-                </div>
-            </aside>
-
-            <main class="lg:col-span-6 flex flex-col gap-6 min-h-screen">
-                {sortedNotes.map((note, index) => {
-                    const hexId = `0x${(sortedNotes.length - index).toString(16).padStart(3, '0').toUpperCase()}`;
-                    return (
-                        <a href={`/tensorfieldx/notes/${note.slug}`} class="group relative block bg-white/5 border border-white/10 p-6 hover:bg-white/10 hover:border-acid-green/50 transition-all duration-300">
-                            <div class="absolute top-0 right-0 w-3 h-3 border-t border-r border-white/20 group-hover:border-acid-green transition-colors"></div>
-                            <div class="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-white/20 group-hover:border-acid-green transition-colors"></div>
-
-                            <div class="flex justify-between items-center mb-3 font-mono text-[10px] text-gray-500 uppercase tracking-widest">
-                                <span class="group-hover:text-acid-green transition-colors">{hexId}</span>
-                                <span>{note.data.pubDate.toISOString().split('T')[0]}</span>
-                            </div>
-
-                            <h2 class="text-2xl font-serif font-bold text-gray-100 mb-3 group-hover:text-white transition-colors leading-tight">
-                                {note.data.title}
-                            </h2>
-
-                            <p class="font-mono text-xs text-gray-400 leading-relaxed mb-6 line-clamp-2">
-                                {note.data.description || "System log entry. Click to access full record."}
-                            </p>
-
-                            <div class="flex justify-between items-end border-t border-white/10 pt-4">
-                                <div class="flex gap-2">
-                                    {note.data.tags?.map(tag => (
-                                        <span class="text-[10px] font-mono text-acid-green bg-acid-green/10 px-1">#{tag}</span>
-                                    ))}
-                                </div>
-                                <span class="font-mono text-xs text-gray-600 group-hover:text-acid-green group-hover:translate-x-1 transition-all">READ -></span>
-                            </div>
-                        </a>
-                    );
-                })}
-                <div class="text-center py-12"><span class="font-mono text-[10px] text-gray-600 animate-pulse">// END OF STREAM</span></div>
-            </main>
-
-            <aside class="hidden lg:block lg:col-span-3 relative">
-                <div class="sticky top-32 border-l border-white/10 pl-8">
-                     <div class="text-[10px] font-mono text-gray-600 leading-loose mb-8">
-                        <p>SYSTEM STATUS:</p>
-                        <p>INDEXING: 100%</p>
-                        <p>INTEGRITY: OK</p>
-                     </div>
-                     <svg class="w-full h-24 opacity-20" viewBox="0 0 100 100" fill="none" stroke="currentColor">
-                        <path d="M0 50 Q 25 20, 50 50 T 100 50" stroke-width="0.5" class="text-acid-green" />
-                        <path d="M0 60 Q 25 30, 50 60 T 100 60" stroke-width="0.5" class="text-white" />
-                     </svg>
-                </div>
-            </aside>
+                </section>
+            ))}
         </div>
     </div>
 </BaseLayout>

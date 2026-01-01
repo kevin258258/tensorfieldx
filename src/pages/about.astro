@@ -1,128 +1,89 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-const identity = {
-    name: "Feixiang Tao", // 拼音名
-    school: "Southern University of Science and Technology",
-    major: "Computer Science",
-    location: "Shenzhen, CN",
-    status: "Freshman"
-};
-
+// 真实联系方式
 const contacts = [
-    {
-        label: "GitHub",
-        value: "@kevin258258",
-        url: "https://github.com/kevin258258",
-        icon: "GH"
-    },
-    {
-        label: "Zhihu",
-        value: "Three-23-89",
-        url: "https://www.zhihu.com/people/three-23-89",
-        icon: "ZH"
-    },
-    {
-        label: "Email (Edu)",
-        value: "12512619@mail.sustech.edu.cn",
-        url: "mailto:12512619@mail.sustech.edu.cn",
-        icon: "@"
-    },
-    {
-        label: "Email (Personal)",
-        value: "2014027271@qq.com",
-        url: "mailto:2014027271@qq.com",
-        icon: "@"
-    }
+    { label: "GitHub", value: "@kevin258258", url: "https://github.com/kevin258258" },
+    { label: "Zhihu", value: "Three-23-89", url: "https://www.zhihu.com/people/three-23-89" },
+    { label: "Email", value: "12512619@mail.sustech.edu.cn", url: "mailto:12512619@mail.sustech.edu.cn" }
 ];
 ---
 
-<BaseLayout title="About Me">
+<BaseLayout title="About">
     
-    <div class="max-w-[98vw] lg:max-w-[1400px] mx-auto px-4 mt-8 lg:mt-16">
+    <div class="max-w-6xl mx-auto px-6 py-20">
         
-        <header class="mb-16 border-b border-white/10 pb-8">
-            <h1 class="text-4xl md:text-6xl font-serif font-bold text-white mb-2">
-                About <span class="italic text-gray-500">Me</span>
-            </h1>
-            <div class="font-mono text-xs text-acid-green">
-                :: PROFILE_LOADED // STUDENT // DEVELOPER
-            </div>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 items-start">
             
-            <aside class="lg:col-span-4">
-                <div class="sticky top-32 bg-white/5 border border-white/10 p-6 backdrop-blur-sm">
-                    
-                    <div class="w-20 h-20 bg-acid-green/10 border border-acid-green text-acid-green flex items-center justify-center text-3xl font-serif italic mb-6">
-                        T
-                    </div>
-
-                    <h2 class="text-2xl font-serif text-white mb-1">{identity.name}</h2>
-                    <p class="font-mono text-xs text-acid-green mb-6">{identity.major} @ SUSTech</p>
-
-                    <div class="space-y-3 font-mono text-xs text-gray-400 border-t border-white/10 pt-4">
-                        <div class="flex justify-between">
-                            <span>STATUS:</span>
-                            <span class="text-white">{identity.status}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>LOC:</span>
-                            <span class="text-white">{identity.location}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>FOCUS:</span>
-                            <span class="text-white">CS / Physics / Math</span>
-                        </div>
-                    </div>
-
+            <aside class="lg:col-span-5 bg-void border border-white/10 p-8 shadow-2xl">
+                
+                <div class="font-mono text-[10px] text-concrete mb-8 tracking-widest">
+                    // IDENTITY
                 </div>
+
+                <div class="w-24 h-24 bg-accent flex items-center justify-center mb-8">
+                    <span class="font-serif italic font-bold text-5xl text-black">T</span>
+                </div>
+
+                <div class="mb-8">
+                    <h1 class="text-4xl font-serif text-white mb-2">Feixiang Tao</h1>
+                    <p class="font-mono text-sm text-accent font-bold">CS Freshman @ SUSTech</p>
+                </div>
+
+                <div class="w-full h-px bg-white/10 mb-8"></div>
+
+                <div class="space-y-4 font-mono text-xs">
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-concrete uppercase tracking-wider">Major</span>
+                        <span class="text-white text-right">Computer Science</span>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-concrete uppercase tracking-wider">Focus</span>
+                        <span class="text-white text-right">Physics / Math / AI</span>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-concrete uppercase tracking-wider">Loc</span>
+                        <span class="text-white text-right">Shenzhen, CN</span>
+                    </div>
+                </div>
+
             </aside>
 
-            <main class="lg:col-span-8">
+            <main class="lg:col-span-7 flex flex-col justify-center pt-4">
                 
-                <div class="prose prose-invert prose-lg max-w-none mb-16">
-                    <p class="font-serif text-xl md:text-2xl leading-relaxed text-gray-200">
-                        "Hi, I'm Feixiang Tao. Currently a freshman majoring in Computer Science at <span class="text-acid-green">SUSTech</span>."
+                <div class="prose prose-invert prose-lg max-w-none mb-12">
+                    <p class="font-serif text-2xl text-ink leading-relaxed mb-6">
+                        "Hi, I'm Feixiang. A freshman undergraduate student at <span class="text-accent">SUSTech</span>."
                     </p>
-                    <p class="text-gray-400 leading-loose">
-                        I maintain a broad curiosity for Science and Engineering. My current academic focus revolves around the fundamentals of Computer Science, Physics, and Mathematics.
-                    </p>
-                    <p class="text-gray-400 leading-loose">
-                        This website serves as a documentation of my undergraduate studies and technical explorations. I am constantly exploring new fields and striving to build a solid theoretical foundation.
-                    </p>
-                </div>
-
-                <div class="mb-16">
-                    <h3 class="font-mono text-xs text-gray-500 uppercase tracking-widest mb-6 border-b border-white/10 pb-2">
-                        // Contact_Info
-                    </h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {contacts.map(contact => (
-                            <a href={contact.url} target="_blank" class="group flex items-center gap-4 p-4 border border-white/10 bg-white/5 hover:border-acid-green hover:bg-white/10 transition-all duration-300">
-                                <div class="w-10 h-10 flex items-center justify-center border border-white/20 font-mono text-xs text-gray-500 group-hover:text-acid-green group-hover:border-acid-green transition-colors">
-                                    {contact.icon}
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="font-mono text-[10px] text-gray-500 uppercase tracking-widest group-hover:text-acid-green transition-colors">{contact.label}</span>
-                                    <span class="font-mono text-xs text-white truncate max-w-[200px]">{contact.value}</span>
-                                </div>
-                            </a>
-                        ))}
+                    <div class="text-concrete text-sm font-mono leading-loose space-y-4">
+                        <p>
+                            I am currently building my foundational knowledge in Computer Science, while maintaining a strong passion for Physics and Mathematics.
+                        </p>
+                        <p>
+                            This website serves as a personal archive for my undergraduate studies. I use it to document course notes, lab experiments, and my understanding of fundamental theories. 
+                        </p>
+                        <p>
+                            Always learning, always exploring.
+                        </p>
                     </div>
                 </div>
 
-                <div>
-                    <h3 class="font-mono text-xs text-gray-500 uppercase tracking-widest mb-6 border-b border-white/10 pb-2">
-                        // Academic_Focus
+                <div class="border-t border-white/10 pt-8">
+                    <h3 class="font-mono text-xs text-concrete mb-6 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-accent"></span>
+                        CONNECT
                     </h3>
-                    <div class="flex flex-wrap gap-2">
-                        {['Computer Science', 'Physics', 'Mathematics', 'System Architecture', 'AI Theory'].map(item => (
-                            <span class="px-3 py-1 border border-white/10 text-xs font-mono text-gray-400 cursor-default hover:text-white transition-colors">
-                                {item}
-                            </span>
+                    <div class="space-y-3">
+                        {contacts.map(contact => (
+                            <a href={contact.url} target="_blank" class="flex items-center justify-between group py-2 hover:bg-white/5 px-2 -mx-2 transition-colors rounded-sm">
+                                <span class="font-serif text-lg text-white group-hover:text-accent transition-colors">
+                                    {contact.label}
+                                </span>
+                                <span class="font-mono text-xs text-concrete group-hover:text-white transition-colors">
+                                    {contact.value} ↗
+                                </span>
+                            </a>
                         ))}
                     </div>
                 </div>

@@ -1,60 +1,108 @@
-<div class="fixed inset-0 z-0 w-full h-full pointer-events-none bg-void">
-    <div class="absolute inset-0 z-0 opacity-[0.15]"
-         style="background-image: linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px); background-size: 40px 40px;">
-    </div>
-    
-    <canvas id="grid-canvas" class="absolute inset-0 z-1 mix-blend-screen"></canvas>
+<div class="fixed inset-0 z-0 w-full h-full bg-cover bg-center pointer-events-none grayscale brightness-[0.4] contrast-125"
+     style="background-image: url('https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?q=80&w=2660&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
+</div>
+
+<canvas id="flashlight-canvas" class="fixed inset-0 z-1 w-full h-full pointer-events-none"></canvas>
+
+<div class="fixed inset-0 z-2 w-full h-full pointer-events-none opacity-[0.08] mix-blend-overlay"
+     style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 60px 60px;">
+</div>
+
+<div class="fixed inset-0 z-3 w-full h-full pointer-events-none opacity-[0.05]"
+     style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%270 0 200 200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27noiseFilter%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.65%27 numOctaves=%273%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23noiseFilter)%27/%3E%3C/svg%3E');">
 </div>
 
 <script>
-  const canvas = document.getElementById('grid-canvas') as HTMLCanvasElement;
-  const ctx = canvas?.getContext('2d');
+  // 将所有逻辑封装在函数里
+  function initFlashlight() {
+      const canvas = document.getElementById('flashlight-canvas') as HTMLCanvasElement;
+      if (!canvas) return; // 找不到画布就退出
 
-  if (canvas && ctx) {
-    let width: number, height: number;
-    // 鼠标位置初始化在屏幕外
-    let mouseX = -999, mouseY = -999;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    const resize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
+      const VOID_COLOR = '#050508'; 
+      let width: number, height: number;
+      let mouseX = -999, mouseY = -999;
+      let animationFrameId: number;
 
-    // 监听鼠标移动
-    window.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-    });
+      const resize = () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        // 强制重绘一次黑色，防止 resize 时闪烁
+        ctx.fillStyle = VOID_COLOR;
+        ctx.fillRect(0, 0, width, height);
+      };
 
-    const draw = () => {
-      ctx.clearRect(0, 0, width, height);
+      // 必须移除旧的监听器，防止内存泄漏（虽然 Astro 换页会销毁 DOM，但 window 上的事件还在）
+      const handleMouseMove = (e: MouseEvent) => {
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+      };
+      
+      // 清理旧事件（防御性编程）
+      window.removeEventListener('mousemove', (window as any)._bgMouseMoveHandler);
+      window.removeEventListener('resize', (window as any)._bgResizeHandler);
 
-      // 绘制“手电筒”光斑
-      // 一个跟随鼠标的径向渐变，中心微亮，边缘透明
-      const gradient = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, 250);
-      gradient.addColorStop(0, 'rgba(255, 51, 0, 0.12)'); // 中心淡淡的橙色
-      gradient.addColorStop(1, 'rgba(255, 51, 0, 0)');
+      // 绑定新事件
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('resize', resize);
+      
+      // 挂载到 window 以便下次移除
+      (window as any)._bgMouseMoveHandler = handleMouseMove;
+      (window as any)._bgResizeHandler = resize;
 
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
+      const draw = () => {
+        // 1. 重置为纯黑遮挡
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = VOID_COLOR;
+        ctx.fillRect(0, 0, width, height);
 
-      // 绘制鼠标十字准星 (Crosshair)
-      // 极细的线，增加瞄准感
-      ctx.strokeStyle = 'rgba(255, 51, 0, 0.5)';
-      ctx.lineWidth = 0.5;
-      ctx.beginPath();
-      // 这里的 10 是十字的大小
-      ctx.moveTo(mouseX - 10, mouseY);
-      ctx.lineTo(mouseX + 10, mouseY);
-      ctx.moveTo(mouseX, mouseY - 10);
-      ctx.lineTo(mouseX, mouseY + 10);
-      ctx.stroke();
+        // 2. 挖洞 (手电筒)
+        ctx.globalCompositeOperation = 'destination-out';
+        const flashlightRadius = 400;
+        const gradient = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, flashlightRadius);
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        gradient.addColorStop(0.8, 'rgba(0, 0, 0, 0.2)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-      requestAnimationFrame(draw);
-    };
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, flashlightRadius, 0, Math.PI * 2);
+        ctx.fill();
 
-    window.addEventListener('resize', resize);
-    resize();
-    draw();
+        // 3. 装饰
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = '#2E5CFF';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        const crossSize = 15;
+        ctx.moveTo(mouseX - crossSize, mouseY);
+        ctx.lineTo(mouseX + crossSize, mouseY);
+        ctx.moveTo(mouseX, mouseY - crossSize);
+        ctx.lineTo(mouseX, mouseY + crossSize);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(46, 92, 255, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, flashlightRadius * 0.8, 0, Math.PI * 2);
+        ctx.stroke();
+
+        animationFrameId = requestAnimationFrame(draw);
+      };
+
+      // 初始化
+      resize();
+      
+      // 取消旧的动画帧（防止多个循环同时跑）
+      if ((window as any)._bgAnimId) cancelAnimationFrame((window as any)._bgAnimId);
+      draw();
+      // 保存 ID
+      (window as any)._bgAnimId = animationFrameId;
   }
+
+  // 🚀 关键修复：在每次页面加载/切换时运行
+  document.addEventListener('astro:page-load', initFlashlight);
+
 </script>
