@@ -91,6 +91,18 @@ const { title } = Astro.props;
         font-size: 1.75rem !important; 
     }
 }
+/* 针对所有 KaTeX 展示公式 */
+.katex-display {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* 丝滑滚动体验 */
+    -webkit-overflow-scrolling: touch;
+    /* 隐藏滚动条但保留功能，维持美观 */
+    scrollbar-width: none; 
+}
+
+
 .katex-display::-webkit-scrollbar {
     display: none;
 }
