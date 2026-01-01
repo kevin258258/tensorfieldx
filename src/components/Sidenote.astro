@@ -1,0 +1,34 @@
+---
+// src/components/Sidenote.astro
+interface Props {
+  label?: string;
+}
+
+const { label } = Astro.props;
+---
+
+<span class="sidenote-wrapper relative inline group">
+  
+  <sup class="text-acid-green font-bold text-[10px] cursor-help border-b border-transparent group-hover:border-acid-green transition-all top-0">
+    {label || '⊕'}
+  </sup>
+
+  <span class="
+    hidden lg:block
+    float-right clear-right
+    mr-[-45%] w-[40%]
+    text-xs font-mono text-gray-500
+    text-left leading-relaxed
+    border-l border-white/20 pl-3 py-1 mb-2 mt-1
+    group-hover:text-gray-200 group-hover:border-acid-green
+    transition-all duration-300
+  ">
+    <slot />
+  </span>
+
+  <span class="lg:hidden block mt-2 mb-4 ml-4 pl-3 border-l-2 border-acid-green/50 text-xs font-mono text-gray-400">
+    <span class="text-acid-green font-bold mr-1">NOTE:</span>
+    <slot />
+  </span>
+
+</span>

@@ -1,0 +1,182 @@
+<div id="search-modal" class="fixed inset-0 z-[999] bg-black/80 backdrop-blur-sm hidden flex items-start justify-center pt-[20vh] opacity-0 transition-opacity duration-200">
+    
+    <div class="w-full max-w-2xl bg-void-blue border border-white/20 shadow-2xl transform scale-95 transition-transform duration-200 mx-4" id="search-panel">
+        
+        <div class="flex items-center border-b border-white/10 p-4">
+            <span class="text-acid-green font-mono mr-4">root@tfx:~#</span>
+            <input type="text" id="search-input" placeholder="grep -r " 
+                   class="bg-transparent border-none outline-none text-white font-mono text-lg w-full placeholder-gray-600 focus:ring-0" autocomplete="off" />
+            <span class="hidden md:block text-[10px] text-gray-500 font-mono border border-gray-700 px-1 rounded ml-2">ESC</span>
+        </div>
+
+        <div id="search-results" class="max-h-[60vh] overflow-y-auto p-2 space-y-1 scrollbar-hide">
+            <div class="p-8 text-center text-gray-700 font-mono text-xs italic flex flex-col items-center gap-2" id="empty-state">
+                <span class="text-2xl opacity-20">⌘</span>
+                <span>// WAITING FOR SIGNAL INPUT...</span>
+            </div>
+        </div>
+        
+        <div class="bg-white/5 p-2 text-[10px] font-mono text-gray-500 flex justify-between border-t border-white/5">
+             <span class="text-acid-green">● INDEX_MOUNTED</span>
+             <span id="result-count">0 OBJECTS</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. 定义数据结构，安抚 TypeScript
+    interface SearchItem {
+        url: string;
+        title: string;
+        description?: string;
+        tags: string[];
+        date: string;
+    }
+
+    // 全局状态
+    let searchIndex: SearchItem[] = [];
+    let isDataLoaded = false;
+
+    // 初始化系统 (会被 astro:page-load 调用)
+    function initSearchSystem() {
+        const modal = document.getElementById('search-modal');
+        const panel = document.getElementById('search-panel');
+        const input = document.getElementById('search-input') as HTMLInputElement;
+        const resultsContainer = document.getElementById('search-results');
+        const emptyState = document.getElementById('empty-state');
+        const resultCount = document.getElementById('result-count');
+        
+        // 关键：重新获取触发按钮
+        const triggers = document.querySelectorAll('#search-trigger');
+
+        // 安全检查：如果关键元素没了，就不跑了，防止报错
+        if (!modal || !panel || !input || !resultsContainer) return;
+
+        // --- 核心逻辑 ---
+
+        async function loadIndex() {
+            if (isDataLoaded) return;
+            try {
+                const res = await fetch('/tensorfieldx/link-preview.json');
+                const data = await res.json();
+                // 显式类型转换
+                searchIndex = Object.entries(data).map(([url, meta]: [string, any]) => ({
+                    url,
+                    ...meta
+                }));
+                isDataLoaded = true;
+            } catch (e) {
+                console.error("Index Load Failed", e);
+            }
+        }
+
+        // 显式标注 query 类型为 string
+        function performSearch(query: string) {
+            // 这里也要做 null check，防止运行时 DOM 变了
+            if (!resultsContainer) return;
+
+            if (!query) {
+                resultsContainer.innerHTML = '';
+                if(emptyState) resultsContainer.appendChild(emptyState);
+                if(resultCount) resultCount.innerText = '0 OBJECTS';
+                return;
+            }
+
+            const lowerQuery = query.toLowerCase();
+            const hits = searchIndex.filter(item => 
+                item.title.toLowerCase().includes(lowerQuery) || 
+                item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
+            );
+
+            renderResults(hits);
+        }
+
+        function renderResults(hits: SearchItem[]) {
+            if (!resultsContainer) return;
+            
+            resultsContainer.innerHTML = '';
+            if(resultCount) resultCount.innerText = `${hits.length} OBJECTS`;
+
+            if (hits.length === 0) {
+                resultsContainer.innerHTML = '<div class="p-4 text-center text-gray-600 font-mono text-xs">ERR: NO_MATCH_FOUND</div>';
+                return;
+            }
+
+            hits.forEach(item => {
+                const el = document.createElement('a');
+                el.href = item.url;
+                el.className = 'block p-3 hover:bg-white/5 border border-transparent hover:border-acid-green/30 group transition-all';
+                el.innerHTML = `
+                    <div class="flex justify-between items-baseline mb-1">
+                        <span class="font-serif text-lg text-gray-200 group-hover:text-acid-green transition-colors">${item.title}</span>
+                        <span class="font-mono text-[10px] text-gray-600">${item.date}</span>
+                    </div>
+                    <div class="font-mono text-[10px] text-gray-500 truncate flex gap-2">
+                        ${item.tags.map((t: string) => `<span class="text-gray-600 group-hover:text-acid-green/70">#${t}</span>`).join('')}
+                    </div>
+                `;
+                resultsContainer.appendChild(el);
+            });
+        }
+
+        function openModal() {
+            loadIndex();
+            modal?.classList.remove('hidden');
+            // 延时一点点给动画留时间
+            requestAnimationFrame(() => {
+                modal?.classList.remove('opacity-0');
+                panel?.classList.remove('scale-95');
+            });
+            setTimeout(() => input?.focus(), 50);
+        }
+
+        function closeModal() {
+            modal?.classList.add('opacity-0');
+            panel?.classList.add('scale-95');
+            setTimeout(() => modal?.classList.add('hidden'), 200);
+            if(input) input.value = '';
+            performSearch('');
+        }
+
+        // --- 事件绑定 (暴力覆盖 onclick，防止重复) ---
+        
+        triggers.forEach((t) => {
+            // @ts-ignore: 强制覆盖 onclick 属性
+            t.onclick = (e) => {
+                e.preventDefault(); 
+                openModal();
+            };
+        });
+
+        // 键盘事件
+        const handleKeydown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                openModal();
+            }
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        };
+
+        // 清理旧的（防止内存泄漏或双重绑定）
+        document.removeEventListener('keydown', (window as any)._searchKeyHandler);
+        // 绑定新的
+        document.addEventListener('keydown', handleKeydown);
+        (window as any)._searchKeyHandler = handleKeydown;
+
+        // 点击遮罩关闭
+        modal.onclick = (e) => {
+            if (e.target === modal) closeModal();
+        };
+
+        // 输入监听
+        input.oninput = (e) => {
+            performSearch((e.target as HTMLInputElement).value);
+        };
+    }
+
+    // 🚀 启动！
+    document.addEventListener('astro:page-load', initSearchSystem);
+
+</script>

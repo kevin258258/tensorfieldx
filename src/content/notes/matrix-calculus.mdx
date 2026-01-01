@@ -1,0 +1,38 @@
+---
+title: 'Matrix Calculus for Deep Learning'
+description: 'Deriving Backpropagation using the numerator layout convention.'
+pubDate: '2026-01-02'
+tags: ['MATH', 'DL']
+---
+
+## Introduction
+
+In deep learning, we often need to compute the gradient of a scalar loss function $L$ with respect to a weight matrix $\mathbf{W}$. This is the foundation of Backpropagation<Sidenote label="1">Backpropagation was popularized by Rumelhart, Hinton, and Williams in 1986. Notice how this text floats to the right side of the page, creating a clean reading experience.</Sidenote>.
+
+Unlike standard scalar calculus, we must be careful with dimensions.
+
+...
+
+### The Scalar-by-Matrix Derivative
+
+Let $y = \mathbf{x}^T \mathbf{W} \mathbf{x}$. The derivative is given by:
+
+$$
+\frac{\partial y}{\partial \mathbf{W}} = \mathbf{x} \mathbf{x}^T
+$$
+
+This result is crucial because it matches the dimensions of the weight matrix itself <Sidenote>Notice that if $\mathbf{W}$ is $(m \times n)$, the gradient must also be $(m \times n)$. This is a great sanity check.</Sidenote>.
+
+### The Chain Rule
+
+If $L = f(\mathbf{y})$ and $\mathbf{y} = \mathbf{W}\mathbf{x}$, then:
+
+$$
+\frac{\partial L}{\partial \mathbf{x}} = \mathbf{W}^T \frac{\partial L}{\partial \mathbf{y}}
+$$
+
+This elegantly avoids index hell ($\sum_{i,j,k}...$) <Sidenote><strong>Index Hell:</strong> A state of suffering induced by Einstein summation notation when dealing with tensors of rank > 3.</Sidenote>.
+
+## Conclusion
+
+Matrix calculus allows us to treat layers as atomic operators.

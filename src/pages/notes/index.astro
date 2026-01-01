@@ -22,7 +22,7 @@ const sortedNotes = allNotes.sort(
   <div class="grid grid-cols-1 gap-px bg-white/10 border border-white/10">
     {sortedNotes.map(note => (
       // 这里的链接会自动指向详情页
-<a href={`/tensorfieldx/notes/${note.slug}`} class="group block bg-void-blue p-6 hover:bg-white/5 transition-colors relative">        <div class="flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+<a href={`/tensorfieldx/notes/${note.slug}`} class="group block bg-void-blue p-6 hover:bg-white/5 transition-colors relative"><a href={`/tensorfieldx/notes/${note.slug}`} class="group block bg-void-blue p-6 hover:bg-white/5 transition-colors relative"></a>        <div class="flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
           
           <h2 class="text-xl md:text-2xl font-bold font-serif group-hover:text-acid-green transition-colors">
             {note.data.title}

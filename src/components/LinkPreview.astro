@@ -1,0 +1,81 @@
+<div id="preview-tooltip" class="fixed z-[999] hidden pointer-events-none w-80">
+    <div class="bg-void-blue/90 backdrop-blur-md border border-acid-green/50 p-4 shadow-[0_0_30px_rgba(204,255,0,0.1)]">
+        
+        <div class="flex justify-between items-center mb-2 border-b border-white/10 pb-2">
+            <span id="preview-date" class="font-mono text-[10px] text-gray-500"></span>
+            <span id="preview-tag" class="font-mono text-[10px] text-acid-green border border-acid-green/30 px-1"></span>
+        </div>
+
+        <h4 id="preview-title" class="font-serif text-lg font-bold text-white mb-2 leading-tight"></h4>
+        
+        <p id="preview-desc" class="font-mono text-xs text-gray-400 line-clamp-3 leading-relaxed"></p>
+
+        <div class="absolute top-0 right-0 w-2 h-2 border-t border-r border-acid-green"></div>
+        <div class="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-acid-green"></div>
+    </div>
+</div>
+
+<script>
+    // 1. 获取全站数据索引
+    let linkData = {};
+    fetch('/tensorfieldx/link-preview.json')
+        .then(res => res.json())
+        .then(data => { linkData = data; });
+
+    const tooltip = document.getElementById('preview-tooltip');
+    const els = {
+        title: document.getElementById('preview-title'),
+        desc: document.getElementById('preview-desc'),
+        date: document.getElementById('preview-date'),
+        tag: document.getElementById('preview-tag')
+    };
+
+    // 2. 监听全局鼠标移动 (这是为了让 Tooltip 跟随鼠标，更像 HUD)
+    document.addEventListener('astro:page-load', () => {
+        // 只选择站内链接
+        const links = document.querySelectorAll('a[href^="/tensorfieldx/notes/"]');
+
+        links.forEach(link => {
+            link.addEventListener('mouseenter', (e) => {
+                const url = link.getAttribute('href');
+                // 查表
+                const data = linkData[url];
+
+                if (data) {
+                    // 填数据
+                    els.title.innerText = data.title;
+                    els.desc.innerText = data.description;
+                    els.date.innerText = data.date;
+                    els.tag.innerText = data.tags[0] || 'VOID';
+                    
+                    // 显示
+                    tooltip.classList.remove('hidden');
+                }
+            });
+
+            link.addEventListener('mousemove', (e) => {
+                // 跟随鼠标，稍微偏移一点，避免挡住视线
+                const x = e.clientX + 20;
+                const y = e.clientY + 20;
+                
+                // 简单的边界检查 (防止溢出屏幕右边)
+                if (x + 320 > window.innerWidth) {
+                    tooltip.style.left = (e.clientX - 340) + 'px';
+                } else {
+                    tooltip.style.left = x + 'px';
+                }
+                
+                // 防止溢出底部
+                if (y + 200 > window.innerHeight) {
+                    tooltip.style.top = (e.clientY - 200) + 'px';
+                } else {
+                    tooltip.style.top = y + 'px';
+                }
+            });
+
+            link.addEventListener('mouseleave', () => {
+                tooltip.classList.add('hidden');
+            });
+        });
+    });
+</script>

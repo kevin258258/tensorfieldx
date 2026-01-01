@@ -2,181 +2,173 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
-// 1. 获取数据
 const allNotes = await getCollection('notes');
 const sortedNotes = allNotes.sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
-
-// 提取最新头条
-const latestNote = sortedNotes[0];
-const recentNotes = sortedNotes.slice(1, 6); // 中间栏显示的流
-
-// 2.【新增】分类逻辑：构建学科索引
-// 这是一个简单的分类器，根据 Tags 把文章分发到不同数组
-const sections = {
-	"PHYSICS": sortedNotes.filter(note => note.data.tags?.includes('PHYSICS')),
-	"MATH":    sortedNotes.filter(note => note.data.tags?.includes('MATH')),
-	// 对于 CS，我们把 DL, HPC, SYSTEM 等子领域都算进去
-	"COMPUTER_SCI": sortedNotes.filter(note => 
-		note.data.tags?.some(t => ['CS', 'DL', 'HPC', 'SYSTEM', 'AI'].includes(t))
-	)
-};
 
 const formula = "S = -k \\sum p_i \\ln p_i";
 ---
 
 <BaseLayout title="Home">
 	
-	<section class="flex flex-col justify-center items-center min-h-[90vh] relative">
-		<div class="border-l-2 border-white pl-8 relative">
-			<div class="absolute -left-[9px] -top-8 bg-acid-green text-black px-2 py-1 text-xs font-bold tracking-widest">
-				SYS_ONLINE
-			</div>
-			<h1 class="font-serif text-6xl md:text-9xl mb-6 leading-none tracking-tighter">
-				Tensor<br/>
-				<span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-600">Field</span><span class="text-acid-green">X</span>
-			</h1>
-			<p class="text-gray-400 text-sm md:text-base max-w-lg mb-12 tracking-wide">
-				// A DIGITAL GARDEN FOR PHYSICS & COMPUTER SCIENCE <br>
-				// LOCATED AT /home/manifold
-			</p>
-			<div class="mt-8 bg-white/5 border border-white/20 p-6 backdrop-blur-sm">
-				<p class="text-xs text-acid-green mb-4">LATEST_COMPUTATION:</p>
-				<div class="text-2xl md:text-4xl font-serif">
-					$$ {formula} $$
-				</div>
-			</div>
-		</div>
-		<div class="absolute bottom-8 animate-bounce">
-			<span class="text-gray-500 text-xs font-mono">SCROLL_FOR_DATA</span>
-			<svg class="w-6 h-6 text-acid-green mx-auto mt-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-			</svg>
+	<section class="min-h-[60vh] flex flex-col justify-center items-center relative p-4 border-b border-white/10">
+        
+        <div class="absolute top-10 left-10 font-mono text-xs text-acid-green animate-pulse">
+            :: SYSTEM_READY
+        </div>
+
+		<div class="relative z-10 text-center">
+            <div class="text-3xl md:text-5xl lg:text-7xl font-serif text-white/90 mb-8 opacity-80 hover:opacity-100 transition-opacity cursor-help mix-blend-overlay">
+                $$ {formula} $$
+            </div>
+            
+            <h1 class="font-serif text-6xl md:text-8xl lg:text-9xl leading-none tracking-tighter mix-blend-difference">
+                Tensor<span class="text-acid-green font-normal italic">Field</span>X
+            </h1>
 		</div>
 	</section>
 
-	<section class="min-h-screen py-20 border-t border-white/10">
-		<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-			
-			<aside class="lg:col-span-3 space-y-8">
-				
-				{Object.entries(sections).map(([category, notes]) => (
-					<div class="bg-white/5 border border-white/10 p-6">
-						<h3 class="font-mono text-acid-green text-sm mb-4 border-b border-white/10 pb-2">
-							// {category}
-						</h3>
-						
-						{notes.length > 0 ? (
-							<ul class="space-y-3 font-mono text-sm text-gray-400">
-								{notes.map((note) => (
-									<li>
-										<a href={`/tensorfieldx/notes/${note.slug}`} class="hover:text-white group flex gap-2 items-start">
-											<span class="text-gray-600 text-xs mt-1">::</span>
-											<span class="group-hover:translate-x-1 transition-transform truncate">
-												{note.data.title}
-											</span>
-										</a>
-									</li>
-								))}
-							</ul>
-						) : (
-							<div class="text-xs text-gray-600 italic py-2">
-								[NO_DATA_YET]
-							</div>
-						)}
-					</div>
-				))}
 
-			</aside>
+    <section class="border-b border-white/10 bg-void-blue/80 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12">
+            
+            <div class="lg:col-span-4 p-8 border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col justify-center">
+                <div class="font-mono text-[10px] text-gray-500 mb-4 tracking-widest">
+                    // OPERATOR_PROFILE
+                </div>
+                
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 border border-acid-green flex items-center justify-center text-acid-green font-serif italic text-2xl bg-acid-green/10">
+                        M
+                    </div>
+                    <div>
+                        <h3 class="text-white font-serif text-xl">Manifold</h3>
+                        <p class="text-acid-green font-mono text-xs">CS Freshman @ SUSTech</p>
+                    </div>
+                </div>
 
+                <ul class="space-y-2 font-mono text-xs text-gray-400">
+                    <li class="flex justify-between">
+                        <span>FOCUS:</span>
+                        <span class="text-white">AI / Physics</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>STATUS:</span>
+                        <span class="text-white">Learning</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>LOC:</span>
+                        <span class="text-white">Shenzhen, CN</span>
+                    </li>
+                </ul>
+            </div>
 
-			<main class="lg:col-span-6 space-y-8">
-				
-				{latestNote && (
-					<article class="group relative bg-void-blue border border-white/20 overflow-hidden hover:border-acid-green/50 transition-colors">
-						<div class="absolute top-0 right-0 bg-acid-green text-black text-xs font-bold px-3 py-1">
-							LATEST_RESEARCH
-						</div>
-						<div class="p-8 min-h-[300px] flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent">
-							<div class="flex gap-2 mb-4">
-								{latestNote.data.tags?.map(tag => (
-									<span class="text-xs font-mono text-acid-green bg-acid-green/10 px-2 py-0.5 rounded">
-										{tag}
-									</span>
-								))}
-							</div>
-							<h2 class="text-4xl font-serif font-bold mb-4 group-hover:text-acid-green transition-colors">
-								<a href={`/tensorfieldx/notes/${latestNote.slug}`}>
-									{latestNote.data.title}
-								</a>
-							</h2>
-							<p class="text-gray-400 line-clamp-2">
-								{latestNote.data.description}
-							</p>
-						</div>
-					</article>
-				)}
+            <div class="lg:col-span-8 p-8 flex flex-col justify-center relative overflow-hidden">
+                <div class="absolute top-[-20px] right-[-20px] text-[100px] font-serif text-white/5 pointer-events-none select-none">
+                    ABSTRACT
+                </div>
 
-				<div class="space-y-4">
-					<h3 class="font-mono text-gray-500 text-sm pl-2 border-l-2 border-acid-green">
-						STREAM_DATA
-					</h3>
-					{recentNotes.map(note => (
-						<div class="p-6 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-							<div class="flex justify-between items-baseline mb-2">
-								<h4 class="text-xl font-serif font-bold">
-									<a href={`/tensorfieldx/notes/${note.slug}`}>{note.data.title}</a>
-								</h4>
-								<span class="font-mono text-xs text-gray-500">
-									{note.data.pubDate.toLocaleDateString()}
-								</span>
-							</div>
-							<p class="text-sm text-gray-400 line-clamp-2">
-								{note.data.description}
-							</p>
-						</div>
-					))}
-				</div>
-			</main>
+                <div class="font-mono text-[10px] text-acid-green mb-4 tracking-widest">
+                    // MISSION_STATEMENT
+                </div>
+
+                <div class="prose prose-invert max-w-none">
+                    <p class="font-serif text-xl md:text-2xl leading-relaxed text-gray-200">
+                        "Standing at the intersection of <span class="text-acid-green border-b border-acid-green/30">Rigorous Physics</span> and <span class="text-acid-green border-b border-acid-green/30">Deep Learning</span>."
+                    </p>
+                    <p class="font-mono text-sm text-gray-400 mt-4 leading-loose">
+                        This digital garden serves as a compilation of my undergraduate research and studies. 
+                        I hold a physiological aversion to "ugly" algebraic derivations and believe in the elegance of <strong class="text-white">Matrix Calculus</strong> and <strong class="text-white">Geometric Intuition</strong>.
+                        My goal is to bridge the gap between analytical mechanics and modern neural architectures.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </section>
 
 
-			<aside class="lg:col-span-3 space-y-8">
-				<div class="bg-white/5 border border-white/10 p-6 text-center">
-					<div class="w-20 h-20 mx-auto bg-gray-700 rounded-full mb-4 overflow-hidden border-2 border-acid-green">
-						<div class="w-full h-full flex items-center justify-center text-2xl font-serif">M</div>
-					</div>
-					<h3 class="font-serif text-xl font-bold mb-1">Manifold</h3>
-					<p class="text-xs font-mono text-gray-500 mb-4">CS @ SUSTech</p>
-					
-					<div class="flex justify-center gap-4 text-xs font-mono border-t border-white/10 pt-4">
-						<div class="text-center">
-							<span class="block text-acid-green font-bold text-lg">{allNotes.length}</span>
-							<span class="text-gray-500">POSTS</span>
-						</div>
-						<div class="text-center">
-							<span class="block text-acid-green font-bold text-lg">3</span>
-							<span class="text-gray-500">PROJS</span>
-						</div>
-					</div>
-				</div>
+	<section class="py-20 border-b border-white/10 bg-void-blue/50 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-6">
+            
+            <div class="font-mono text-xs text-gray-500 mb-8 flex items-center gap-2">
+                <span class="w-2 h-2 bg-acid-green rounded-full"></span>
+                SELECT MODULE:
+            </div>
 
-				<div class="p-4 border border-white/10 font-mono text-xs space-y-2">
-					<div class="flex justify-between">
-						<span class="text-gray-500">STATUS</span>
-						<span class="text-acid-green animate-pulse">● ONLINE</span>
-					</div>
-					<div class="flex justify-between">
-						<span class="text-gray-500">LATENCY</span>
-						<span class="text-gray-300">12ms</span>
-					</div>
-					<div class="flex justify-between">
-						<span class="text-gray-500">LOC</span>
-						<span class="text-gray-300">Shenzhen, CN</span>
-					</div>
-				</div>
-			</aside>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto md:h-[400px]">
+                <a href="/tensorfieldx/notes" class="group md:col-span-2 relative border border-white/20 bg-white/5 p-8 flex flex-col justify-between hover:border-acid-green hover:bg-white/10 transition-all duration-300 overflow-hidden">
+                    <span class="absolute right-[-20px] bottom-[-20px] text-[150px] font-serif font-bold text-white/5 group-hover:text-white/10 transition-colors leading-none">N</span>
+                    <div>
+                        <h3 class="text-3xl font-serif font-bold group-hover:text-acid-green transition-colors">Research Notes</h3>
+                        <p class="font-mono text-xs text-gray-400 mt-2 max-w-sm">
+                            Documentation of learning processes in Matrix Calculus, Statistical Mechanics, and System Architecture.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 font-mono text-xs text-acid-green mt-8">
+                        <span>ACCESS_DB</span>
+                        <span class="group-hover:translate-x-2 transition-transform">→</span>
+                    </div>
+                </a>
 
-		</div>
+                <div class="flex flex-col gap-6">
+                    <a href="/tensorfieldx/projects" class="group flex-1 relative border border-white/20 bg-white/5 p-6 flex flex-col justify-center hover:border-acid-green hover:bg-white/10 transition-all duration-300">
+                        <div class="absolute top-2 right-2 text-[10px] font-mono border border-white/20 px-1 text-gray-500">EXE</div>
+                        <h3 class="text-2xl font-serif font-bold mb-1 group-hover:text-acid-green transition-colors">Blueprints</h3>
+                        <p class="font-mono text-[10px] text-gray-400">Engineering archives & compiled binaries.</p>
+                    </a>
+
+                    <a href="/tensorfieldx/about" class="group flex-1 relative border border-white/20 bg-white/5 p-6 flex flex-col justify-center hover:border-acid-green hover:bg-white/10 transition-all duration-300">
+                        <div class="absolute top-2 right-2 text-[10px] font-mono border border-white/20 px-1 text-gray-500">USR</div>
+                        <h3 class="text-2xl font-serif font-bold mb-1 group-hover:text-acid-green transition-colors">Operator</h3>
+                        <p class="font-mono text-[10px] text-gray-400">Detailed Profile & Gear</p>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+	<section class="min-h-screen bg-void-blue py-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="font-mono text-xs text-gray-500 mb-8 flex items-center gap-2">
+                <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                FULL_DATABASE_INDEX:
+            </h2>
+
+            <div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-white/10 text-[10px] font-mono text-gray-500 tracking-widest uppercase">
+                <div class="col-span-2 md:col-span-1">ID</div>
+                <div class="col-span-3 md:col-span-2">Date</div>
+                <div class="col-span-7 md:col-span-6">Subject</div>
+                <div class="col-span-2 md:col-span-2 text-right hidden md:block">Tag</div>
+                <div class="col-span-1 text-right hidden md:block">Read</div>
+            </div>
+
+            <div class="divide-y divide-white/5">
+                {sortedNotes.map((note, index) => {
+                    const hexId = `0x${(sortedNotes.length - index).toString(16).padStart(2, '0').toUpperCase()}`;
+                    return (
+                        <a href={`/tensorfieldx/notes/${note.slug}`} class="group grid grid-cols-12 gap-4 px-4 py-6 items-baseline hover:bg-white hover:text-black transition-colors duration-200">
+                            <div class="col-span-2 md:col-span-1 font-mono text-xs text-gray-600 group-hover:text-black/50">{hexId}</div>
+                            <div class="col-span-3 md:col-span-2 font-mono text-xs text-acid-green group-hover:text-black">{note.data.pubDate.toISOString().split('T')[0]}</div>
+                            <div class="col-span-7 md:col-span-6">
+                                <h3 class="font-serif text-xl font-medium group-hover:font-bold">{note.data.title}</h3>
+                            </div>
+                            <div class="col-span-2 md:col-span-2 text-right hidden md:block font-mono text-xs text-gray-500 group-hover:text-black/70">[{note.data.tags?.[0]}]</div>
+                            <div class="col-span-1 text-right hidden md:block font-mono text-xs text-gray-600 group-hover:text-black/50">~5m</div>
+                        </a>
+                    )
+                })}
+            </div>
+            
+            <div class="mt-12 text-center">
+                 <a href="/tensorfieldx/notes" class="inline-block border border-white/20 px-6 py-2 font-mono text-xs text-acid-green hover:bg-acid-green hover:text-black transition-colors">
+                    VIEW ALL RECORDS ->
+                 </a>
+            </div>
+        </div>
 	</section>
+
 </BaseLayout>

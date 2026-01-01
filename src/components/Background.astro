@@ -1,0 +1,81 @@
+<canvas id="grid-canvas" class="fixed inset-0 z-0 w-full h-full pointer-events-none opacity-40"></canvas>
+
+<script>
+  const canvas = document.getElementById('grid-canvas') as HTMLCanvasElement;
+  const ctx = canvas?.getContext('2d');
+
+  if (canvas && ctx) {
+    let width: number;
+    let height: number;
+    let offset = 0;
+
+    const resize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+
+    const drawGrid = () => {
+      // 每一帧都清空画布，但保持透明背景，让底层的 bg-void-blue 透出来
+      ctx.clearRect(0, 0, width, height);
+
+      // 核心配置
+      const horizon = height * 0.4; // 地平线位置 (屏幕 40% 高度处)
+      const gridGap = 40; // 格子大小
+      const speed = 0.5; // 滚动速度
+
+      // 样式：酸性绿，带一点透明度
+      ctx.strokeStyle = 'rgba(204, 255, 0, 0.2)'; 
+      ctx.lineWidth = 1;
+
+      // 让网格动起来
+      offset = (offset + speed) % gridGap;
+
+      ctx.beginPath();
+
+      // 1. 绘制纵向线 (透视效果)
+      // 从屏幕底部射向地平线中心
+      const centerX = width / 2;
+      for (let x = 0; x <= width; x += gridGap * 2) {
+         // 简单的透视算法：底部宽，顶部汇聚
+         const dist = x - centerX;
+         
+         ctx.moveTo(x, height); // 起点：屏幕底部
+         ctx.lineTo(centerX + dist * 0.1, horizon); // 终点：地平线附近
+      }
+
+      // 2. 绘制横向线 (滚动效果)
+      // 从地平线向下扫描
+      for (let y = horizon; y < height; y += gridGap) {
+        // yProgress: 0 (地平线) -> 1 (屏幕底部)
+        const yProgress = (y - horizon) / (height - horizon);
+        
+        // 模拟透视：越近(底部)动得越快，越密
+        // 这是一个非线性映射
+        const visualY = horizon + Math.pow(yProgress, 2) * (height - horizon) + offset * yProgress;
+
+        if (visualY > height) continue;
+
+        ctx.moveTo(0, visualY);
+        ctx.lineTo(width, visualY);
+      }
+
+      ctx.stroke();
+
+      // 3. 地平线遮罩 (Fading Mask)
+      // 让远处的网格渐渐消失在黑暗中，制造无限延伸的错觉
+      const gradient = ctx.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, '#050a14');      // 天空：纯黑
+      gradient.addColorStop(0.35, '#050a14');   // 地平线附近：纯黑
+      gradient.addColorStop(0.5, 'rgba(5, 10, 20, 0)'); // 近处：透明(显示网格)
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      requestAnimationFrame(drawGrid);
+    };
+
+    window.addEventListener('resize', resize);
+    resize();
+    drawGrid();
+  }
+</script>
