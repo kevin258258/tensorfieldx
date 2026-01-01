@@ -163,6 +163,19 @@ const sortedNotes = allNotes.sort(
         // 15. 能量-动量关系 (狭义相对论)
         { tex: "E^2 = (pc)^2 + (mc^2)^2", link: "https://en.wikipedia.org/wiki/Energy%E2%80%93momentum_relation" }
     ];
+    function adjustFormulaScale(el) {
+    const parentWidth = el.parentElement.offsetWidth;
+    const formulaWidth = el.scrollWidth;
+
+    if (formulaWidth > parentWidth) {
+        // 计算缩放比例，最小缩放到 0.6 倍
+        const scale = Math.max(0.6, parentWidth / formulaWidth);
+        el.style.fontSize = `${scale * 100}%`;
+        el.style.transformOrigin = 'left center';
+    } else {
+        el.style.fontSize = '100%';
+    }
+}
 
     function initMathHero() {
         // ... 逻辑同上 ...
@@ -189,6 +202,7 @@ const sortedNotes = allNotes.sort(
         try {
             // @ts-ignore
             window.katex.render(selected.tex, renderEl, { throwOnError: false, displayMode: true });
+            adjustFormulaScale(renderEl);
         } catch (e) { renderEl.innerText = selected.tex; }
 
         const symbols = renderEl.querySelectorAll('.katex-html .mord, .katex-html .mbin, .katex-html .mrel, .katex-html .mopen, .katex-html .mclose, .katex-html .mpunct, .katex-html .minner');
