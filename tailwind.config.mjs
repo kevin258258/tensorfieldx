@@ -15,7 +15,7 @@ export default {
                 // Ink: 霜白，在黑底上清晰锐利
                 'ink': '#F0F0F0',       
                 // Concrete: 钛银色，用于辅助信息
-				'concrete': '#94A3B8',  
+				'concrete': 'rgba(255, 255, 255, 1)',  
 			},
 			fontFamily: {
 				serif: ['"Playfair Display"', 'serif'],

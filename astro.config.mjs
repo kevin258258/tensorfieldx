@@ -9,7 +9,7 @@ import rehypeKatex from 'rehype-katex';
 
 export default defineConfig({
 	// 这里改成你之前决定的 GitHub Page 地址
-	site: 'https://你的GitHub用户名.github.io',
+	site: 'https://tensorfieldx.space',
 	base: '/tensorfieldx',
 
 	integrations: [
