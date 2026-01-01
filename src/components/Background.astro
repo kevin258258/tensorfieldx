@@ -39,6 +39,21 @@
           mouseX = e.clientX;
           mouseY = e.clientY;
       };
+      const handleTouch = (e: TouchEvent) => {
+    // 阻止触摸时的默认滚动行为（可选，如果你希望划动时手电筒紧跟手指）
+    // e.preventDefault(); 
+    mouseX = e.touches[0].clientX;
+    mouseY = e.touches[0].clientY;
+};
+
+// 绑定触摸事件
+window.addEventListener('touchstart', handleTouch);
+window.addEventListener('touchmove', handleTouch);
+
+// 别忘了在 astro:page-load 的清理逻辑中也移除它们
+window.removeEventListener('touchstart', (window as any)._bgTouchHandler);
+window.removeEventListener('touchmove', (window as any)._bgTouchHandler);
+(window as any)._bgTouchHandler = handleTouch;
       
       // 清理旧事件（防御性编程）
       window.removeEventListener('mousemove', (window as any)._bgMouseMoveHandler);
