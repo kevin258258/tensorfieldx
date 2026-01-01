@@ -2,6 +2,8 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind'; // 确保这一行有
+import sitemap from '@astrojs/sitemap'; // <--- 1. 加这一行
+
 
 // 1. 引入刚才下载的数学插件
 import remarkMath from 'remark-math';
