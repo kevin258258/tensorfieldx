@@ -1,0 +1,32 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+}
+
+const { src, alt, caption } = Astro.props;
+---
+
+<figure class="my-10 group">
+    <div class="relative rounded-md overflow-hidden border border-white/10 bg-white/5 shadow-2xl transition-all duration-300 group-hover:border-accent/30">
+        
+        <img 
+            src={src} 
+            alt={alt} 
+            class="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300"
+            loading="lazy"
+        />
+
+        <div class="absolute top-2 left-2 w-2 h-2 border-l border-t border-accent/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="absolute top-2 right-2 w-2 h-2 border-r border-t border-accent/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-accent/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-accent/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+    </div>
+
+    {caption && (
+        <figcaption class="mt-3 text-center font-mono text-[10px] text-gray-500 tracking-wider">
+            <span class="text-accent/70">// FIG:</span> {caption}
+        </figcaption>
+    )}
+</figure>
