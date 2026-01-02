@@ -1,0 +1,232 @@
+---
+title: "Landau Mechanics (一): 最小作用量原理"
+description: "从广义坐标到变分法，推导惯性系下自由粒子的拉格朗日量。"
+pubDate: 2026-01-02
+tags: ["Physics", "Landau", "Lagrangian", "Calculus of Variations"]
+series: "Analytical Mechanics"
+seriesOrder: 1
+---
+
+import Sidenote from '../../components/Sidenote.astro';
+import Figure from '../../components/Figure.astro';
+
+## 1. 广义坐标 (Generalized Coordinates)
+
+考虑一个 1 个自由度的系统，比如单摆。在传统的笛卡尔坐标系下，我们往往要多引入一个约束方程（$x^2+y^2=l^2$）来解决这个问题。但如果是极坐标系，却只需要一个变量 $\theta$ 就能描述，且运动方程极其简洁：
+
+$$
+\ddot\theta +\frac{g}{l}\theta = 0
+$$
+
+这似乎暗示着有一种更加合适、解耦的方式来描述这个系统。
+
+在此，我们定义 $s$ 个自由度的系统的**广义坐标** $q_1, q_2, \dots, q_s$ 为可以完全刻画其位置的 $s$ 个变量，其导数 $\dot{q}$ 就是**广义速度**。
+
+经验告诉我们，在牛顿力学体系下，只需要知道了 $q$ 和 $\dot{q}$ 就可以确定整个系统未来的状态。这意味着，牛顿力学下，我们的世界是一个二阶微分系统，自然地我们会想到存在这样一个映射：
+
+$$
+f(q, \dot{q}) \rightarrow \ddot{q}
+$$
+
+不过这个映射究竟是什么呢？引入最小作用原理之前，我们不妨想像一下：在确定了系统首尾状态的情况下，明明有无数条路径可以走，但现实却只选择了其中一条。
+
+想必一定有其特殊之处... 比如... 让某个函数取极值？
+
+## 2. 最小作用量原理
+
+我们进行如下定义：每一个力学系统都可以通过一个确定的函数——**拉格朗日量 (Lagrangian)** 来表征：
+
+$$
+\mathcal{L}(q, \dot{q}, t)
+$$
+
+此时不妨设**作用量 (Action)** $S$ 为该函数的时间积分：
+
+$$
+S = \int_{t_1}^{t_2} \mathcal{L}(q, \dot{q}, t) \, dt
+$$
+
+关于这个泛函，我们的 $q$ 和 $\dot{q}$ 会让它取最小值<Sidenote>严格来说，最小作用量原理的表述并不是对系统的整个运动轨迹总成立，而是仅在足够小的区段上成立。对于整个轨迹来说，积分 $S$ 只能取**极值**（驻点）而不一定是最小值。当然，这对于推导运动方程没有影响，因为我们只需用到极值条件 $\delta S = 0$。</Sidenote>。下面我们来进行求解。
+
+我们要寻找函数 $q(t)$，使得作用量 $S$ 取极值。根据变分原理，我们需要 $\delta S = 0$。
+
+假设真实路径为 $q(t)$，我们给它施加一个微小的扰动 $\delta q(t)$。为了保证路径的起点和终点不变，我们要求在端点处的扰动为零：
+$$
+\delta q(t_1) = \delta q(t_2) = 0
+$$
+
+作用量的变分 $\delta S$ 可以写为拉格朗日量 $\mathcal{L}$ 的变分的时间积分：
+
+$$
+\delta S = \int_{t_1}^{t_2} \delta \mathcal{L}(q, \dot{q}, t) \, dt
+$$
+
+利用全微分展开（链式法则），我们将 $\delta \mathcal{L}$ 展开为：
+
+$$
+\delta S = \int_{t_1}^{t_2} \left( \frac{\partial \mathcal{L}}{\partial q} \delta q + \frac{\partial \mathcal{L}}{\partial \dot{q}} \delta \dot{q} \right) dt
+$$
+
+**关键步骤：处理第二项**
+
+我们需要将 $\delta \dot{q}$ 转化为与 $\delta q$ 相关的形式。这里利用了**微分与变分的可交换性**：
+
+> **(注：为什么 $\delta \dot{q} = \frac{d}{dt}(\delta q)$？)**
+> 变分 $\delta$ 是对函数形式（路径形状）的微扰，而微分 $d/dt$ 是对时间的运算。由于路径的变化 $\delta q$ 和时间 $t$ 是相互独立的变量，因此运算顺序可以交换。数学上：
+> $$\delta \dot{q} = \delta \left(\frac{dq}{dt}\right) = \frac{d(q+\delta q)}{dt} - \frac{dq}{dt} = \frac{d(\delta q)}{dt}$$
+
+于是，积分变为：
+
+$$
+\delta S = \int_{t_1}^{t_2} \left( \frac{\partial \mathcal{L}}{\partial q} \delta q + \frac{\partial \mathcal{L}}{\partial \dot{q}} \frac{d}{dt}(\delta q) \right) dt
+$$
+
+对第二项进行**分部积分** (Integration by Parts)：
+令 $u = \frac{\partial \mathcal{L}}{\partial \dot{q}}$，$dv = \frac{d}{dt}(\delta q)dt = d(\delta q)$，则：
+
+$$
+\int_{t_1}^{t_2} \frac{\partial \mathcal{L}}{\partial \dot{q}} \frac{d}{dt}(\delta q) \, dt = \left[ \frac{\partial \mathcal{L}}{\partial \dot{q}} \delta q \right]_{t_1}^{t_2} - \int_{t_1}^{t_2} \delta q \frac{d}{dt} \left( \frac{\partial \mathcal{L}}{\partial \dot{q}} \right) dt
+$$
+
+由于端点固定条件 $\delta q(t_1) = \delta q(t_2) = 0$，第一项（边界项）消失。将剩余部分代回原式：
+
+$$
+\delta S = \int_{t_1}^{t_2} \left( \frac{\partial \mathcal{L}}{\partial q} - \frac{d}{dt} \frac{\partial \mathcal{L}}{\partial \dot{q}} \right) \delta q \, dt = 0
+$$
+
+**变分法基本引理**
+
+根据变分法基本引理：如果对于任意满足边界条件的 $\delta q(t)$，上述积分恒为零，则被积函数必须恒为零。
+
+因此，我们得到了力学的运动方程——**欧拉-拉格朗日方程**：
+
+$$
+\frac{d}{dt} \left( \frac{\partial \mathcal{L}}{\partial \dot{q}} \right) - \frac{\partial \mathcal{L}}{\partial q} = 0
+$$
+
+### 物理直觉与规范变换
+
+值得一提的是，上述推导完全是一个与物理无关的数学过程。真正往这个壳子里面赋予内容的是我们的**物理直觉**。
+
+在这里我们先看看方程对拉格朗日量的“宽容程度”。注意到我们随意往 $\mathcal{L}$ 乘一个常数 $c$ 并不会导致运动方程的变化。不过出于可加性（对一个系统下两个不相干的部分 A，B，有 $\mathcal{L} = \mathcal{L}_A + \mathcal{L}_B$），我们必须得对每个部分乘相同的常数。这一定程度体现了对于单位选择的自由性。
+
+如果你注意力集中，同样不难发现加一个函数 $f(q,t)$ 对时间 $t$ 的**全导数**也不会影响结果：
+$$
+\mathcal{L}' = \mathcal{L} + \frac{d}{dt}f(q,t)
+$$
+这将导出我们下面的伽利略变换不变性。
+
+## 3. 伽利略相对性原理
+
+经典视角下，参考系是我们研究物理的必要手段。然而众所周知，不同参考系下的运动规律总是不一样的，就好比牛顿定律放在非惯性系下就不成立。
+
+* 有的系下空间是不均匀的；
+* 有的系是各向异性的；
+* 有的连不同时刻都不等价。
+
+但是在这样的情况下，似乎总是存在一个空间均匀、各向同性、时间均匀的参考系，我们称之为**惯性参考系**。现在我们考虑导出自由粒子在惯性系下的拉格朗日量。
+
+### 3.1 形式的确定
+
+对位移矢量 $\mathbf{r}$ 施加一个偏移，可知物理规律不变（空间均匀性），所以 $\mathcal{L}$ 不应该依赖于 $\mathbf{r}$。时间同理（时间均匀性）。
+
+那么速度的方向呢？由于空间各向同性，方向似乎也不重要。于是我们便大概得出了一个形式：拉格朗日量只能是速度大小平方的函数。
+
+$$
+\mathcal{L} = \mathcal{L}(v^2)
+$$
+
+写出它的拉格朗日方程：
+$$
+\frac{d}{dt} \frac{\partial \mathcal{L}}{\partial \mathbf{v}} - \frac{\partial \mathcal{L}}{\partial \mathbf{r}} = 0 \quad \Rightarrow \quad \frac{d}{dt} \frac{\partial \mathcal{L}}{\partial \mathbf{v}} = 0
+$$
+由此可得 $\partial \mathcal{L} / \partial\mathbf{v}=\text{const.}$
+
+利用链式法则：
+$$
+\frac{\partial \mathcal{L}}{\partial \mathbf{v}} = \frac{d\mathcal{L}}{d(v^2)} \cdot \frac{\partial (v^2)}{\partial \mathbf{v}} = 2 \mathcal{L}'(v^2) \cdot \mathbf{v}
+$$
+
+由于动量 $\partial \mathcal{L} / \partial\mathbf{v}$ 是常矢量，且上述映射是一个**单射**<Sidenote>这里隐含了一个数学条件：映射 $\mathbf{v} \to \mathbf{p}$ 必须是可逆的（单射）。在物理上，这意味着动量守恒等价于速度守恒。</Sidenote>，故：
+$$
+\mathbf{v} = \text{const.}
+$$
+于是我们就得到了惯性系下的自由粒子速度不变（牛顿第一定律）。
+
+### 3.2 导出 $L = \frac{1}{2}mv^2$
+
+现在引入另一个惯性系 $K'$ 相对于另一个系 $K$ 以微小速度 $\epsilon$ 运动：$\mathbf{v}' = \mathbf{v} + \epsilon$。
+
+由于惯性系的等价性，改变后的 $\mathcal{L}'$ 应该只改变了一个关于时间和坐标的全导数。代入展开后有：
+
+$$
+\mathcal{L}(v'^2) = \mathcal{L}((\mathbf{v} +\epsilon)^2) \approx \mathcal{L}(v^2) + 2\frac{\partial{\mathcal{L}}}{\partial(v^2)}(\mathbf{v}\cdot\epsilon)
+$$
+
+第二项即为 $L' - L$。若想使得这一项成为关于坐标和时间的全导数 $\frac{df(r,t)}{dt}$，注意到 $\mathbf{v} = \frac{dr}{dt}$，则系数 $2\frac{\partial{\mathcal{L}}}{\partial(v^2)}$ 必须与 $\mathbf{v}$ 无关（即为常数）。
+
+由此可以导出 $\mathcal{L}(v^2)$ 必须与 $v^2$ 成正比：
+
+$$
+\mathcal{L} = \frac{1}{2}mv^2
+$$
+
+容易看出 $m$ 必须非负，否则作用量没有最小值。
+
+---
+
+## 附：坐标系与度规几何
+
+既然拉格朗日量 $L = \frac{1}{2}mv^2$，确定的 $L$ 的形式本质上就是确定速度平方 $v^2$ 在不同坐标系下的表达。
+
+从几何角度看，速度是位置矢量 $\mathbf{r}$ 对时间的导数，而 $v^2$ 本质上是空间线元$dl$ 对时间的缩放：
+
+$$
+v^2 = \left( \frac{dl}{dt} \right)^2 = \frac{dl^2}{dt^2}
+$$
+
+这意味着，我们只需要知道当前坐标系下的**弧长公式** $dl^2$，就能直接写出拉格朗日量。
+
+### 1. 欧几里得空间的度规结构
+
+我们讨论的背景是三维欧几里得空间（平坦空间）。这里的“平坦”意味着空间曲率为零，但并不意味着所有坐标系下的度规张量 $g_{ij}$ 都是单位矩阵<Sidenote>在广义相对论中，引力由时空弯曲引起，而在经典力学中，只要我们还在惯性系，空间本身就是平坦的 (Flat)。曲线坐标系引入的只是“虚假的”几何项（克里斯托费尔符号），而非真实的曲率。</Sidenote>。
+
+线元的一般形式由度规张量定义：
+$$
+dl^2 = \sum_{i,j} g_{ij} dq_i dq_j
+$$
+
+### 2. 常见坐标系下的 $L$
+
+#### A. 笛卡尔坐标系 
+这是最简单的形式，度规为单位矩阵 $g_{ij} = \delta_{ij}$。
+$$
+dl^2 = dx^2 + dy^2 + dz^2
+$$
+$$
+L = \frac{m}{2} (\dot{x}^2 + \dot{y}^2 + \dot{z}^2)
+$$
+
+#### B. 柱坐标系 
+坐标变换为 $(r, \phi, z)$。注意这里 $r$ 是距离 $z$ 轴的距离。
+$$
+dl^2 = dr^2 + r^2 d\phi^2 + dz^2
+$$
+这里出现了一个非对角项系数 $r^2$，对应的拉格朗日量为：
+$$
+L = \frac{m}{2} (\dot{r}^2 + r^2 \dot{\phi}^2 + \dot{z}^2)
+$$
+
+#### C. 球坐标系 
+坐标变换为 $(r, \theta, \phi)$。这是处理中心力场（如行星运动、氢原子）最常用的坐标系。
+$$
+dl^2 = dr^2 + r^2 d\theta^2 + r^2 \sin^2\theta \, d\phi^2
+$$
+对应的拉格朗日量：
+$$
+L = \frac{m}{2} (\dot{r}^2 + r^2 \dot{\theta}^2 + r^2 \sin^2\theta \, \dot{\phi}^2)
+$$
+
+> **思考**：
+> 观察上述公式，虽然 $L$ 的形式变复杂了，但物理本质（动能）没变。这些 $r^2$ 和 $\sin^2\theta$ 因子，正是雅可比矩阵在度规张量中的体现。
+> 在后续章节推导 E-L 方程时，正是这些因子产生了离心力和科里奥利力等“惯性力”项。
