@@ -21,7 +21,7 @@ export default defineConfig({
 		sitemap(),
 		tailwind(), // 启用 Tailwind CSS
 		 sitemap(),
-		 react()
+		 react(),
 	],
 
 	markdown: {

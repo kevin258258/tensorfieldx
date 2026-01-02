@@ -54,13 +54,13 @@ export default function NotesExplorer({ notes }: Props) {
         <div className="flex gap-4 font-mono text-xs">
            <button 
              onClick={() => setViewMode('list')}
-             className={`flex items-center gap-2 px-3 py-1 transition-colors ${viewMode === 'list' ? 'text-[#2E5CFF] bg-white/5 border border-[#2E5CFF]/30' : 'text-gray-500 hover:text-white'}`}
+             className={`flex items-center gap-2 px-3 py-1 transition-colors ${viewMode === 'list' ? 'text-accent bg-white/5 border border-accent/30' : 'text-gray-500 hover:text-white'}`}
            >
              <FileText className="w-3 h-3" /> LIST_VIEW
            </button>
            <button 
              onClick={() => setViewMode('graph')}
-             className={`flex items-center gap-2 px-3 py-1 transition-colors ${viewMode === 'graph' ? 'text-[#2E5CFF] bg-white/5 border border-[#2E5CFF]/30' : 'text-gray-500 hover:text-white'}`}
+             className={`flex items-center gap-2 px-3 py-1 transition-colors ${viewMode === 'graph' ? 'text-accent bg-white/5 border border-accent/30' : 'text-gray-500 hover:text-white'}`}
            >
              <Network className="w-3 h-3" /> GRAPH_VIEW
            </button>
@@ -104,7 +104,7 @@ function SeriesFolder({ title, notes }: { title: string, notes: Note[] }) {
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 transition-colors text-left group"
       >
-        <Folder className={`w-4 h-4 transition-colors ${isOpen ? 'text-[#2E5CFF]' : 'text-gray-500 group-hover:text-white'}`} />
+        <Folder className={`w-4 h-4 transition-colors ${isOpen ? 'text-accent' : 'text-gray-500 group-hover:text-white'}`} />
         <span className={`font-serif text-lg font-bold flex-1 ${isOpen ? 'text-white' : 'text-gray-300'}`}>
           {title}
         </span>
@@ -138,7 +138,7 @@ function NoteItem({ note, isChild = false }: { note: Note, isChild?: boolean }) 
   return (
     <a 
       href={`/notes/${note.slug}`}
-      className={`block group flex items-baseline gap-4 py-3 border-b border-white/5 hover:bg-[#2E5CFF]/10 transition-colors px-4 ${isChild ? 'pl-12 bg-black/20' : ''}`}
+      className={`block group flex items-baseline gap-4 py-3 border-b border-white/5 hover:bg-accent/10 transition-colors px-4 ${isChild ? 'pl-12 bg-black/20' : ''}`}
     >
       <span className="font-mono text-xs text-gray-600 w-24 shrink-0">
         {new Date(note.data.pubDate).toISOString().split('T')[0]}

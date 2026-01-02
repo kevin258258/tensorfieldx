@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import ProjectCard from '../../components/ProjectCard.astro'; // 引入刚才写的组件
+
+// 1. 获取数据
+const projects = await getCollection('projects');
+
+// 2. 排序 (按时间倒序：最新的在前面)
+const sortedProjects = projects.sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<BaseLayout title="Projects">
+    <div class="max-w-7xl mx-auto px-6 py-24 min-h-screen">
+        
+        {/* Header 区域：纯展示，保持 Tech-Noir 风格 */}
+        <header class="mb-20">
+            <div class="font-mono text-xs text-accent font-bold mb-4 flex items-center gap-2">
+                <span class="w-2 h-2 bg-accent animate-pulse"></span>
+                /// EXECUTABLE_MODULES
+            </div>
+            <h1 class="text-5xl md:text-7xl font-serif font-bold text-white tracking-tight mb-6">
+                Selected <span class="text-accent italic">Works</span>.
+            </h1>
+            <p class="text-gray-500 font-mono text-sm max-w-xl leading-relaxed border-l-2 border-white/10 pl-6">
+                A repository of open-source tools, system architectures, and experimental labs. 
+                <br />
+                <span class="opacity-50">Deployed from SUSTech.</span>
+            </p>
+        </header>
+
+        {/* Grid 布局区域 */}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedProjects.map(project => (
+                // 直接使用组件，把数据传进去 (Props)
+                <ProjectCard 
+                    title={project.data.title}
+                    description={project.data.description}
+                    tags={project.data.tags}
+                    status={project.data.status}
+                    github={project.data.github}
+                    demo={project.data.demo}
+                />
+            ))}
+        </div>
+        
+        {/* 底部装饰 */}
+        <div class="mt-24 pt-8 border-t border-white/5 flex justify-between font-mono text-[10px] text-gray-700">
+            <span>TOTAL_MODULES: {sortedProjects.length}</span>
+            <span>END_OF_STREAM</span>
+        </div>
+
+    </div>
+</BaseLayout>

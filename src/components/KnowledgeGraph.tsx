@@ -83,7 +83,7 @@ export default function KnowledgeGraph({ notes }: Props) {
             // 粒子效果
             linkDirectionalParticles={2} // 每个连接上有粒子在跑
             linkDirectionalParticleWidth={2}
-            linkDirectionalParticleColor={() => "#2E5CFF"}
+            linkDirectionalParticleColor={() => "accent"} // 粒子颜色使用强调色
             
             // 点击交互
             onNodeClick={(node: any) => {
