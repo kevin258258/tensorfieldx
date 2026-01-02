@@ -15,9 +15,9 @@
     </button>
 
     <span 
-        class="hidden lg:block absolute left-[102%] top-auto w-[240px] p-0 z-20 pointer-events-none group-data-[state=open]:pointer-events-auto"
+        class="hidden xl:block absolute left-[103%] top-auto w-[250px] p-0 z-20 pointer-events-none group-data-[state=open]:pointer-events-auto"
     >
-        <span class="block bg-[#0A0A0A]/95 border-l-[3px] border-accent/80 pl-4 pr-3 py-3 backdrop-blur-md text-[11px] leading-relaxed font-sans text-gray-300 text-left shadow-[0_4px_20px_rgba(0,0,0,0.5)] rounded-md border border-white/10
+        <span class="block bg-[#0A0A0A]/95 border-l-[3px] border-accent/80 pl-3 pr-2 py-3 backdrop-blur-md text-[11px] leading-relaxed font-sans text-gray-300 text-left shadow-[0_4px_20px_rgba(0,0,0,0.5)] rounded-md border border-white/10
         opacity-0 translate-x-[-10px] transition-all duration-300 ease-out origin-left
         group-data-[state=open]:opacity-100 group-data-[state=open]:translate-x-0">
             
@@ -27,41 +27,49 @@
                 </span>
             </span>
             
-            <span class="block selection:bg-accent/30 selection:text-white">
+            <span class="block selection:bg-accent/30 selection:text-white break-words">
                 <slot />
             </span>
         </span>
     </span>
 
-    <span class="mobile-note hidden group-data-[state=open]:block lg:!hidden float-right clear-both w-full mt-2 mb-4 ml-1 pl-3 border-l-2 border-accent/30 font-sans text-sm text-gray-300 bg-white/5 p-3 rounded-r select-text">
+    <span class="mobile-note hidden group-data-[state=open]:block xl:!hidden float-right clear-both w-full mt-2 mb-4 ml-1 pl-3 border-l-2 border-accent/30 font-sans text-sm text-gray-300 bg-white/5 p-3 rounded-r select-text">
         <span class="block text-accent text-[10px] mb-1 uppercase font-mono opacity-70">// Note:</span>
         <slot />
     </span>
 </span>
 
 <script>
-    function initSidenotes() {
-        document.body.addEventListener('click', (e) => {
-            const target = e.target as HTMLElement;
-            const trigger = target.closest('.sidenote-trigger');
-
-            if (trigger) {
-                e.preventDefault(); 
-                e.stopPropagation(); 
-                
-                const wrapper = trigger.closest('.sidenote-wrapper');
-                if (!wrapper) return;
-
-                const currentState = wrapper.getAttribute('data-state');
-                const newState = currentState === 'open' ? 'closed' : 'open';
-                
-                wrapper.setAttribute('data-state', newState);
-            }
-        });
+    // 定义核心逻辑
+    function setupSidenotes() {
+        // 先移除旧的监听器（防止热更新或多次加载导致重复绑定）
+        document.body.removeEventListener('click', handleSidenoteClick);
+        // 重新绑定
+        document.body.addEventListener('click', handleSidenoteClick);
     }
-    
-    if (!(window as any)._sidenotesInitialized) {
-        initSidenotes();
-        (window as any)._sidenotesInitialized = true;
+
+    function handleSidenoteClick(e: MouseEvent) {
+        const target = e.target as HTMLElement;
+        const trigger = target.closest('.sidenote-trigger');
+
+        if (trigger) {
+            e.preventDefault(); 
+            e.stopPropagation(); 
+            
+            const wrapper = trigger.closest('.sidenote-wrapper');
+            if (!wrapper) return;
+
+            const currentState = wrapper.getAttribute('data-state');
+            const newState = currentState === 'open' ? 'closed' : 'open';
+            
+            wrapper.setAttribute('data-state', newState);
+        }
     }
+
+    // 1. 首次加载运行
+    setupSidenotes();
+
+    // 2. 关键修复：监听 Astro 页面切换事件
+    // 确保从首页点进文章页时，脚本重新运行
+    document.addEventListener('astro:page-load', setupSidenotes);
 </script>
