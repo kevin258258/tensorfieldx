@@ -1,123 +1,115 @@
-<div class="fixed inset-0 z-0 w-full h-full bg-cover bg-center pointer-events-none grayscale brightness-[0.4] contrast-125"
-     style="background-image: url('https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?q=80&w=2660&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
-</div>
+<div class="fixed inset-0 -z-0 bg-[#050505] overflow-hidden pointer-events-none select-none">
+    
+    <img 
+        src="/images/bg3.png" 
+        alt="Secret Blueprint"
+        class="absolute inset-0 w-full h-full object-cover z-0"
+        style="image-rendering: -webkit-optimize-contrast;"
+    />
 
-<canvas id="flashlight-canvas" class="fixed inset-0 z-1 w-full h-full pointer-events-none"></canvas>
+    <canvas id="flashlight-canvas" class="absolute inset-0 w-full h-full z-10 block"></canvas>
 
-<div class="fixed inset-0 z-2 w-full h-full pointer-events-none opacity-[0.08] mix-blend-overlay"
-     style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 60px 60px;">
-</div>
-
-<div class="fixed inset-0 z-3 w-full h-full pointer-events-none opacity-[0.05]"
-     style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%270 0 200 200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27noiseFilter%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.65%27 numOctaves=%273%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23noiseFilter)%27/%3E%3C/svg%3E');">
 </div>
 
 <script>
-  // 将所有逻辑封装在函数里
-  function initFlashlight() {
-      const canvas = document.getElementById('flashlight-canvas') as HTMLCanvasElement;
-      if (!canvas) return; // 找不到画布就退出
+    function initFlashlight() {
+        const canvas = document.getElementById('flashlight-canvas') as HTMLCanvasElement;
+        if (!canvas) return;
 
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-      const VOID_COLOR = '#050508'; 
-      let width: number, height: number;
-      let mouseX = -999, mouseY = -999;
-      let animationFrameId: number;
+        // 遮罩颜色：纯黑
+        const VOID_COLOR = '#050505'; 
+        let width, height;
+        let mouse = { x: -9999, y: -9999 };
 
-      const resize = () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-        // 强制重绘一次黑色，防止 resize 时闪烁
-        ctx.fillStyle = VOID_COLOR;
-        ctx.fillRect(0, 0, width, height);
-      };
+        // 1. 初始化尺寸
+        const resize = () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            // 初始全黑
+            ctx.fillStyle = VOID_COLOR;
+            ctx.fillRect(0, 0, width, height);
+        };
 
-      // 必须移除旧的监听器，防止内存泄漏（虽然 Astro 换页会销毁 DOM，但 window 上的事件还在）
-      const handleMouseMove = (e: MouseEvent) => {
-          mouseX = e.clientX;
-          mouseY = e.clientY;
-      };
-      const handleTouch = (e: TouchEvent) => {
-    // 阻止触摸时的默认滚动行为（可选，如果你希望划动时手电筒紧跟手指）
-    // e.preventDefault(); 
-    mouseX = e.touches[0].clientX;
-    mouseY = e.touches[0].clientY;
-};
+        // 2. 绘图循环
+        const draw = () => {
+            // A. 重置：先铺满全黑
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = VOID_COLOR;
+            ctx.fillRect(0, 0, width, height);
 
-// 绑定触摸事件
-window.addEventListener('touchstart', handleTouch);
-window.addEventListener('touchmove', handleTouch);
+            // B. 挖洞：把鼠标位置变透明 (露出底下的图片)
+            if (mouse.x > -100) {
+                ctx.globalCompositeOperation = 'destination-out';
+                
+                // 光圈半径 (调大一点，视野更开阔)
+                const radius = 350; 
+                
+                // 径向渐变：中心完全透明(露出图片)，边缘半透明
+                const gradient = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, radius);
+                gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');   // 中心挖空力度 100%
+                gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.5)'); // 中间过渡
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');   // 边缘不挖空
 
-// 别忘了在 astro:page-load 的清理逻辑中也移除它们
-window.removeEventListener('touchstart', (window as any)._bgTouchHandler);
-window.removeEventListener('touchmove', (window as any)._bgTouchHandler);
-(window as any)._bgTouchHandler = handleTouch;
-      
-      // 清理旧事件（防御性编程）
-      window.removeEventListener('mousemove', (window as any)._bgMouseMoveHandler);
-      window.removeEventListener('resize', (window as any)._bgResizeHandler);
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, radius, 0, Math.PI * 2);
+                ctx.fill();
 
-      // 绑定新事件
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('resize', resize);
-      
-      // 挂载到 window 以便下次移除
-      (window as any)._bgMouseMoveHandler = handleMouseMove;
-      (window as any)._bgResizeHandler = resize;
+                // C. 装饰：画蓝色准星 (画在黑色图层之上)
+                ctx.globalCompositeOperation = 'source-over';
+                
+                // 十字线
+                ctx.strokeStyle = '#2E5CFF'; // 瑞士蓝
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                const crossSize = 20;
+                ctx.moveTo(mouse.x - crossSize, mouse.y);
+                ctx.lineTo(mouse.x + crossSize, mouse.y);
+                ctx.moveTo(mouse.x, mouse.y - crossSize);
+                ctx.lineTo(mouse.x, mouse.y + crossSize);
+                ctx.stroke();
 
-      const draw = () => {
-        // 1. 重置为纯黑遮挡
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = VOID_COLOR;
-        ctx.fillRect(0, 0, width, height);
+                // 外圈细线
+                ctx.strokeStyle = 'rgba(46, 92, 255, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, 100, 0, Math.PI * 2); // 小一点的准星圈
+                ctx.stroke();
+            }
 
-        // 2. 挖洞 (手电筒)
-        ctx.globalCompositeOperation = 'destination-out';
-        const flashlightRadius = 400;
-        const gradient = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, flashlightRadius);
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
-        gradient.addColorStop(0.8, 'rgba(0, 0, 0, 0.2)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            requestAnimationFrame(draw);
+        };
 
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(mouseX, mouseY, flashlightRadius, 0, Math.PI * 2);
-        ctx.fill();
+        // 事件监听
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        window.addEventListener('touchstart', (e) => {
+             mouse.x = e.touches[0].clientX;
+             mouse.y = e.touches[0].clientY;
+        });
+        window.addEventListener('touchmove', (e) => {
+             mouse.x = e.touches[0].clientX;
+             mouse.y = e.touches[0].clientY;
+        });
 
-        // 3. 装饰
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.strokeStyle = '#2E5CFF';
-        ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        const crossSize = 15;
-        ctx.moveTo(mouseX - crossSize, mouseY);
-        ctx.lineTo(mouseX + crossSize, mouseY);
-        ctx.moveTo(mouseX, mouseY - crossSize);
-        ctx.lineTo(mouseX, mouseY + crossSize);
-        ctx.stroke();
+        // 启动
+        resize();
+        draw();
+        
+        // 清理
+        (window as any)._bgCleanup = () => {
+            window.removeEventListener('resize', resize);
+        };
+    }
 
-        ctx.strokeStyle = 'rgba(46, 92, 255, 0.3)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(mouseX, mouseY, flashlightRadius * 0.8, 0, Math.PI * 2);
-        ctx.stroke();
-
-        animationFrameId = requestAnimationFrame(draw);
-      };
-
-      // 初始化
-      resize();
-      
-      // 取消旧的动画帧（防止多个循环同时跑）
-      if ((window as any)._bgAnimId) cancelAnimationFrame((window as any)._bgAnimId);
-      draw();
-      // 保存 ID
-      (window as any)._bgAnimId = animationFrameId;
-  }
-
-  // 🚀 关键修复：在每次页面加载/切换时运行
-  document.addEventListener('astro:page-load', initFlashlight);
-
+    document.addEventListener('astro:page-load', () => {
+        if ((window as any)._bgCleanup) (window as any)._bgCleanup();
+        initFlashlight();
+    });
 </script>
