@@ -1,34 +1,67 @@
 ---
 // src/components/Sidenote.astro
-interface Props {
-  label?: string;
-}
-
-const { label } = Astro.props;
 ---
 
-<span class="sidenote-wrapper relative inline group">
-  
-  <sup class="text-concrete font-bold text-[10px] cursor-help border-b border-transparent group-hover:border-accent transition-all top-0">
-    {label || '⊕'}
-  </sup>
+<span class="sidenote-wrapper group static inline align-baseline select-none" data-state="closed">
+    
+    <button 
+        type="button"
+        class="sidenote-trigger cursor-help text-accent font-bold text-[10px] align-super hover:underline decoration-accent underline-offset-2 transition-all mx-0.5 outline-none relative z-30"
+        style="line-height: 0;"
+        aria-label="Toggle note"
+    >
+        <span class="inline-flex items-center justify-center border border-accent/50 rounded-full w-3.5 h-3.5 text-[9px] text-accent bg-accent/5 transition-all duration-200 
+        group-data-[state=open]:bg-accent group-data-[state=open]:text-black group-data-[state=open]:scale-110 group-data-[state=open]:border-accent">?</span>
+    </button>
 
-  <span class="
-    hidden lg:block
-    float-right clear-right
-    mr-[-45%] w-[40%]
-    text-xs font-mono text-concrete
-    text-left leading-relaxed
-    border-l border-white/10 pl-3 py-1 mb-2 mt-1
-    group-hover:text-ink group-hover:border-accent
-    transition-all duration-300
-  ">
-    <slot />
-  </span>
+    <span 
+        class="hidden lg:block absolute left-[102%] top-auto w-[240px] p-0 z-20 pointer-events-none group-data-[state=open]:pointer-events-auto"
+    >
+        <span class="block bg-[#0A0A0A]/95 border-l-[3px] border-accent/80 pl-4 pr-3 py-3 backdrop-blur-md text-[11px] leading-relaxed font-sans text-gray-300 text-left shadow-[0_4px_20px_rgba(0,0,0,0.5)] rounded-md border border-white/10
+        opacity-0 translate-x-[-10px] transition-all duration-300 ease-out origin-left
+        group-data-[state=open]:opacity-100 group-data-[state=open]:translate-x-0">
+            
+            <span class="flex justify-between items-center border-b border-white/10 pb-2 mb-2">
+                <span class="text-accent font-bold tracking-widest text-[9px] uppercase font-mono flex items-center gap-1">
+                    // ANNOTATION
+                </span>
+            </span>
+            
+            <span class="block selection:bg-accent/30 selection:text-white">
+                <slot />
+            </span>
+        </span>
+    </span>
 
-  <span class="lg:hidden block mt-2 mb-4 ml-4 pl-3 border-l-2 border-accent/50 text-xs font-mono text-concrete/80">
-    <span class="text-accent font-bold mr-1">NOTE:</span>
-    <slot />
-  </span>
-
+    <span class="mobile-note hidden group-data-[state=open]:block lg:!hidden float-right clear-both w-full mt-2 mb-4 ml-1 pl-3 border-l-2 border-accent/30 font-sans text-sm text-gray-300 bg-white/5 p-3 rounded-r select-text">
+        <span class="block text-accent text-[10px] mb-1 uppercase font-mono opacity-70">// Note:</span>
+        <slot />
+    </span>
 </span>
+
+<script>
+    function initSidenotes() {
+        document.body.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            const trigger = target.closest('.sidenote-trigger');
+
+            if (trigger) {
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                
+                const wrapper = trigger.closest('.sidenote-wrapper');
+                if (!wrapper) return;
+
+                const currentState = wrapper.getAttribute('data-state');
+                const newState = currentState === 'open' ? 'closed' : 'open';
+                
+                wrapper.setAttribute('data-state', newState);
+            }
+        });
+    }
+    
+    if (!(window as any)._sidenotesInitialized) {
+        initSidenotes();
+        (window as any)._sidenotesInitialized = true;
+    }
+</script>
