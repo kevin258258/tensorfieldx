@@ -1,77 +1,51 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import NotesExplorer from '../../components/NotesExplorer';
 
+// 1. 获取所有笔记数据
 const allNotes = await getCollection('notes');
-const sortedNotes = allNotes.sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
 
-// 按年份分组
-const notesByYear = sortedNotes.reduce((acc, note) => {
-    const year = note.data.pubDate.getFullYear();
-    if (!acc[year]) acc[year] = [];
-    acc[year].push(note);
-    return acc;
-}, {});
-
-const years = Object.keys(notesByYear).sort((a, b) => b - a);
+// 2. 序列化数据传递给 React
+// Astro 传递 Props 时会自动序列化，但为了类型安全和 Date 对象的处理，
+// 我们显式地转换一下，特别是 Date 对象转为 ISO 字符串
+const notesForReact = allNotes.map(note => ({
+    slug: note.slug,
+    data: {
+        title: note.data.title,
+        description: note.data.description,
+        // 将 Date 对象转为字符串，避免 React hydration mismatch
+        pubDate: note.data.pubDate.toISOString(), 
+        tags: note.data.tags,
+        series: note.data.series,
+        seriesOrder: note.data.seriesOrder
+    }
+}));
 ---
 
 <BaseLayout title="Research Notes">
-    <div class="max-w-4xl mx-auto px-6 py-20">
+    <div class="max-w-5xl mx-auto px-6 py-20 min-h-screen">
         
-        <header class="mb-20">
+        {/* Header Area */}
+        <header class="mb-16">
             <div class="font-mono text-xs text-accent font-bold mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 bg-accent"></span>
-                /// DATABASE_INDEX
+                <span class="w-2 h-2 bg-accent animate-pulse"></span>
+                /// DATABASE_INDEX::ACTIVE
             </div>
             <h1 class="text-5xl md:text-7xl font-serif font-bold text-white tracking-tight mb-6">
-                Research <span class="text-accent italic">Notes</span>.
+                Research <span class="text-accent italic">Index</span>.
             </h1>
             <p class="text-concrete font-mono text-sm max-w-xl leading-relaxed">
-                A chronological archive of derivations, technical analyses, and theoretical explorations in CS and Physics.
+                A dynamic archive of technical derivations and theoretical explorations.
+                <br/>
+                <span class="opacity-50">Select 'Graph View' to visualize connection topology.</span>
             </p>
         </header>
 
-        <div class="space-y-24">
-            {years.map(year => (
-                <section class="relative border-l border-white/10 pl-8 md:pl-12">
-                    <div class="absolute -left-[5px] top-0 w-2 h-2 bg-accent rounded-full"></div>
-                    <h2 class="text-2xl font-serif font-bold text-white mb-8 flex items-center">
-                        {year} <span class="text-accent ml-2 text-sm font-mono">[{notesByYear[year].length}]</span>
-                    </h2>
-                    
-                    <div class="space-y-12">
-                        {notesByYear[year].map(note => (
-                            <article class="group relative">
-                                <a href={`/notes/${note.slug}`} class="block">
-                                    <div class="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-8">
-                                        <time class="font-mono text-xs text-concrete min-w-[120px] pt-1">
-                                            {note.data.pubDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                        </time>
-                                        <div>
-                                            <h3 class="text-2xl font-serif font-bold text-white group-hover:text-accent transition-colors leading-snug">
-                                                {note.data.title}
-                                            </h3>
-                                            <p class="mt-3 text-concrete font-mono text-sm leading-relaxed line-clamp-2">
-                                                {note.data.description}
-                                            </p>
-                                            <div class="mt-4 flex gap-2">
-                                                {note.data.tags?.map(tag => (
-                                                    <span class="text-[10px] font-mono text-accent border border-accent/30 px-2 py-0.5 group-hover:bg-accent group-hover:text-black transition-colors">
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a>
-                            </article>
-                        ))}
-                    </div>
-                </section>
-            ))}
-        </div>
+        {/* 核心交互组件 
+            client:only="react" 是必须的，因为 KnowledgeGraph 依赖 window/canvas，无法在服务端渲染
+        */}
+        <NotesExplorer client:only="react" notes={notesForReact} />
+
     </div>
 </BaseLayout>

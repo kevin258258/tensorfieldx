@@ -1,0 +1,31 @@
+---
+title: "TFX 开发日志 (二): 知识图谱的可视化实现"
+description: "深入探讨如何使用 Force-Graph 与 React 组件在静态博客中实现动态的神经网络视图。"
+pubDate: 2026-01-03
+tags: ["DevLog", "React", "Visualization"]
+series: "Series测试"
+seriesOrder: 2
+---
+
+import Sidenote from '../../components/Sidenote.astro';
+
+## 1. 引入物理引擎
+
+为了实现连线效果，我们引入了 `react-force-graph-2d`。这个库基于 HTML5 Canvas，性能非常强悍。
+
+## 2. 拓扑结构算法
+
+我们需要遍历所有笔记，根据**标签共现 (Tag Co-occurrence)** 来计算节点间的引力强度<Sidenote>引力公式：$F = k \frac{m_1 m_2}{r^2}$，在这里我们用标签重合度代替质量 $m$。</Sidenote>。
+
+$$
+E = \sum_{(u, v) \in E} w_{uv} \| \mathbf{p}_u - \mathbf{p}_v \|^2
+$$
+
+## 3. 最终效果代码
+
+```tsx
+<ForceGraph2D
+    graphData={data}
+    nodeColor={() => "#ffffff"}
+    linkColor={() => "rgba(46, 92, 255, 0.2)"}
+/>
