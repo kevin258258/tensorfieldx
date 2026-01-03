@@ -19,8 +19,7 @@ const sortedNotes = allNotes.sort(
 		<div class="relative z-10 text-center w-full max-w-4xl">
             <a id="math-link" href="#" target="_blank" class="block group relative min-h-[120px] flex flex-col justify-center items-center mb-12 cursor-help">
                 <div id="formula-raw" class="font-mono text-sm md:text-base text-accent bg-black px-4 py-2 border border-accent/50 group-hover:bg-accent group-hover:text-black transition-colors"></div>
-                <div id="formula-render" class="hidden text-3xl md:text-5xl lg:text-7xl font-serif text-ink group-hover:scale-105 transition-transform duration-100"></div>
-                <div class="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity duration-0">
+<div id="formula-render" class="hidden w-full overflow-x-auto md:w-auto md:overflow-visible text-3xl md:text-5xl lg:text-7xl font-serif text-ink group-hover:scale-105 transition-transform duration-100 px-4 pb-2"></div>                <div class="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity duration-0">
                     <span class="font-mono text-[10px] text-black bg-accent px-2 py-1 font-bold">
                         [DECRYPT_SOURCE]
                     </span>

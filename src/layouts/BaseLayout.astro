@@ -5,7 +5,7 @@ import Search from '../components/Search.astro';
 import { ViewTransitions } from 'astro:transitions';
 
 interface Props {
-	title: string;
+    title: string;
 }
 
 const { title } = Astro.props;
@@ -13,17 +13,17 @@ const { title } = Astro.props;
 
 <!doctype html>
 <html lang="en" class="h-full bg-void">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<title>{title} | Feixiang Tao</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>{title} | Feixiang Tao</title>
 
         <ViewTransitions />
 
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-		<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-		<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
         <script>
             document.addEventListener('astro:page-load', () => {
                 // @ts-ignore
@@ -39,96 +39,66 @@ const { title } = Astro.props;
             });
         </script>
 
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
         
-        <style>
-            /* 1. 滚动条：蓝色点缀 */
+        <style is:global>
+            /* 1. 全局滚动条美化 */
             ::-webkit-scrollbar { width: 6px; }
             ::-webkit-scrollbar-track { background: #080808; }
             ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
             ::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
 
-            /* 2. 选中色：回归经典的蓝底白字 (High Contrast) */
+            /* 2. 选中色 */
             ::selection { background: #3B82F6; color: #FFFFFF; }
 
-            /* 3. 噪点：保持微弱质感 */
+            /* 3. 静态噪点优化 */
             .noise-overlay {
                 position: fixed;
                 top: 0; left: 0; width: 100%; height: 100%;
                 pointer-events: none;
                 z-index: 9998;
-                opacity: 0.03;
-                background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+                opacity: 0.05;
+                background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAA5OTkAAABMTExERERmZmYzMzMyMjJwk2xJAAAACHRSTlMAMwAqzMzM/wO30h4AAAB4SURBVDjLxZFJDsAgDAQD9f8/2h4QkRDThpWlRZZL2pG9/1TITC2wYxX46glx657Qz07LxEwsTGT+PQv5i4x7FhISFhIaEh4yE5kXmYvMTOZfM5O5memQ6Z/ZkNmZ2ZkNmQ+ZC5kPmQ+ZC5kPmQ+ZC5kPmQ+ZC5kPmQ+ZCwF49kY0r+H5AAAAAElFTkSuQmCC");
+                background-repeat: repeat;
             }
+
+            /* 4. KaTeX 公式显示通用设置 (去除了重复定义) */
             .katex-display {
-    overflow-x: auto;
-    overflow-y: hidden;
-    /* 隐藏滚动条，但保留滚动功能，让排版更干净 */
-    scrollbar-width: none; 
-    -ms-overflow-style: none;
-    -webkit-overflow-scrolling: touch; /* iOS 丝滑滚动 */
-    padding: 1rem 0;
-}
-#formula-render {
-    max-width: 100%;
-    /* 允许超长公式时横向滑动而不撑开页面 */
-    overflow-x: auto;
-    overflow-y: hidden;
-    /* 隐藏滚动条但保留功能 */
-    scrollbar-width: none;
-}
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 1rem 0;
+                /* 隐藏滚动条但保留功能 */
+                scrollbar-width: none; 
+                -ms-overflow-style: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            .katex-display::-webkit-scrollbar {
+                display: none;
+            }
 
-#formula-render::-webkit-scrollbar {
-    display: none;
-}
+            /* 5. 首页大公式特供 (只负责隐藏滚动条，布局由 Tailwind 控制) */
+            #formula-render {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE/Edge */
+            }
+            #formula-render::-webkit-scrollbar {
+                display: none; /* Chrome/Safari */
+            }
 
-/* 字体动态缩放 */
-@media (max-width: 640px) {
-    #formula-render {
-        /* 在移动端稍微缩小一点公式字号，确保完整显示 */
-        font-size: 1.75rem !important; 
-    }
-}
-/* 针对所有 KaTeX 展示公式 */
-.katex-display {
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    /* 丝滑滚动体验 */
-    -webkit-overflow-scrolling: touch;
-    /* 隐藏滚动条但保留功能，维持美观 */
-    scrollbar-width: none; 
-}
-/* 针对所有 Markdown 生成的公式 */
-.katex-display {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #1A66FF transparent; /* 滚动条也用瑞士蓝 */
-  padding: 1rem 0;
-}
-
-/* 隐藏移动端的丑陋滚动条，保持平面设计感 */
-@media (max-width: 768px) {
-  .katex-display {
-    scrollbar-width: none;
-  }
-  .katex-display::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-
-.katex-display::-webkit-scrollbar {
-    display: none;
-}
+            /* 移动端字体微调 */
+            @media (max-width: 640px) {
+                #formula-render {
+                    font-size: 1.75rem !important; 
+                }
+            }
         </style>
-	</head>
-	
-	<body class="bg-void text-ink h-full overflow-hidden p-0 md:p-4 font-mono relative">
-		
+    </head>
+    
+    <body class="bg-void text-ink h-full overflow-hidden p-0 md:p-4 font-mono relative">
+        
         <Background />
         <LinkPreview />
         <Search />
@@ -190,5 +160,5 @@ const { title } = Astro.props;
             </footer>
 
         </div>
-	</body>
+    </body>
 </html>
