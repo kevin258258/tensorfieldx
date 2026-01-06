@@ -1,0 +1,246 @@
+---
+title: "分析力学 Note 0: 变分基础"
+description: "变分基础"
+pubDate: 2026-01-06
+tags: ["Math", "Physics", "Functional Analysis", "Variational Calculus"]
+series: "Analytical Mechanics"
+seriesOrder: 1
+---
+
+import Sidenote from '../../components/Sidenote.astro';
+
+
+## 1. 变分法基础:
+
+### 1.1 泛函与内积的定义
+
+接下来我们的讨论都在 $L^2$ 空间进行。首先定义 $L^2$ 内积：
+
+$$
+\langle f, g \rangle = \int_{x_1}^{x_2} f(x)g(x) \, dx
+$$
+
+根据 Riesz 表示定理 (Riesz Representation Theorem)，任何一次线性泛函均可以表示为内积形式。
+
+现在定义泛函 $S[y]$ 的微分。微分实际上在Fréchet意义下：
+
+$$
+d S[p] = \lim_{\epsilon \to 0} \frac{S[p + \epsilon \eta] - S[p]}{\epsilon} = \frac{d}{d\epsilon} S[p + \epsilon \eta] \bigg|_{\epsilon=0}
+$$
+
+故微分形式可以写为：
+$$
+d S[p](\eta) = \langle K, \eta \rangle
+$$
+其中 $K$ 就是我们要求的泛函导数。
+
+当然，对微扰展开有：
+$$
+S[p + \epsilon \eta] = S[p] + \frac{\delta S}{\delta p} \epsilon \eta + \dots
+$$
+这里我们取的是线性主部。
+
+### 1.2 伴随算子 
+
+一般而言，对于线性算子 $A$，有定义 $\langle Ax, y \rangle = \langle x, A^\dagger y \rangle$，其中 $A^\dagger$ 为 $A$ 的伴随算子。
+
+考虑边界条件 $f(t_1) = f(t_2) = 0$ 的情况。我们有微分算子 $D = \frac{d}{dt}$。
+考察内积 $\langle Dg, f \rangle$：
+
+$$
+\langle Dg, f \rangle = \int g'(x) f(x) \, dx = f(x)g(x) \bigg|_{t_1}^{t_2} - \int g(x) f'(x) \, dx
+$$
+
+由于边界条件，第一项为 0。于是：
+$$
+= - \int g(x) f'(x) \, dx = \langle g, -Df \rangle
+$$
+
+故此时微分算子的伴随算子为：
+$$
+D^\dagger = -D
+$$
+即微分算子在零边界条件下是**反自伴** 的。
+
+---
+
+## 2. 欧拉-拉格朗日方程的推导
+
+现在考虑作用量泛函：
+$$
+S[q] = \int_{t_1}^{t_2} L(q, \dot{q}, t) \, dt
+$$
+
+计算其变分（微分）：
+$$
+\begin{aligned}
+\delta S[q](\eta) &= \frac{d}{d\epsilon} \left( \int_{t_1}^{t_2} L(q + \epsilon \eta, \dot{q} + \epsilon \dot{\eta}, t) \, dt \right) \bigg|_{\epsilon=0} \\
+&= \int_{t_1}^{t_2} \left( \frac{\partial L}{\partial q} \eta + \frac{\partial L}{\partial \dot{q}} \dot{\eta} \right) dt \\
+&= \left\langle \frac{\partial L}{\partial q}, \eta \right\rangle + \left\langle \frac{\partial L}{\partial \dot{q}}, D\eta \right\rangle
+\end{aligned}
+$$
+
+利用伴随算子的性质 $\langle A x, y \rangle = \langle x, A^\dagger y \rangle$，且 $D^\dagger = -D$：
+
+$$
+\begin{aligned}
+&= \left\langle \frac{\partial L}{\partial q}, \eta \right\rangle + \left\langle D^\dagger \left(\frac{\partial L}{\partial \dot{q}}\right), \eta \right\rangle \\
+&= \left\langle \frac{\partial L}{\partial q} - D \left(\frac{\partial L}{\partial \dot{q}}\right), \eta \right\rangle
+\end{aligned}
+$$
+
+由于 $\delta S[q] = 0$ 对任意 $\eta$ 成立，且我们取的是变分，故：
+$$
+\frac{\partial L}{\partial q} - \frac{d}{dt} \left( \frac{\partial L}{\partial \dot{q}} \right) = 0
+$$
+
+---
+
+## 3. 习题 Part：具体演算
+
+### 3.1 习题 1.1
+
+**题目**：给定泛函 $S[f] = - \int dt \, e^{-\varphi(t)} \sqrt{1 - \dot{f}^2}$。
+
+**求解**：
+$$
+\delta S = - \int \left( (-\varphi' e^{-\varphi} \delta f) \sqrt{1-\dot{f}^2} + e^{-\varphi} \cdot \delta (\sqrt{1-\dot{f}^2}) \right) dt
+$$
+
+$$
+\begin{aligned}
+\delta S &= \int \left[ \varphi'(t) e^{-\varphi(t)} \sqrt{1-\dot{f}^2} \delta f + e^{-\varphi(t)} \frac{-\dot{f}}{\sqrt{1-\dot{f}^2}} \delta \dot{f} \right] dt \\
+&= \left\langle \dots \right\rangle + \left\langle e^{-\varphi} \frac{-\dot{f}}{\sqrt{1-\dot{f}^2}}, D(\delta f) \right\rangle
+\end{aligned}
+$$
+
+利用伴随算子：
+$$
+= \left\langle \frac{\partial L}{\partial f} - \frac{d}{dt} \left( e^{-\varphi} \frac{\dot{f}}{\sqrt{1-\dot{f}^2}} \right), \delta f \right\rangle = 0
+$$
+
+$$
+\varphi'(t)(1-f'^2)^{\frac{1}{2}} = -\varphi' f'^2 (1-f'^2)^{-\frac{1}{2}} + f'' (1-f'^2)^{-\frac{3}{2}}
+$$
+化简得：
+$$
+\varphi' = \frac{f''}{1-f'^2} \implies f'' = (1-f'^2)\varphi'
+$$
+
+### 3.2 习题 1.2：
+
+**题目**：给定 $f(t)$ 的泛函 $S[f] = \int dt \, L$，其中 $L = f'^2 + f''^2 + f f' f''$。
+
+**推导**：
+对于依赖高阶导数的泛函 $S = \int L(f, f', f'') dt$。
+变分公式为：
+$$
+\delta S = \int \left( \frac{\partial L}{\partial f} \delta f + \frac{\partial L}{\partial f'} \delta f' + \frac{\partial L}{\partial f''} \delta f'' \right) dt
+$$
+
+利用伴随算子：
+*   $\langle \frac{\partial L}{\partial f'}, D \delta f \rangle = \langle -D \frac{\partial L}{\partial f'}, \delta f \rangle$
+*   $\langle \frac{\partial L}{\partial f''}, D^2 \delta f \rangle = \langle D^2 \frac{\partial L}{\partial f''}, \delta f \rangle$ 
+
+E-L 方程为：
+$$
+\frac{\partial L}{\partial f} - \frac{d}{dt}\left(\frac{\partial L}{\partial f'}\right) + \frac{d^2}{dt^2}\left(\frac{\partial L}{\partial f''}\right) = 0
+$$
+
+**具体计算**：
+1.  $\frac{\partial L}{\partial f} = f' f''$
+2.  $\frac{\partial L}{\partial f'} = 2f' + f f''$
+3.  $\frac{\partial L}{\partial f''} = 2f'' + f f'$
+
+**恶心地计算全导数**：
+$$
+\frac{d}{dt}\left( \frac{\partial L}{\partial f'} \right) = \frac{d}{dt}(2f' + f f'') = 2f'' + f'f'' + f f'''
+$$
+$$
+\frac{d^2}{dt^2}\left( \frac{\partial L}{\partial f''} \right) = \frac{d}{dt} \left( \frac{d}{dt}(2f'' + f f') \right) = \frac{d}{dt} (2f''' + f'f' + f f'') = 2f'''' + 2f'f'' + f'f'' + f f'''
+$$
+
+最后代入方程：
+$$
+f'f'' - (2f'' + f'f'' + f f''') + (2f'''' + 3f'f'' + f f''') = 0
+$$
+整理得：
+$$
+\frac{\delta S}{\delta f} = 2f'''' + 3f'f'' - 2f'' + 2f'f^2 
+$$
+
+---
+
+### 3.3 泛函极值：具体例子
+
+前面已经讨论差不多了，这里做几个具体的例子熟悉一下。
+
+#### (1) 平面两点直线最短
+泛函：$S[f] = \int_{x_1}^{x_2} \sqrt{1+(f')^2} \, dx$。
+$$
+\delta S = \int \frac{1}{2} (1+f'^2)^{-1/2} \cdot 2f' \delta f' \, dx = \left\langle \frac{f'}{\sqrt{1+f'^2}}, D \delta f \right\rangle
+$$
+利用伴随算子：
+$$
+= \left\langle - \frac{d}{dx} \left( \frac{f'}{\sqrt{1+f'^2}} \right), \delta f \right\rangle
+$$
+令梯度为 0：
+$$
+\frac{d}{dx} \left( \frac{f'}{\sqrt{1+f'^2}} \right) = 0 \implies \frac{f'}{\sqrt{1+f'^2}} = C
+$$
+解得 $f' = \text{const} \implies f'' = 0$。
+故 $f(x) = ax + b$，为直线。
+
+#### (2) 最速降线
+泛函：$S[y] = \int_0^{x_A} \frac{\sqrt{1+y'^2}}{\sqrt{2gy}} \, dx$。
+令 $F = \frac{\sqrt{1+y'^2}}{\sqrt{y}}$（忽略常数）。
+注意到 $F$ 不显含自变量 $x$。使用 **贝尔特拉米等式** ：
+$$
+F - y' \frac{\partial F}{\partial y'} = C
+$$
+代入计算：
+$$
+\frac{\sqrt{1+y'^2}}{\sqrt{y}} - y' \cdot \frac{y'}{\sqrt{y}\sqrt{1+y'^2}} = C
+$$
+通分：
+$$
+\frac{1+y'^2 - y'^2}{\sqrt{y(1+y'^2)}} = C \implies \frac{1}{\sqrt{y(1+y'^2)}} = C
+$$
+最后能得：
+$$
+y(1+y'^2) = C'
+$$
+解得：
+$$
+x = \frac{C}{2} (u - \sin u), \quad y = \frac{C}{2} (1 - \cos u)
+$$
+故为摆线。
+
+---
+
+### 3.4 广义形式与高阶导数
+
+不防看个情况更广的形式：
+$$
+S = \int_{t_1}^{t_2} L(q, \dot{q}, \ddot{q}, \dots, q^{(n)}) \, dt
+$$
+变分：
+$$
+\delta S = \int \sum_{k=0}^n \frac{\partial L}{\partial q^{(k)}} \delta q^{(k)} \, dt
+$$
+利用伴随算子 $\langle A, D^k B \rangle = \langle (-1)^k D^k A, B \rangle$（忽略边界项）：
+$$
+= \int \sum_{k=0}^n (-1)^k \frac{d^k}{dt^k} \left( \frac{\partial L}{\partial q^{(k)}} \right) \delta q \, dt
+$$
+于是我们找到了一个更加广泛的形式：
+$$
+\frac{\delta S}{\delta q} = \sum_{k=0}^n (-1)^k \frac{d^k}{dt^k} \left( \frac{\partial L}{\partial q^{(k)}} \right)
+$$
+
+如果我们在 $L$ 旁边加一个对 $t$ 的全导数呢？
+$$
+L' = L + \frac{d}{dt} \Phi(q, t)
+$$
+结果上看似乎改变了 $L$，但由于我们强有力的**边界条件**（$\delta q(t_1) = \delta q(t_2) = 0$），全导数项积分后变成边界上的差值，其变分为 0。
+任何 $\frac{d}{dt} F(q, \dots, q^{(n-1)})$ 都不会影响结果。
+
