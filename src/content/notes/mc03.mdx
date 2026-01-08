@@ -1,0 +1,154 @@
+---
+title: "分析力学 Note 2.2: 度规与相对论时空"
+description: "从勾股定理到光锥，度规张量如何定义空间的几何结构，以及光速不变如何塑造我们的时空。"
+pubDate: 2026-01-10
+tags: ["Physics", "Differential Geometry", "Metric Tensor", "Relativity", "Minkowski Space"]
+series: "Analytical Mechanics"
+seriesOrder: 4
+---
+
+import Sidenote from '../../components/Sidenote.astro';
+
+## 1. 度规
+
+### 1.1 勾股定理的推广
+在欧几里得空间中，我们测量微小位移向量 $d\mathbf{x} = (dx^1, dx^2, \dots, dx^n)$ 的长度平方，使用的是勾股定理：
+$$
+dl^2 = (dx^1)^2 + (dx^2)^2 + \dots + (dx^n)^2
+$$
+这可以写成矩阵形式：
+$$
+dl^2 = \begin{pmatrix} dx^1 & \dots & dx^n \end{pmatrix} \begin{pmatrix} 1 & & 0 \\ & \ddots & \\ 0 & & 1 \end{pmatrix} \begin{pmatrix} dx^1 \\ \vdots \\ dx^n \end{pmatrix} = (d\mathbf{x})^T I (d\mathbf{x})
+$$
+中间这个单位矩阵 $I$ 就是直角坐标系下的度规张量。它定义了我们如何计算向量的长度和向量间的夹角，是空间几何结构的数学体现。
+
+在一般化的曲线坐标系中，线元 $dl^2$ 由一个更普遍的二次型给出：
+$$
+dl^2 = \sum_{i,j} g_{ij} dq^i dq^j
+$$
+这里的对称矩阵 $g_{ij}$ 就是该坐标系下的度规张量。
+
+### 1.2 拉回度规
+如果我们换一套坐标系，新的尺子（度规 $g'$) 是如何从旧的尺子（度规 $g$) 得到的呢？
+
+**推导**
+设旧坐标为 $x^\mu$，新坐标为 $q^i$。坐标变换关系为 $x^\mu = x^\mu(q^1, \dots, q^n)$。
+根据链式法则，微分关系为：
+$$
+dx^\mu = \frac{\partial x^\mu}{\partial q^i} dq^i
+$$
+这里的 $\frac{\partial x^\mu}{\partial q^i}$ 就是雅可比矩阵 $J^\mu_i$ 的分量。
+
+将此代入原线元 $dl^2 = \sum_{\mu,\nu} g_{\mu\nu} dx^\mu dx^\nu$：
+$$
+\begin{aligned}
+dl^2 &= g_{\mu\nu} \left(\frac{\partial x^\mu}{\partial q^i} dq^i\right) \left(\frac{\partial x^\nu}{\partial q^j} dq^j\right) \\
+&= \left( g_{\mu\nu} \frac{\partial x^\mu}{\partial q^i} \frac{\partial x^\nu}{\partial q^j} \right) dq^i dq^j
+\end{aligned}
+$$
+对比新线元 $dl^2 = \sum_{i,j} g'_{ij} dq^i dq^j$，我们得到新度规 $g'_{ij}$ 的表达式：
+$$
+g'_{ij} = g_{\mu\nu} \frac{\partial x^\mu}{\partial q^i} \frac{\partial x^\nu}{\partial q^j}
+$$
+用矩阵语言写，这就是**拉回** 公式：
+$$
+g' = J^T g J
+$$
+
+### 1.3 实例
+
+#### 实例 1：极坐标
+从直角坐标 $(x,y)$ 变换到极坐标 $(r,\theta)$：
+$x = r\cos\theta, y = r\sin\theta$。
+原度规 $g = I = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}$。
+雅可比矩阵 $J$ 为：
+$$
+J = \begin{pmatrix} \frac{\partial x}{\partial r} & \frac{\partial x}{\partial \theta} \\ \frac{\partial y}{\partial r} & \frac{\partial y}{\partial \theta} \end{pmatrix} = \begin{pmatrix} \cos\theta & -r\sin\theta \\ \sin\theta & r\cos\theta \end{pmatrix}
+$$
+计算 $g' = J^T g J = J^T J$：
+$$
+\begin{aligned}
+g' &= \begin{pmatrix} \cos\theta & \sin\theta \\ -r\sin\theta & r\cos\theta \end{pmatrix} \begin{pmatrix} \cos\theta & -r\sin\theta \\ \sin\theta & r\cos\theta \end{pmatrix} \\
+&= \begin{pmatrix} \cos^2\theta+\sin^2\theta & -r\cos\theta\sin\theta+r\sin\theta\cos\theta \\ -r\sin\theta\cos\theta+r\cos\theta\sin\theta & r^2\sin^2\theta+r^2\cos^2\theta \end{pmatrix} \\
+&= \begin{pmatrix} 1 & 0 \\ 0 & r^2 \end{pmatrix}
+\end{aligned}
+$$
+因此，极坐标下的线元为 $dl^2 = 1 \cdot dr^2 + r^2 \cdot d\theta^2$。
+
+#### 实例 2：球面坐标
+从直角坐标 $(x,y,z)$ 变换到球面坐标 $(r,\theta,\phi)$：
+$x=r\sin\theta\cos\phi, y=r\sin\theta\sin\phi, z=r\cos\theta$。
+计算雅可比矩阵并执行 $g' = J^T J$（计算过程略），得到对角度规：
+$$
+g' = \text{diag}(1, r^2, r^2\sin^2\theta)
+$$
+因此，球面坐标下的线元为 $dl^2 = dr^2 + r^2 d\theta^2 + r^2\sin^2\theta d\phi^2$。
+
+### 1.4 协变与逆变
+*   **逆变向量**：如速度 $v^i$，分量变换规律为 $\bar{v}^i = \frac{\partial \bar{x}^i}{\partial x^j} v^j$。
+*   **协变向量**：如梯度 $\nabla_i f$，分量变换规律为 $\bar{f}_i = \frac{\partial x^j}{\partial \bar{x}^i} f_j$。
+*   **度规的转换**：度规是连接这两者的桥梁。
+    *   **指标下降**：$v_i = g_{ij} v^j$
+    *   **指标上升**：$v^i = g^{ij} v_j$
+    *   **证明**：在坐标变换下，$g_{ij}$ 的变换规律 $g'_{ij} = g_{\mu\nu} \frac{\partial x^\mu}{\partial q^i} \frac{\partial x^\nu}{\partial q^j}$ 恰好能抵消掉 $v^j$ 的逆变变换，使得 $v_i$ 表现出协变性。
+
+### 1.5 爱因斯坦求和约定
+为了简洁，我们约定：在一个单项中，成对出现的一上一下的相同指标，表示对该指标进行求和。
+$$
+v_i = g_{ij} v^j \equiv \sum_j g_{ij} v^j
+$$
+
+---
+
+## 2. 闵可夫斯基时空：光速不变的几何
+
+### 2.1 时空与光速不变
+我们生活的世界是四维的时空（t,x,y,z,）。狭义相对论的基本公设是**光速不变原理**：在所有惯性系中，光速都是常数 $c$。
+
+### 2.2 闵可夫斯基度规
+**推导**
+考虑在原点发生的一次闪光。
+在静止系 $S$ 中，光波前满足 $x^2+y^2+z^2 = (ct)^2$。
+在运动系 $S'$ 中，也必须满足 $x'^2+y'^2+z'^2 = (ct')^2$。
+这两个方程都等于 0，这意味着表达式 $-c^2t^2 + x^2+y^2+z^2$ 是一个不变量。我们定义它为时空线元 $ds^2$：
+$$
+ds^2 = -c^2dt^2 + dx^2 + dy^2 + dz^2
+$$
+这必然是光速不变原理的产物。对应的**闵可夫斯基度规**为：
+$$
+\eta_{\mu\nu} = \text{diag}(-1, 1, 1, 1)
+$$
+
+### 2.3 双曲旋转：洛伦兹变换
+保持这个 $ds^2$ 不变的坐标变换，就是**洛伦兹变换**。
+对于 $(t,x)$ 两个维度，变换矩阵形如：
+$$
+\Lambda = \begin{pmatrix} \cosh\xi & -\sinh\xi \\ -\sinh\xi & \cosh\xi \end{pmatrix}
+$$
+这是一种**双曲旋转**，它保持双曲线 $x^2 - (ct)^2 = \text{const}$ 不变，就像普通旋转保持圆 $x^2+y^2=R^2$ 不变一样。
+
+### 2.4 固有时与四维速度
+*   **固有时 ($\tau$)**：运动物体自带时钟所记录的时间。它由线元定义：$d\tau = \sqrt{-ds^2}/c$。
+*   **四维速度 ($U^\mu$)**：位移对固有时的导数 $U^\mu = dx^\mu/d\tau$。
+*   **模长不变**：
+    **推导**
+    $$
+    U^\mu U_\mu = \eta_{\mu\nu} U^\mu U^\nu = \eta_{\mu\nu} \frac{dx^\mu}{d\tau} \frac{dx^\nu}{d\tau} = \frac{1}{d\tau^2} (\eta_{\mu\nu} dx^\mu dx^\nu) = \frac{ds^2}{d\tau^2}
+    $$
+    根据固有时的定义 $ds^2 = -c^2 d\tau^2$，代入得：
+    $$
+    U^\mu U_\mu = \frac{-c^2 d\tau^2}{d\tau^2} = -c^2
+    $$
+*   **空间与时间速度的关系**：
+    $$
+    c^2 = (\text{空间速度})^2 + (\text{时间速度})^2
+    $$
+    *   **实例 1：静止物体**：空间速度为 0，时间速度为 $c$。时间流逝最快。
+    *   **实例 2：光子**：空间速度为 $c$，时间速度为 0。时间静止。
+
+### 2.5 光锥：
+既然 $ds^2=0$ 对应光速，那么方程 $x^2+y^2+z^2 = (ct)^2$ 就定义了时空中因果关系的边界。
+这个方程在 $(t, x, y)$ 空间中画出来就是一个圆锥，称为**光锥 (Light Cone)**。
+*   **光锥内部 ($ds^2 < 0$)**：类时间隔，可以通过低于光速的信号连接，存在因果关系。
+*   **光锥表面 ($ds^2 = 0$)**：类光间隔，只有光能连接。
+*   **光锥外部 ($ds^2 > 0$)**：类空间隔，无法通过任何信号连接，没有因果关系。
