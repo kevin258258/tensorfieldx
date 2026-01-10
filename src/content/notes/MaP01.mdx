@@ -1,0 +1,362 @@
+---
+title: "数理方法 Note 1: 希尔伯特空间"
+description: "从有限维欧几里得空间出发，到无穷维函数空间的结构：完备性、正交基、勒让德多项式以及狄拉克函数的诞生。"
+pubDate: 2026-01-11
+tags: ["Math", "Hilbert Space", "Functional Analysis", "Quantum Mechanics"]
+series: "Mathematical Methods"
+seriesOrder: 1
+---
+
+import Sidenote from '../../components/Sidenote.astro';
+
+
+## 1. 希尔伯特空间的几何基础
+
+在经典力学中，我们习惯于在 $N$ 维欧几里得空间 $\mathbb{R}^N$ 中思考。一个向量 $\vec{v}$ 有长度，两个向量之间有夹角。这些几何概念的基石是**内积 **。
+
+当我们进入量子力学或波动光学时，研究对象变成了函数（如波函数 $\psi(x)$ 或电场 $E(x)$）。为了能像处理向量一样处理函数，我们需要把几何直觉推广到无穷维的函数空间。
+
+
+### 1.1 内积空间的严格定义
+
+设 $V$ 是复数域 $\mathbb{C}$ 上的线性空间。**内积**是一个映射 $\langle \cdot, \cdot \rangle: V \times V \to \mathbb{C}$，满足以下公理：
+
+1.  **共轭对称性**：$\langle f, g \rangle = \langle g, f \rangle^*$。这意味着 $\langle f, f \rangle$ 必须是实数。
+2.  **第一变元线性**：$\langle \alpha f + \beta g, h \rangle = \alpha^* \langle f, h \rangle + \beta^* \langle g, h \rangle$（物理学惯例：对第一个变元取复共轭，数学家通常对第二个取）。
+3.  **正定性**：$\langle f, f \rangle \ge 0$，且等号成立当且仅当 $f = 0$（零向量）。
+
+在函数空间 $C[a, b]$ 上，最自然的内积定义是积分：
+$$
+\langle f, g \rangle \equiv \int_a^b f^*(x) g(x) w(x) \, dx
+$$
+其中 $w(x)$ 是权重函数（Weight Function），通常取 $w(x)=1$。
+
+### 1.2 结构的诱导：从内积到 $L^2$
+
+有了内积，其他几何结构自然涌现：
+
+1.  **范数**：定义了向量的长度。
+    $$ \|f\| \equiv \sqrt{\langle f, f \rangle} $$
+2.  **度量**：定义了两个向量间的距离。
+    $$ d(f, g) \equiv \|f - g\| = \sqrt{\langle f-g, f-g \rangle} $$
+
+**为什么是 $L^2$ 空间？**
+这直接源于内积的定义。为了让内积 $\langle f, f \rangle$ 有意义（即是一个有限的实数），我们必须要求：
+$$
+\langle f, f \rangle = \int_a^b |f(x)|^2 w(x) \, dx < \infty
+$$
+满足这个条件的函数集合，被称为 **平方可积函数空间**，记作 $L^2_w(a, b)$。
+*   如果 $f \notin L^2$（例如 $f(x) = 1/x$ 在 $(0, 1)$ 上），它的“长度”就是无穷大，我们就无法对其进行归一化，也无法讨论其物理意义（如总概率为1）。
+*   **柯西-施瓦茨不等式** 保证了如果 $f, g \in L^2$，则它们的内积 $\langle f, g \rangle$ 也是有限的：
+    $$ |\langle f, g \rangle|^2 \le \langle f, f \rangle \langle g, g \rangle $$
+
+<Sidenote>
+  **注：$L^2$ 的特殊性**
+  在所有 $L^p$ 空间（定义为 $\int |f|^p < \infty$）中，只有 $p=2$ 是特殊的。因为只有 $L^2$ 范数满足**平行四边形定则**：
+  $$ \|f+g\|^2 + \|f-g\|^2 = 2(\|f\|^2 + \|g\|^2) $$
+  这是范数能由内积诱导的充要条件。换句话说，**$L^2$ 是唯一一个拥有“角度”概念的勒贝格空间**，这就是为什么量子力学选择它。
+</Sidenote>
+
+---
+
+## 2. 无穷维空间的陷阱
+
+当我们从有限维 $\mathbb{R}^n$ 跨越到无穷维函数空间时，空间变得过于宽广，导致许多基于有限维的直觉定理失效。我们需要更严格的数学工具来修补这些漏洞。
+
+### 2.1 距离的相对性与柯西列
+
+在讨论收敛之前，必须明确：收敛是依赖于范数的。
+同一个函数序列，在 $L^2$ 范数下可能收敛，但在 $L^\infty$（最大值）范数下可能发散。
+
+我们定义 **柯西列** 为一个“自我靠拢”的序列：
+$$ \forall \epsilon > 0, \exists N, \text{ s.t. } \forall n, m > N, \|f_n - f_m\| < \epsilon $$
+这意味着随着序列往后走，项与项之间的距离趋于零。
+
+### 2.2 $C^0$ 空间的漏洞
+
+**定义**：如果一个空间中所有的柯西列都收敛于该空间**内部**的某一点，则称该空间是**完备的**。
+
+我们熟悉的连续函数空间 $C^0[a, b]$ 在 $L^2$ 范数下是**不完备**的。
+**反例构造**：
+考虑区间 $[-1, 1]$ 上的函数序列 $\{f_n(x)\}$：
+$$
+f_n(x) = \begin{cases}
+-1 & x \in [-1, -1/n] \\
+nx & x \in (-1/n, 1/n) \\
+1 & x \in [1/n, 1]
+\end{cases}
+$$
+这是一个连续函数序列。随着 $n \to \infty$，斜率越来越大。
+*   **它是柯西列吗？** 是的。计算 $\|f_n - f_m\|^2$，差异仅在原点附近极小的区域，积分趋于0。
+*   **它收敛到哪里？** 它收敛到符号函数 $\text{sgn}(x)$。
+*   **问题**：极限函数 $\text{sgn}(x)$ 是**不连续**的！它跑出了 $C^0$ 空间。
+
+这意味着 $C^0$ 空间像有理数轴一样，布满了肉眼看不见的微小孔洞。做物理时，如果积分积着积着函数掉出了空间，这是灾难性的。
+
+### 2.3 紧致性的失效
+
+在有限维空间 $\mathbb{R}^n$ 中，**有界闭集必紧致**。即：在一个有限的盒子里，你任取无穷多个点，必然有一些点是聚在一起的（有收敛子序列）。
+
+**但在无穷维空间，这不成立。**
+**反例**：考虑希尔伯特空间中的一组正交归一基 $\{e_1, e_2, \dots, e_n, \dots\}$。
+1.  **有界性**：$\|e_n\| = 1$，所有向量都在单位球面上。
+2.  **距离计算**：对于任意 $n \neq m$，利用勾股定理：
+    $$ \|e_n - e_m\|^2 = \langle e_n - e_m, e_n - e_m \rangle = \langle e_n, e_n \rangle - \langle e_n, e_m \rangle - \langle e_m, e_n \rangle + \langle e_m, e_m \rangle $$
+    利用正交归一性 $\langle e_i, e_j \rangle = \delta_{ij}$：
+    $$ \|e_n - e_m\|^2 = 1 - 0 - 0 + 1 = 2 \implies \|e_n - e_m\| = \sqrt{2} $$
+
+**结论**：在这个序列中，任意两个元素的距离都是 $\sqrt{2}$。它们彼此保持着恒定的、巨大的距离，没有任何两个点试图“靠近”。因此，你无法从中选出一个收敛的子序列。
+这说明无穷维空间的单位球**不是紧致的**。直观上讲，无穷维空间有“无穷多个方向”可以逃逸，空间太宽广了，点与点之间很难“挤”在一起。
+
+### 2.4 拯救完备性：Riesz-Fischer 定理
+
+为了解决 $C^0$ 不完备的问题，我们需要把那些极限函数（如阶跃函数）加回到空间里。这就像引入无理数填补有理数的空隙，我们引入了 **勒贝格积分** 和 **$L^2$ 空间**。
+
+**Riesz-Fischer 定理** 是希尔伯特空间理论的定海神针。它包含两个深刻的结论：
+
+1.  **$L^2$ 空间的完备性**：
+    $L^2$ 空间（勒贝格平方可积空间）是完备的。任何 $L^2$ 函数的柯西列，其极限依然在 $L^2$ 内部。这保证了我们做极限运算是安全的。
+
+2.  **希尔伯特空间的同构性**：
+    这是更具威力的结论。定理指出：**任何可分的（Separable）、无穷维希尔伯特空间 $\mathcal{H}$，都与序列空间 $\ell^2$ 同构。**
+    *   **$\ell^2$ 空间**：是指所有满足 $\sum_{i=1}^\infty |c_i|^2 < \infty$ 的复数列 $\{c_i\}$ 构成的空间。
+    *   **物理意义**：这意味着，无论我们处理的是多么复杂的函数（波函数、电磁场），只要它是 $L^2$ 的，我们就可以选定一组基，把它**完全等价**为一列离散的数（傅里叶系数）。
+    *   **映射**：
+        $$ f(x) \longleftrightarrow \begin{pmatrix} c_1 \\ c_2 \\ \vdots \end{pmatrix}, \quad \text{其中 } c_i = \langle e_i, f \rangle $$
+        且满足帕塞瓦尔等式：
+        $$ \|f\|_{L^2}^2 = \sum_{i=1}^\infty |c_i|^2 = \|\{c_i\}\|_{\ell^2}^2 $$
+
+这个定理将抽象的函数分析问题，转化为了具体的线性代数问题，是我们后续使用级数展开的理论基石。
+## 3. 基的推广
+
+在 $N$ 维欧几里得空间中，我们只需要找到 $N$ 个线性无关的向量，就能保证它们张成整个空间。但在无穷维希尔伯特空间中，直觉面临两个严峻挑战：
+1.  **“无穷减一”**：如果我们有一组无穷多的正交基 $\{e_1, e_2, \dots\}$，即使我们悄悄拿走第一个向量 $e_1$，剩下的集合仍然有无穷多个向量。这剩下的无穷个向量还能张成整个空间吗？
+2.  **收敛性**：当我们写下无穷级数时，它真的收敛到我们要的目标函数吗？
+
+### 3.1 贝塞尔不等式
+
+假设 $\{e_i\}_{i=1}^\infty$ 是一组正交归一系，但我们尚不知道它是否完备。我们试图用这组基的线性组合来逼近任意函数 $f$。
+最佳逼近系数显然是投影分量 $a_i = \langle e_i, f \rangle$。
+
+考虑逼近误差的模长平方（范数的非负性）：
+$$
+\| f - \sum_{i=1}^N a_i e_i \|^2 \ge 0
+$$
+展开内积，利用正交归一性 $\langle e_i, e_j \rangle = \delta_{ij}$：
+$$
+\begin{aligned}
+\langle f - \sum_{i=1}^N a_i e_i, f - \sum_{j=1}^N a_j e_j \rangle &= \langle f, f \rangle - \sum_{i=1}^N \bar{a}_i \langle e_i, f \rangle - \sum_{j=1}^N a_j \langle f, e_j \rangle + \sum_{i,j} \bar{a}_i a_j \delta_{ij} \\
+&= \|f\|^2 - \sum_{i=1}^N |a_i|^2 - \sum_{i=1}^N |a_i|^2 + \sum_{i=1}^N |a_i|^2 \\
+&= \|f\|^2 - \sum_{i=1}^N |a_i|^2 \ge 0
+\end{aligned}
+$$
+令 $N \to \infty$，我们得到**贝塞尔不等式**：
+$$
+\sum_{i=1}^\infty |a_i|^2 \le \|f\|^2
+$$
+
+**物理意义：信息的丢失**
+*   **小于号 (\<)**：说明基底**不完备**。$f$ 的总能量（$\|f\|^2$）大于所有分量能量之和。这意味着 $f$ 中包含了一些不能被这组基表示的成分，它们垂直于这组基中的**每一个**向量。如果我们拿走了基底中的 $e_1$，就会发生这种情况——任何含有 $e_1$ 成分的函数都无法被完全重构。
+*   **等号 (=)**：说明基底**完备**，信息无损。
+
+### 3.2 完备基的定义与帕塞瓦尔定理
+
+我们定义一组正交归一系 $\{e_i\}$ 是**完备的 (Complete)**，当且仅当它满足以下等价条件之一：
+
+1.  **帕塞瓦尔等式 (Parseval's Identity)**：对于任意 $f$
+    $$ \sum_{i=1}^\infty |\langle e_i, f \rangle|^2 = \|f\|^2 $$
+2.  **广义傅里叶级数收敛**：
+    $$ f = \sum_{i=1}^\infty \langle e_i, f \rangle e_i \quad (\text{在 } L^2 \text{ 范数意义下收敛}) $$
+3.  **完备性关系 **：
+    将 $|f\rangle$ 展开式写为算符形式：
+    $$ |f\rangle = \sum_{i=1}^\infty |e_i\rangle \langle e_i | f \rangle = \left( \sum_{i=1}^\infty |e_i\rangle \langle e_i| \right) |f\rangle $$
+    这意味着括号内的算符必须是**单位算符**：
+    $$ \sum_{i=1}^\infty |e_i\rangle \langle e_i| = \hat{I} $$
+4.  **没有非零正交向量**：
+    $$ \text{若 } \langle f, e_i \rangle = 0, \forall i, \text{ 则 } f = 0 $$
+    这直接回答了“无穷减一”的问题：如果你去掉 $e_1$，那么 $e_1$ 本身就是一个非零向量，且垂直于剩下的所有 $\{e_2, e_3, \dots\}$。因此，剩下的集合不再完备。
+
+---
+
+## 4. 构造正交基：勒让德多项式
+
+理论上我们知道完备基存在，但实际计算中如何找到它们？对于 $L^2[-1, 1]$ 空间，我们可以从最简单的单项式系 $\{1, x, x^2, \dots\}$ 出发，使用Gram-Schmidt正交化。
+
+### 4.1 构造过程
+定义内积 $\langle f, g \rangle = \int_{-1}^1 f(x)g(x) dx$。
+
+1.  **$n=0$**：取 $v_0 = 1$。
+    $$ \|v_0\|^2 = \int_{-1}^1 1^2 dx = 2 \implies e_0(x) = \frac{1}{\sqrt{2}} $$
+    *(注：勒让德多项式通常不归一化为1，而是标准化为 $P_n(1)=1$。我们这里先推导正交多项式)*。令 $P_0(x) = 1$。
+
+2.  **$n=1$**：取 $v_1 = x$。
+    $$ \langle P_0, x \rangle = \int_{-1}^1 x dx = 0 $$
+    天然正交。令 $P_1(x) = x$。
+
+3.  **$n=2$**：取 $v_2 = x^2$。减去在 $P_0, P_1$ 上的投影：
+    $$ \tilde{P}_2 = x^2 - \frac{\langle x^2, P_0 \rangle}{\langle P_0, P_0 \rangle}P_0 - \frac{\langle x^2, P_1 \rangle}{\langle P_1, P_1 \rangle}P_1 $$
+    *   $\langle x^2, P_0 \rangle = \int_{-1}^1 x^2 dx = \frac{2}{3}$
+    *   $\langle P_0, P_0 \rangle = 2$
+    *   $\langle x^2, P_1 \rangle = \int_{-1}^1 x^3 dx = 0$ (奇函数)
+    $$ \tilde{P}_2 = x^2 - \frac{2/3}{2}(1) - 0 = x^2 - \frac{1}{3} $$
+    为了满足 $P_n(1)=1$ 的传统定义，我们乘以系数 $\frac{3}{2}$：
+    $$ P_2(x) = \frac{1}{2}(3x^2 - 1) $$
+
+### 4.2 重要性质
+在实际应用中，我们不会每次都做 Gram-Schmidt，而是直接使用以下性质：
+
+*   **罗德里格斯公式**：
+    这是生成勒让德多项式的通项公式
+    $$ P_n(x) = \frac{1}{2^n n!} \frac{d^n}{dx^n} (x^2 - 1)^n $$
+*   **递推公式**：
+    计算机数值计算时的首选：
+    $$ (n+1)P_{n+1}(x) = (2n+1)xP_n(x) - nP_{n-1}(x) $$
+*   **正交归一性**：
+    $$ \int_{-1}^1 P_n(x) P_m(x) dx = \frac{2}{2n+1} \delta_{nm} $$
+
+### 4.3 最佳逼近实例
+**问题**：用前 2 阶勒让德多项式逼近函数 $f(x) = \sin(\pi x)$ 在 $[-1, 1]$ 上。
+
+**解**：
+我们需要计算投影 $f_{approx} = c_0 P_0 + c_1 P_1 + c_2 P_2$。
+系数公式为 $c_n = \frac{\langle f, P_n \rangle}{\langle P_n, P_n \rangle} = \frac{2n+1}{2} \int_{-1}^1 f(x) P_n(x) dx$。
+
+1.  **$c_0$**：$f(x)$ 是奇函数，$P_0$ 是偶函数，积分 $\langle f, P_0 \rangle = 0$。
+2.  **$c_2$**：$f(x)$ 是奇函数，$P_2$ 是偶函数，积分 $\langle f, P_2 \rangle = 0$。
+3.  **$c_1$**：
+    $$ c_1 = \frac{3}{2} \int_{-1}^1 \sin(\pi x) \cdot x \, dx = 3 \int_0^1 x \sin(\pi x) dx $$
+    分部积分：$\int x \sin(\pi x) dx = -\frac{x}{\pi}\cos(\pi x) + \frac{1}{\pi^2}\sin(\pi x)$。
+    代入上下限：$c_1 = 3 [\frac{1}{\pi}] = \frac{3}{\pi}$。
+
+**结果**：最佳二次逼近是 $f(x) \approx \frac{3}{\pi} x \approx 0.955 x$。
+这比泰勒展开的一阶项 $\pi x$ ($3.14 x$) 要平缓得多，因为泰勒只看原点，而勒让德看的是整体区间的**均方误差最小**。
+
+---
+## 5. 连续指标：狄拉克 $\delta$ 函数
+
+当我们从有限维空间（如自旋系统）迈向波动力学（如自由粒子）时，我们面临一个根本性的改变：基底的指标从离散的整数变成了连续的实数。
+
+### 5.1 函数值即向量分量
+
+在有限维空间 $\mathbb{C}^N$ 中，一个抽象向量 $|f\rangle$ 可以由一组离散基底 $\{|e_i\rangle\}_{i=1}^N$ 展开。向量 $|f\rangle$ 的第 $i$ 个**分量** $f_i$ 定义为：
+$$ f_i = \langle e_i | f \rangle $$
+我们可以把这一组分量看作定义在整数集 $\{1, 2, \dots, N\}$ 上的一个“函数” $f(i)$。
+
+现在，让我们把这个整数集替换为实数区间 $\Omega = (a, b)$（例如位置空间）。
+我们引入一组由连续参数 $x \in \Omega$ 标记的基底向量 $\{|x\rangle\}$。
+对于任意抽象向量 $|f\rangle$，它在基底 $|x\rangle$ 上的投影，就是我们熟知的**波函数** $f(x)$：
+$$ f(x) \equiv \langle x | f \rangle $$
+
+**洞察**：
+当我们写下 $f(x)$ 时，我们实际上是在说：“这是抽象态矢量 $|f\rangle$ 在位置表象 $|x\rangle$ 下的**第 $x$ 个分量**。”
+因为 $x$ 是不可数的，所以这是一个**不可数无穷维**的向量空间。
+
+### 5.2 完备性关系的积分形式
+
+在离散情况下，完备性关系（单位算符分解）是求和：
+$$ \sum_{i} |e_i\rangle \langle e_i| = \hat{I} $$
+
+在连续情况下，求和必须推广为积分。为了保持普遍性，我们引入一个权重函数 $w(x)$（在量子力学中通常 $w(x)=1$，在柱坐标或球坐标中可能是 $r$ 或 $\sin\theta$）：
+$$ \int_a^b |x\rangle w(x) \langle x| \, dx = \hat{I} $$
+
+利用这个恒等式，我们可以推导出向量展开的公式：
+$$
+\begin{aligned}
+|f\rangle &= \hat{I} |f\rangle \\
+&= \left( \int_a^b |x\rangle w(x) \langle x| \, dx \right) |f\rangle \\
+&= \int_a^b |x\rangle w(x) f(x) \, dx
+\end{aligned}
+$$
+这正是我们直觉中的图像：**函数 $|f\rangle$ 是无数个位置本征态 $|x\rangle$ 的线性叠加，叠加系数就是 $f(x)w(x)$。**
+
+### 5.3 为什么普通函数不够用？
+
+对于离散基底，正交归一性定义为 $\langle e_i | e_j \rangle = \delta_{ij}$（Kronecker delta）。
+对于连续基底，我们试图计算内积 $\langle x | x' \rangle$。
+
+让我们将 $|x'\rangle$ 在基底 $\{|x\rangle\}$ 上展开：
+$$ |x'\rangle = \int_a^b |x\rangle w(x) \langle x | x' \rangle \, dx $$
+
+观察这个式子，$\langle x | x' \rangle$ 扮演了展开系数的角色。这个系数必须具有极其特殊的性质：
+1.  **正交性**：当 $x \neq x'$ 时，基底应当正交，即 $\langle x | x' \rangle = 0$。
+2.  **归一化**：积分结果必须还原出 $|x'\rangle$ 本身。
+
+如果 $\langle x | x' \rangle$ 是一个普通的函数（Function），这在数学上是不可能的。
+*   如果一个函数在 $x \neq x'$ 处处处为 0，那么它在勒贝格积分下的积分为 0。
+*   我们不可能通过积分一个“几乎处处为零”的函数得到非零的结果。
+
+这迫使我们引入**广义函数** 或 **分布** 的概念。
+我们定义 **狄拉克 $\delta$ 函数** 满足以下**采样性质**：
+$$ \int_a^b f(x) \delta(x - x') \, dx = f(x') \quad (\text{若 } x' \in (a, b)) $$
+
+此时，连续基底的正交归一关系写作：
+$$ \langle x | x' \rangle = \frac{\delta(x - x')}{w(x)} $$
+(若 $w(x)=1$，则 $\langle x | x' \rangle = \delta(x - x')$)。
+
+---
+
+### 5.4 $\delta$ 函数的严格表象
+
+$\delta$ 函数不是传统意义上的函数，它是一个**泛函**。但在物理应用中，我们通常将其视为一族普通函数序列 $\{D_n(x)\}$ 在参数趋于极限时的行为。
+理解这些极限过程，是掌握傅里叶变换和格林函数的关键。
+
+#### 表象 A：高斯函数的极限
+这是最物理的图像：一个波包逐渐收缩成一点。
+考虑归一化的高斯函数序列，参数 $\epsilon$ 代表宽度的平方：
+$$ \delta_\epsilon(x) = \frac{1}{\sqrt{\pi \epsilon}} e^{-x^2 / \epsilon} $$
+
+**性质验证**：
+1.  **峰值**：当 $x=0$ 时，$\delta_\epsilon(0) = \frac{1}{\sqrt{\pi \epsilon}} \to \infty$ (当 $\epsilon \to 0$)。
+2.  **衰减**：当 $x \neq 0$ 时，指数项 $e^{-x^2/\epsilon}$ 的衰减速度远快于系数的增长，极限为 0。
+3.  **归一化 (Area)**：我们需要验证总面积是否恒为 1。
+    令 $y = x / \sqrt{\epsilon}$，则 $dx = \sqrt{\epsilon} dy$。
+    $$ \int_{-\infty}^\infty \frac{1}{\sqrt{\pi \epsilon}} e^{-x^2 / \epsilon} dx = \frac{1}{\sqrt{\pi \epsilon}} \int_{-\infty}^\infty e^{-y^2} \sqrt{\epsilon} dy = \frac{1}{\sqrt{\pi}} \int_{-\infty}^\infty e^{-y^2} dy $$
+    利用著名的高斯积分 $\int_{-\infty}^\infty e^{-y^2} dy = \sqrt{\pi}$，我们得到：
+    $$ \text{Area} = \frac{1}{\sqrt{\pi}} \cdot \sqrt{\pi} = 1 $$
+**结论**：$\delta(x) = \lim_{\epsilon \to 0} \frac{1}{\sqrt{\pi \epsilon}} e^{-x^2 / \epsilon}$ 是 $\delta$ 函数的一个合法表象。
+
+#### 表象 B：辛克函数的极限
+这是**傅里叶变换**的基石。考虑在频域 $[-T, T]$ 上的积分：
+$$ D_T(x) = \frac{1}{2\pi} \int_{-T}^T e^{ikx} \, dk $$
+
+**计算积分**：
+$$ D_T(x) = \frac{1}{2\pi} \left[ \frac{e^{ikx}}{ix} \right]_{-T}^T = \frac{1}{2\pi ix} (e^{iTx} - e^{-iTx}) = \frac{1}{\pi x} \sin(Tx) $$
+这就是 **Sinc 函数** $\frac{\sin(Tx)}{\pi x}$。
+
+**性质验证**：
+1.  **峰值**：当 $x \to 0$ 时，利用极限 $\lim_{u\to 0} \frac{\sin u}{u} = 1$，我们有 $D_T(0) = \frac{T}{\pi} \to \infty$ (当 $T \to \infty$)。
+2.  **震荡**：当 $x \neq 0$ 时，函数快速震荡，正负面积相互抵消，平均效果趋于 0。
+3.  **归一化 (Area)**：
+    $$ \int_{-\infty}^\infty \frac{\sin(Tx)}{\pi x} dx $$
+    令 $u = Tx$，则 $dx = du/T$。
+    $$ = \frac{1}{\pi} \int_{-\infty}^\infty \frac{\sin u}{u} du $$
+    利用狄利克雷积分 $\int_{-\infty}^\infty \frac{\sin u}{u} du = \pi$，我们得到：
+    $$ \text{Area} = \frac{1}{\pi} \cdot \pi = 1 $$
+
+**结论**：我们得到了 $\delta$ 函数最重要的积分表示：
+$$ \delta(x) = \frac{1}{2\pi} \int_{-\infty}^\infty e^{ikx} \, dk $$
+这表明：**要在空间上定位一个无限窄的点，必须叠加所有频率的平面波。**
+
+#### 表象 C：阶跃函数的导数
+定义 Heaviside 阶跃函数：
+$$ \theta(x) = \begin{cases} 1 & x > 0 \\ 0 & x < 0 \end{cases} $$
+我们可以用一个平滑过渡的函数序列 $T_\epsilon(x)$ 来逼近它（例如在 $-\epsilon$ 到 $\epsilon$ 之间线性上升）。
+对 $T_\epsilon(x)$ 求导，会得到一个宽度为 $2\epsilon$、高度为 $1/2\epsilon$ 的**矩形函数 (Boxcar Function)**。
+显然，这个矩形的面积为 $2\epsilon \times \frac{1}{2\epsilon} = 1$。
+当 $\epsilon \to 0$ 时，矩形变窄变高，极限即为 $\delta(x)$。
+
+**结论**：
+$$ \delta(x) = \frac{d}{dx} \theta(x) $$
+这在电动力学中极为重要：电势 $\phi$ 的二阶导数对应电荷密度。点电荷的电势是 $1/r$，其导数包含 $\delta$ 函数。
+
+---
+
+### 5.5 总结：希尔伯特空间的图景
+
+至此，我们完成了从有限维到无穷维连续谱的构建。
+
+1.  **内积**是几何结构的源头，它诱导了范数和度量。
+2.  **$L^2$ 空间**是物理上唯一自然的函数空间，Riesz-Fischer 定理保证了它的完备性。
+3.  **离散基底**（如勒让德多项式）通过 Gram-Schmidt 正交化构造，解决了有限区间的逼近问题。
+4.  **连续基底**（如 $|x\rangle$）迫使我们引入 **$\delta$ 函数**，从而建立了量子力学中位置表象与动量表象的严格数学基础。
+
