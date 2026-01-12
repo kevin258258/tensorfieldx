@@ -1,0 +1,290 @@
+---
+title: "分析力学 Note 6: 再论最小作用量与相对论时空"
+description: "从几何不变量出发，推导相对论下的惯性运动与 E=mc²。"
+pubDate: 2026-01-12
+tags: ["Physics", "Relativity", "Action", "Geometry"]
+series: "Analytical Mechanics"
+seriesOrder: 6
+---
+
+import Sidenote from '../../components/Sidenote.astro';
+import Figure from '../../components/Figure.astro';
+
+
+
+## 1. 寻找不变量
+
+在经典力学中，$L = T-V$ 似乎是天经地义的。但在相对论视角的分析力学中，我们必须重新审视作用量 $S$ 的定义。
+物理定律在洛伦兹变换下应当保持形式不变，而作用量始终取极值，这意味着**作用量 $S$ 必须是一个标量**，即在所有惯性系下取值相同。
+
+在闵可夫斯基时空中，最自然的几何不变量就是**世界线的长度**（$ds$）。
+对于有质量粒子，其世界线是类时的，因此我们定义作用量与路径长度成正比。
+
+为了量纲匹配（作用量量纲 $[Energy] \cdot [Time]$）并回退到经典极限，我们引入系数 $-mc$：
+$$ S = -mc \int ds $$
+> **Why negative?** 在欧几里得几何中，两点之间直线最短；但在闵氏时空，对于类时路径，直线（惯性运动）的**固有时最长**。为了符合最小作用量原理，我们需要加负号求极大值。
+
+---
+
+## 2. 固有时 $\tau$ and 实验室时间 $t$
+
+与牛顿力学不同，相对论中没有绝对时间。我们面临两个选择来参数化这条世界线：
+
+1.  **固有时 $\tau$ **：粒子随身携带的时钟。
+2.  **实验室时间 $t$**：观测者的时间，取决于参考系。
+
+---
+
+### 2.1 方案 A：以固有时 $\tau$ 为参数（协变形式）
+
+
+#### 1. 几何背景与定义
+
+*   **度规符号**：采用常用的 $\eta_{\mu\nu} = \text{diag}(-1, 1, 1, 1)$。
+*   **线元**：时空间隔的平方定义为：
+    $$
+    ds^2 = -\eta_{\mu\nu} dx^\mu dx^\nu = c^2 dt^2 - d\mathbf{x}^2
+    $$
+    对于有质量粒子的真实运动（类时世界线），$ds^2 > 0$。
+
+*   **固有时 (Proper Time)**：定义 $d\tau = ds / c$。它是粒子系本身感受到的时间流逝。
+
+*   **4-速度 (4-Velocity)**：定义为坐标对固有时的导数：
+    $$
+    u^\mu = \frac{dx^\mu}{d\tau}
+    $$
+
+    <Sidenote>
+    **推导 4-速度的模长恒等式**：<br/>
+    将线元公式两边同除以 $d\tau^2$：
+    $$
+    \frac{ds^2}{d\tau^2} = -\eta_{\mu\nu} \frac{dx^\mu}{d\tau} \frac{dx^\nu}{d\tau}
+    $$
+    左边根据定义是 $c^2$，右边正是 $-u^\mu u_\mu$（或写作 $-u^2$）。于是我们得到一个极其重要的几何约束：
+    $$
+    u^\mu u_\mu = -c^2
+    $$
+    这意味着 4-速度是一个模长恒定的矢量。
+    </Sidenote>
+
+#### 2. 作用量与拉格朗日量
+
+我们从最小作用量原理出发，假设作用量 $S$ 正比于世界线的长度：
+$$
+S = -mc \int ds
+$$
+利用 $ds = \sqrt{-\eta_{\mu\nu} dx^\mu dx^\nu}$，我们将积分变量变换为固有时 $\tau$。注意到 $dx^\mu = u^\mu d\tau$，则：
+$$
+ds = \sqrt{-\eta_{\mu\nu} (u^\mu d\tau) (u^\nu d\tau)} = \sqrt{-u^\mu u_\mu} \, d\tau
+$$
+于是作用量写为：
+$$
+S = \int \left( -mc \sqrt{-u^\mu u_\mu} \right) d\tau
+$$
+由此，我们直接读出了相对论协变形式的拉格朗日量：
+$$
+\mathcal{L}(x^\mu, u^\mu) = -mc \sqrt{-u^\rho u_\rho}
+$$
+
+#### 2.1 广义动量
+
+根据定义，共轭动量是拉格朗日量对广义速度（这里是 $u^\mu$）的偏导数：
+$$
+p_\mu = \frac{\partial \mathcal{L}}{\partial u^\mu}
+$$
+
+
+我们需要计算 $\frac{\partial}{\partial u^\mu} (-mc \sqrt{-u^\rho u_\rho})$。
+令 $K = -u^\rho u_\rho = -\eta_{\alpha\beta} u^\alpha u^\beta$。则 $\mathcal{L} = -mc \sqrt{K}$。
+
+有：
+$$
+\frac{\partial \mathcal{L}}{\partial u^\mu} = -mc \cdot \frac{d(\sqrt{K})}{dK} \cdot \frac{\partial K}{\partial u^\mu}
+$$
+
+**第一部分**：
+$$
+\frac{d(\sqrt{K})}{dK} = \frac{1}{2\sqrt{K}} = \frac{1}{2\sqrt{-u^2}}
+$$
+
+**第二部分**：
+$$
+\begin{aligned}
+\frac{\partial K}{\partial u^\mu} &= \frac{\partial}{\partial u^\mu} (-\eta_{\alpha\beta} u^\alpha u^\beta) \\
+&= -\eta_{\alpha\beta} \left( \frac{\partial u^\alpha}{\partial u^\mu} u^\beta + u^\alpha \frac{\partial u^\beta}{\partial u^\mu} \right)
+\end{aligned}
+$$
+然后 $\frac{\partial u^\alpha}{\partial u^\mu} = \delta^\alpha_\mu$：
+$$
+\begin{aligned}
+&= -\eta_{\alpha\beta} (\delta^\alpha_\mu u^\beta + u^\alpha \delta^\beta_\mu) \\
+&= -(\eta_{\mu\beta} u^\beta + \eta_{\alpha\mu} u^\alpha) \\
+&= -(u_\mu + u_\mu) \\
+&= -2u_\mu
+\end{aligned}
+$$
+
+**合并**：
+将两部分乘起来：
+$$
+p_\mu = -mc \cdot \frac{1}{2\sqrt{-u^2}} \cdot (-2u_\mu) = \frac{mc}{\sqrt{-u^2}} u_\mu
+$$
+
+**代入条件**：
+虽然在变分过程中 $u^\mu$ 是独立变量，但在物理运动实现后，必须满足约束 $\sqrt{-u^2} = c$。代入消去 $c$：
+$$
+p_\mu = \frac{mc}{c} u_\mu = m u_\mu
+$$
+这就是我们熟悉的 4-动量定义。
+
+#### 2.2 E-L方程求解
+
+给出E-L方程：
+$$
+\frac{d}{d\tau} \left( \frac{\partial \mathcal{L}}{\partial u^\mu} \right) - \frac{\partial \mathcal{L}}{\partial x^\mu} = 0
+$$
+
+1.  **动量项**：我们已经算出 $\frac{\partial \mathcal{L}}{\partial u^\mu} = p_\mu = m u_\mu$。
+2.  **力项**：观察 $\mathcal{L} = -mc \sqrt{-u^2}$，它**不显含**坐标 $x^\mu$（因为我们假设时空是平坦的，$\eta_{\mu\nu}$ 是常数）。因此：
+    $$
+    \frac{\partial \mathcal{L}}{\partial x^\mu} = 0
+    $$
+
+于是方程简化为：
+$$
+\frac{d}{d\tau} (m u_\mu) = 0 \quad \Rightarrow \quad \frac{d p_\mu}{d\tau} = 0
+$$
+
+
+---
+
+### 2.2 方案 B：以实验室时间 $t$ 为参数（3+1 形式）
+
+虽然固有时 $\tau$ 在理论上很优美，但在实际实验中，我们测量的是**实验室坐标时 $t$** 和**空间位移 $d\mathbf{x}$**。为了将理论与观测联系起来，我们需要将作用量 $S$ 用实验室变量表示。
+
+#### 1. 拉格朗日量的推导
+
+我们的起点依然是作用量 $S$：
+$$
+S = -mc \int ds
+$$
+我们利用线元公式 $ds^2 = c^2 dt^2 - d\mathbf{x}^2$ 来建立 $ds$ 和 $dt$ 的关系。
+
+**推导步骤：**
+1.  从线元公式中提出 $dt^2$ 因子：
+    $$
+    ds^2 = c^2 dt^2 \left( 1 - \frac{d\mathbf{x}^2}{c^2 dt^2} \right)
+    $$
+2.  开方得到 $ds$：
+    $$
+    ds = c \, dt \sqrt{1 - \frac{1}{c^2} \left( \frac{d\mathbf{x}}{dt} \right)^2}
+    $$
+3.  引入**3-速度** $\mathbf{v} = \frac{d\mathbf{x}}{dt}$，其大小为 $v = |\mathbf{v}|$。则 $v^2 = \mathbf{v} \cdot \mathbf{v} = \left(\frac{d\mathbf{x}}{dt}\right)^2$。
+    同时定义无量纲速度 $\beta = v/c$。
+    $$
+    ds = c \sqrt{1 - \beta^2} \, dt
+    $$
+4.  引入**洛伦兹因子** $\gamma = \frac{1}{\sqrt{1-\beta^2}}$，这是时间膨胀的因子。
+    $$
+    ds = \frac{c}{\gamma} dt
+    $$
+    这直接给出了固有时与实验室时的微分关系：$d\tau = ds/c = dt/\gamma$。
+
+5.  将 $ds$ 的表达式代回作用量积分：
+    $$
+    S = -mc \int \left( \frac{c}{\gamma} \right) dt = \int \left( -mc^2 \frac{1}{\gamma} \right) dt = \int \left( -mc^2 \sqrt{1 - \frac{v^2}{c^2}} \right) dt
+    $$
+
+根据作用量的定义 $S = \int L(q, \dot{q}, t) dt$，我们直接读出了一个自由粒子在实验室参考系下的**相对论拉格朗日量**：
+$$
+L = -mc^2 \sqrt{1 - \frac{v^2}{c^2}} = -\frac{mc^2}{\gamma}
+$$
+
+<Sidenote>
+**经典极限的检验**：<br/>
+当速度 $v \ll c$ 时，我们可以对 $L$ 进行泰勒展开：
+$$
+L = -mc^2 \left( 1 - \frac{v^2}{c^2} \right)^{1/2} \approx -mc^2 \left( 1 - \frac{1}{2}\frac{v^2}{c^2} \right) = -mc^2 + \frac{1}{2}mv^2
+$$
+$-mc^2$ 是一个常数，在拉格朗日方程中会被消去。剩下的 $\frac{1}{2}mv^2$ 正是经典力学中的动能。这验证了我们定义的正确性。
+</Sidenote>
+
+#### 2. 导出质能关系
+
+现在我们有了拉格朗日量，就可以通过标准的分析流程导出物理量。
+
+**第一步：3-动量 $\mathbf{p}$**
+动量定义为 $\mathbf{p} = \frac{\partial L}{\partial \mathbf{v}}$。
+
+**详细求导步骤：**
+$$
+\begin{aligned}
+\mathbf{p} &= \frac{\partial}{\partial \mathbf{v}} \left[ -mc^2 \left( 1 - \frac{v^2}{c^2} \right)^{1/2} \right] \\
+&= -mc^2 \cdot \left( \frac{1}{2} \left( 1 - \frac{v^2}{c^2} \right)^{-1/2} \right) \cdot \frac{\partial}{\partial \mathbf{v}} \left( 1 - \frac{\mathbf{v} \cdot \mathbf{v}}{c^2} \right) \\
+&= -mc^2 \cdot \frac{1}{2\sqrt{1-\beta^2}} \cdot \left( -\frac{2\mathbf{v}}{c^2} \right) \\
+&= \frac{mc^2}{\sqrt{1-\beta^2}} \cdot \frac{\mathbf{v}}{c^2} \\
+&= \frac{m}{\sqrt{1-v^2/c^2}} \mathbf{v} = \gamma m \mathbf{v}
+\end{aligned}
+$$
+这正是我们熟知的相对论动量表达式。
+
+**第二步：能量 $E$ **
+能量定义为汉密尔顿量 $H = \mathbf{p} \cdot \mathbf{v} - L$。
+
+**详细推导步骤：**
+1.  代入 $\mathbf{p}$ 和 $L$ 的表达式：
+    $$
+    E = (\gamma m \mathbf{v}) \cdot \mathbf{v} - \left( - \frac{mc^2}{\gamma} \right) = \gamma m v^2 + \frac{mc^2}{\gamma}
+    $$
+2.  通分合并：
+    $$
+    E = \frac{\gamma^2 m v^2 + mc^2}{\gamma} = \frac{m (\gamma^2 v^2 + c^2)}{\gamma}
+    $$
+3.  利用洛伦兹因子的恒等式 $\gamma^2 = \frac{1}{1 - v^2/c^2}$ 进行化简。
+    从 $\gamma^2 (1 - v^2/c^2) = 1$ 出发，得到 $\gamma^2 - \gamma^2 v^2/c^2 = 1$，移项得：
+    $$ \gamma^2 v^2 = c^2 (\gamma^2 - 1) $$
+4.  将此结果代入能量表达式的分子：
+    $$
+    E = \frac{m (c^2(\gamma^2-1) + c^2)}{\gamma} = \frac{m c^2 (\gamma^2 - 1 + 1)}{\gamma} = \frac{m c^2 \gamma^2}{\gamma}
+    $$
+5.  最终得到能量公式：
+    $$
+    E = \gamma m c^2
+    $$
+
+当粒子静止时 ($v=0, \gamma=1$)，我们得到了静止能量（质能方程）：
+$$
+E_0 = mc^2
+$$
+
+#### 3. 图景总结
+
+1.  **拉格朗日量的意义**：相对论下的拉格朗日量 $-mc^2/\gamma$ 不再是 $T-V$。它是一个与**固有时流逝速率**成正比的量。速度越快，$\gamma$ 越大，固有时流逝越慢，$-mc^2/\gamma$ 的绝对值就越小。
+2.  **质能关系**：能量 $E = \gamma mc^2$ 包含了静止能量和动能。
+    $$
+    E = E_0 + K = mc^2 + (\gamma-1)mc^2
+    $$
+    这意味着**质量本身就是一种被“囚禁”的能量形式**。加速一个物体，不仅仅是赋予它动能，也是在增加它的总能量，从而增加了它的惯性质量。
+
+---
+
+## 3. 双曲几何的视角
+
+为什么会有 $\gamma$？为什么 $u^\mu u_\mu = -c^2$？
+这一堆代数推导的背后，隐藏着**时空的几何结构**。
+
+如果我们画一个 $(ct, x)$ 的二维时空图，所有不变量 $s^2 = (ct)^2 - x^2 = \text{const}$ 构成了**双曲线 (Hyperbola)**。
+
+    <Figure 
+    src="/images/MC/IMG_0645(20260113-005425).PNG" 
+    alt="双曲时空" 
+    caption="直观的几何" 
+/>
+
+*   **欧氏旋转**：在 $(x, y)$ 平面上，圆 $x^2 + y^2 = r^2$ 不变，旋转保持模长。
+*   **洛伦兹变换**：在 $(ct, x)$ 平面上，双曲线 $(ct)^2 - x^2 = s^2$ 不变，**洛伦兹变换本质上就是时空中的“双曲旋转”**。
+
+一切都开始一目了然了。
+
+
+---
