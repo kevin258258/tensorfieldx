@@ -1,0 +1,449 @@
+---
+title: "EECS498 Note 1: 信息与优化"
+description: "从信息论公理出发，推导熵、交叉熵与KL散度的数学关系，及其在深度学习损失函数中的物理意义。"
+pubDate: 2026-01-22
+tags: ["Math", "Deep Learning", "Information Theory"]
+series: "EECS498:Introduction to DeepLearning"
+seriesOrder: 0
+---
+
+import Sidenote from '../../components/Sidenote.astro';
+import Figure from '../../components/Figure.astro';
+
+
+---
+
+
+# Part 1: 信息、编码与优化
+
+> 优化过程本质上是在寻找一个模型分布 $Q$，使其以“最小的编码代价”来描述真实数据分布 $P$。
+
+## 1. 信息的度量：为什么是 $\log$？
+
+我们首先需要来衡量“信息量”。香农给出了一组公设决定了这把尺子的唯一性。
+
+*   **直觉：**
+    *   必然事件（太阳升起）发生，信息量为 0。
+    *   极小概率事件（中彩票）发生，信息量巨大。
+    *   两个独立事件同时发生的信息量，应该等于它们各自信息量之和（**可加性**）。
+
+*   **公设导出定义：**
+    设事件 $x$ 发生的概率为 $p(x)$，其信息量 $I(p)$ 必须满足：
+    1.  $I(p) \ge 0$ （非负性）
+    2.  $I(1) = 0$ （必然性）
+    3.  $I(p_1 p_2) = I(p_1) + I(p_2)$ （独立事件可加性）
+    4.  $I(p)$ 是连续单调递减函数。
+
+    唯一满足上述条件的函数形式就是对数：
+    $$ I(x) = -\log_b p(x) $$
+    *(通常取 $b=2$ 单位为比特，或 $b=e$ 单位为奈特)*
+
+*   **最佳编码长度**
+    这不仅是“惊讶度”，更是描述该事件所需的最小比特数。如果一个事件发生概率是 $1/2$，我们需要 1 bit；如果是 $1/8$，我们需要 3 bits。
+
+## 2. 两个分布的距离：KL 散度
+
+在优化中，我们有两个分布：
+1.  **真实分布 $P(x)$**（上帝视角）：这是客观存在的真理。
+2.  **模型分布 $Q(x; \theta)$**（我们的神经网络）：这是我们试图去拟合真理的假设。
+
+当我们用 $Q$ 去模拟 $P$ 时，我们一定会付出额外的代价。
+
+*   **场景模拟：**
+    *   真实数据来自于 $P$，所以事件 $x$ 出现的频率遵循 $P(x)$。
+    *   但是，我们在设计编码本（Encoder）时，是根据我们的模型 $Q(x)$ 设计的。也就是说，对于事件 $x$，我们分配的编码长度是 $-\log Q(x)$。
+
+*   **平均编码长度（交叉熵）：**
+    $$ H(P, Q) = \mathbb{E}_{x \sim P} [-\log Q(x)] = -\sum_x P(x) \log Q(x) $$
+    这是我们实际付出的平均比特数。
+
+*   **理想编码长度（熵）：**
+    如果我们要用 $P$ 自己的编码本（上帝视角），代价是最低的：
+    $$ H(P) = \mathbb{E}_{x \sim P} [-\log P(x)] = -\sum_x P(x) \log P(x) $$
+
+*   **额外的浪费 ：**
+    KL 散度正好就是**“实际代价”减去“理想代价”**：
+    $$ D_{KL}(P || Q) = H(P, Q) - H(P) = \sum_x P(x) \log \frac{P(x)}{Q(x)} $$
+
+*   **几何意义：**
+    KL 散度衡量了**当我们误把 $Q$ 当作 $P$ 时，损失了多少信息**。
+    在参数更新前后（$\theta_t$ vs $\theta_{t+1}$），KL 散度衡量了**模型分布变化了多少**。这比参数欧氏距离 $||\theta_{t+1} - \theta_t||^2$ 更能反映模型行为的变化.
+## 3. 为什么是交叉熵？
+
+在训练神经网络时，为什么 Loss Function 几乎总是交叉熵？
+
+$$ \mathcal{L} = -\sum P(x) \log Q(x) $$
+
+结合上面的推导，我们可以给出三个维度的解释：
+
+### A. 信息论视角：最小化编码长度
+$$ D_{KL}(P || Q) = \underbrace{H(P, Q)}_{\text{交叉熵}} - \underbrace{H(P)}_{\text{数据熵}} $$
+*   我们的目标是让 $Q$ 尽可能接近 $P$，即最小化 $D_{KL}(P || Q)$。
+*   注意 $H(P)$ 仅仅取决于真实数据（训练集），对于优化器来说，它是**常数**（Constant）。
+*   **结论：** **最小化 KL 散度 $\iff$ 最小化交叉熵。**
+    *(注：这就是为什么我们不需要算 KL 的后半部分，只要算前半部分就行。)*
+
+### B. 统计学视角：最大似然估计
+假设我们有数据集 $\mathcal{D} = \{x_1, x_2, \dots, x_N\}$ 采样自 $P$。
+我们要最大化模型生成这些数据的概率：
+$$ \max_\theta \prod_{i=1}^N Q(x_i; \theta) $$
+取对数变加法（Log-Likelihood）：
+$$ \max_\theta \sum_{i=1}^N \log Q(x_i; \theta) $$
+等价于最小化负对数似然（NLL）：
+$$ \min_\theta -\frac{1}{N} \sum_{i=1}^N \log Q(x_i; \theta) $$
+**结论：** 当样本量 $N \to \infty$ 时，**NLL 就是交叉熵（的蒙特卡洛近似）**。所以交叉熵本质上就是 MLE。
+
+### C. 几何视角：投影
+在分布流形上，寻找最优的 $Q$ 其实是一个**I-Projection** 的过程。
+$$ Q^* = \arg\min_{Q \in \mathcal{Q}} D_{KL}(P || Q) $$
+交叉熵引导我们将模型分布投影到离真实数据分布最近的流形点上。
+
+---
+
+## 4. 总结：Part 1
+
+在进入具体的 SGD、Adam 之前，我们建立了优化的世界观：
+
+1.  **参数 $\theta$ 只是载体**，我们真正优化的是它背后的**概率分布 $Q_\theta$**。
+2.  **优化的本质**：是在信息空间中，寻找一种编码方式 $Q$，使得它对真实世界 $P$ 的描述最省流。
+3.  **度量标准**：不是参数走了多远，而是信息损失了多少（KL 散度 / 交叉熵）。
+
+
+
+---
+
+# Part 2: 统计流形与
+
+在 Part 1 中，我们确立了优化问题的核心目标：最小化真实分布 $P$ 与模型分布 $P_\theta$ 之间的信息差异（即 KL 散度）。
+
+在这一部分，我们将深入探讨参数空间与分布空间的几何结构差异。我们将证明，参数空间并非平坦的欧氏空间，而是一个弯曲的黎曼流形。通过对 KL 散度的二阶展开，我们将导出该流形的度量张量——Fisher 信息矩阵。
+
+## 1. 统计流形 
+
+考虑一组由参数 $\theta \in \mathbb{R}^d$ 决定的概率密度函数族 $S$：
+$$ S = \{ p(x; \theta) \mid \theta \in \Theta \subseteq \mathbb{R}^d \} $$
+其中 $x$ 是随机变量，$\theta$ 是 $d$ 维参数向量。
+
+我们将 $S$ 视为一个几何对象，称为**统计流形**。
+*   每一个点 $p(x; \theta)$ 代表一个概率分布。
+*   参数 $\theta = [\theta_1, \dots, \theta_d]^T$ 是这个流形上的局部坐标系。
+
+在欧氏空间中，参数的变化量 $||\Delta \theta||^2$ 衡量了两点间的距离。但在统计流形上，参数的微小变化并不等同于分布的本质变化。为了衡量分布的变化，我们需要定义流形上的距离。由 Part 1 可知，KL 散度是衡量分布差异的自然度量。
+
+## 2. 黎曼度规的导出
+
+为了在流形上进行微积分运算，我们需要找到局部的度量张量。这就要求我们分析当参数 $\theta$ 发生微小位移 $\delta$ 时的局部行为。
+
+设当前参数为 $\theta$，偏移后的参数为 $\theta + \delta$，其中 $\delta \to 0$。我们关注两者之间的 KL 散度：
+$$ D_{KL}(P_\theta || P_{\theta+\delta}) = \mathbb{E}_{x \sim P_\theta} \left[ \log p(x; \theta) - \log p(x; \theta+\delta) \right] $$
+
+### 2.1 对数似然的泰勒展开
+
+首先，我们将项 $\log p(x; \theta+\delta)$ 在 $\theta$ 处进行二阶泰勒展开：
+
+$$ \log p(x; \theta+\delta) \approx \log p(x; \theta) + \nabla_\theta \log p(x; \theta)^T \delta + \frac{1}{2} \delta^T \nabla^2_\theta \log p(x; \theta) \delta $$
+
+将此展开式代入 KL 散度的定义式中：
+
+$$
+\begin{aligned}
+D_{KL}(P_\theta || P_{\theta+\delta}) &\approx \mathbb{E}_{x \sim P_\theta} \left[ \log p(x; \theta) - \left( \log p(x; \theta) + \nabla_\theta \log p(x; \theta)^T \delta + \frac{1}{2} \delta^T \nabla^2_\theta \log p(x; \theta) \delta \right) \right] \\
+&= \mathbb{E}_{x \sim P_\theta} \left[ - \nabla_\theta \log p(x; \theta)^T \delta - \frac{1}{2} \delta^T \nabla^2_\theta \log p(x; \theta) \delta \right]
+\end{aligned}
+$$
+
+利用期望的线性性质，将其拆分为一阶项和二阶项：
+
+$$ D_{KL} \approx \underbrace{- \mathbb{E}_{x \sim P_\theta} [\nabla_\theta \log p(x; \theta)]^T \delta}_{\text{一阶项}} \underbrace{- \frac{1}{2} \delta^T \mathbb{E}_{x \sim P_\theta} [\nabla^2_\theta \log p(x; \theta)] \delta}_{\text{二阶项}} $$
+
+### 2.2 一阶项的消去
+
+我们来考察一阶项中的期望 $\mathbb{E}_{x \sim P_\theta} [\nabla_\theta \log p(x; \theta)]$。
+利用对数导数技巧（Log-derivative trick）：$\nabla \log p = \frac{\nabla p}{p}$，我们有：
+
+$$
+\begin{aligned}
+\mathbb{E}_{x \sim P_\theta} [\nabla_\theta \log p(x; \theta)] &= \int p(x; \theta) \nabla_\theta \log p(x; \theta) \, dx \\
+&= \int p(x; \theta) \frac{\nabla_\theta p(x; \theta)}{p(x; \theta)} \, dx \\
+&= \int \nabla_\theta p(x; \theta) \, dx \\
+&= \nabla_\theta \int p(x; \theta) \, dx \quad \text{(假设满足积分与求导交换的正则性条件)}
+\end{aligned}
+$$
+
+由于概率密度函数的积分为 1（$\int p(x; \theta) dx = 1$），常数的导数为 0，因此：
+$$ \nabla_\theta (1) = 0 $$
+
+**结论：** KL 散度展开式的一阶项恒为 0。这也符合距离度量的性质（在 $P_\theta$ 处距离取极小值 0，故一阶导数为 0）。
+
+### 2.3 二阶项与 Fisher 信息矩阵
+
+现在 KL 散度的近似式简化为仅剩二阶项：
+$$ D_{KL}(P_\theta || P_{\theta+\delta}) \approx - \frac{1}{2} \delta^T \mathbb{E}_{x \sim P_\theta} [\nabla^2_\theta \log p(x; \theta)] \delta $$
+
+我们需要处理海森矩阵的期望 $\mathbb{E}[\nabla^2 \log p]$。利用等式 $\nabla^2 \log p = \frac{\nabla^2 p}{p} - (\frac{\nabla p}{p})(\frac{\nabla p}{p})^T$，两边求期望：
+
+$$
+\begin{aligned}
+\mathbb{E} [\nabla^2 \log p] &= \int p \left( \frac{\nabla^2 p}{p} - (\nabla \log p)(\nabla \log p)^T \right) dx \\
+&= \underbrace{\int \nabla^2 p \, dx}_{= \nabla^2 \int p \, dx = 0} - \int p (\nabla \log p)(\nabla \log p)^T dx \\
+&= - \mathbb{E} \left[ (\nabla_\theta \log p(x; \theta)) (\nabla_\theta \log p(x; \theta))^T \right]
+\end{aligned}
+$$
+
+定义 **Fisher 信息矩阵** 为 Score Function 的协方差矩阵：
+$$ \mathbf{F}(\theta) \triangleq \mathbb{E}_{x \sim P_\theta} \left[ \nabla_\theta \log p(x; \theta) \nabla_\theta \log p(x; \theta)^T \right] $$
+
+代回 KL 散度展开式，负号抵消，得到最终的局部距离公式：
+
+$$ D_{KL}(P_\theta || P_{\theta+\delta}) \approx \frac{1}{2} \delta^T \mathbf{F}(\theta) \delta $$
+
+### 2.4 度规
+
+在黎曼几何中，流形上微元距离的平方 $ds^2$ 由度量张量 $G$ 定义：$ds^2 = \sum_{ij} g_{ij} d\theta_i d\theta_j$。
+对比上式，我们可以确认：**Fisher 信息矩阵 $\mathbf{F}(\theta)$ 正是统计流形上的黎曼度量张量 $G(\theta)$。**
+
+这表明，在统计流形上，衡量参数变化大小的正确方式不是欧氏距离 $||\delta||^2 = \delta^T I \delta$，而是马氏距离形式的 $\delta^T \mathbf{F} \delta$。
+
+---
+
+## 3. 从 SGD 到 自然梯度
+
+优化问题的目标是最小化损失函数 $\mathcal{L}(\theta)$。我们希望在每一步更新中，Loss 下降得越多越好。这可以形式化为最速下降问题。
+
+### 3.1 欧氏空间的最速下降
+
+若假设参数空间是平坦的欧氏空间，我们将步长限制在固定半径 $\epsilon$ 内：
+$$
+\begin{aligned}
+\min_{\delta} \quad & \mathcal{L}(\theta + \delta) \\
+\text{s.t.} \quad & ||\delta||^2 \le \epsilon
+\end{aligned}
+$$
+对 $\mathcal{L}$ 进行一阶泰勒展开：$\mathcal{L}(\theta + \delta) \approx \mathcal{L}(\theta) + \nabla \mathcal{L}^T \delta$。
+构建拉格朗日函数：
+$$ L_{Euclid} = \nabla \mathcal{L}^T \delta + \lambda (\delta^T I \delta - \epsilon) $$
+对 $\delta$ 求导并令为 0：
+$$ \nabla \mathcal{L} + 2\lambda \delta = 0 \implies \delta = -\frac{1}{2\lambda} \nabla \mathcal{L} $$
+这就导出了我们熟悉的 **标准梯度下降 (SGD)**：
+$$ \theta_{t+1} = \theta_t - \eta \nabla \mathcal{L}(\theta_t) $$
+几何上，这是沿着等高线的法线方向（与切平面垂直）移动。
+
+### 3.2 统计流形的最速下降 
+
+若我们要在这个弯曲的统计流形上进行最速下降，限制条件应由流形的内蕴距离（KL 散度）给出。即我们希望在改变分布程度固定的前提下，最大化 Loss 的下降：
+
+$$
+\begin{aligned}
+\min_{\delta} \quad & \mathcal{L}(\theta + \delta) \approx \mathcal{L}(\theta) + \nabla \mathcal{L}^T \delta \\
+\text{s.t.} \quad & D_{KL}(P_\theta || P_{\theta+\delta}) \le \epsilon
+\end{aligned}
+$$
+
+利用我们在 2.3 节导出的二次型近似，约束条件变为：
+$$ \frac{1}{2} \delta^T \mathbf{F} \delta \le \epsilon $$
+
+构建拉格朗日函数：
+$$ L_{Natural} = \nabla \mathcal{L}^T \delta + \lambda \left( \frac{1}{2} \delta^T \mathbf{F} \delta - \epsilon \right) $$
+
+对 $\delta$ 求导：
+$$ \frac{\partial L_{Natural}}{\partial \delta} = \nabla \mathcal{L} + \lambda \mathbf{F} \delta = 0 $$
+
+解出最优更新方向 $\delta$：
+$$ \mathbf{F} \delta = -\frac{1}{\lambda} \nabla \mathcal{L} \implies \delta = -\frac{1}{\lambda} \mathbf{F}^{-1} \nabla \mathcal{L} $$
+
+我们将标量系数 $1/\lambda$ 吸收进学习率 $\eta$ 中，得到 **自然梯度下降** 的更新公式：
+
+$$ \theta_{t+1} = \theta_t - \eta \mathbf{F}^{-1} \nabla \mathcal{L}(\theta_t) $$
+
+### 3.3 逆变与协变
+
+从微分几何的角度来看：
+*   损失函数的梯度 $\nabla \mathcal{L}$ 是一个 **余切向量**，也就是一个 1-form（协变），其分量随坐标变换而逆变。
+*   参数更新量 $\delta$ 是一个 **切向量 **（逆变）。
+*   在黎曼流形上，切空间与余切空间不是自然同构的。我们需要通过度量张量（及其逆）来建立映射：
+    *   $\sharp$ 算子：将余切向量映射为切向量。
+    *   在局部坐标下，这对应于左乘度规的逆矩阵 $G^{-1}$（即 $F^{-1}$）。
+
+因此，自然梯度 $\tilde{\nabla} \mathcal{L} = \mathbf{F}^{-1} \nabla \mathcal{L}$ 才是流形上真正的梯度方向（切向量），它指向了黎曼流形上函数下降最快的方向。它试图沿着流形的 **测地线 ** 前进，从而消除了参数化方式带来的畸变。
+
+---
+
+
+
+
+# Part 3: 自适应优化 —— 寻找低成本的二阶近似
+
+在 Part 2 中，我们推导出了**自然梯度下降 (Natural Gradient Descent, NGD)**：
+$$ \theta_{t+1} = \theta_t - \eta \mathbf{F}^{-1} \nabla \mathcal{L} $$
+以及类似的**牛顿法 (Newton's Method)**：
+$$ \theta_{t+1} = \theta_t - \eta \mathbf{H}^{-1} \nabla \mathcal{L} $$
+
+然而，在深度学习中，这两个方法都有一个致命的缺陷：**计算复杂度**。
+如果参数量 $d = 10^7$，那么矩阵 $\mathbf{F}$ 或 $\mathbf{H}$ 的大小为 $10^7 \times 10^7$。存储它需要数百 TB 的显存，计算其逆矩阵 $O(d^3)$ 更是天方夜谭。我们无法随身携带这样一个巨大的度规矩阵。
+
+因此，现代优化器的核心哲学是：**用一阶梯度的历史信息，去构造一个对角化的二阶矩阵近似。**
+
+## 1. 一般化的牛顿法 
+
+为了不局限于交叉熵损失，我们先从最通用的函数最小化角度审视二阶优化。
+
+设损失函数为 $\mathcal{L}(\theta)$，我们在当前点 $\theta_t$ 处进行二阶泰勒展开（假设 $\mathcal{L}$ 是二阶可微的）：
+
+$$ \mathcal{L}(\theta_t + \delta) \approx \mathcal{L}(\theta_t) + \nabla \mathcal{L}(\theta_t)^T \delta + \frac{1}{2} \delta^T \mathbf{H}(\theta_t) \delta $$
+
+其中：
+*   $\nabla \mathcal{L} \in \mathbb{R}^d$ 是梯度向量。
+*   $\mathbf{H} = \nabla^2 \mathcal{L} \in \mathbb{R}^{d \times d}$ 是黑塞矩阵，描述了 Loss 曲面的局部曲率。
+
+### 1.1 牛顿更新
+
+我们的目标是找到一个步长 $\delta$，使得近似后的 Loss 最小。这是一个关于 $\delta$ 的二次型求极值问题。
+对 $\delta$ 求导并令其为 0：
+
+$$ \nabla_\delta \left( \mathcal{L}(\theta_t) + \nabla \mathcal{L}^T \delta + \frac{1}{2} \delta^T \mathbf{H} \delta \right) = \nabla \mathcal{L} + \mathbf{H} \delta = 0 $$
+
+解得最优步长：
+$$ \delta = - \mathbf{H}^{-1} \nabla \mathcal{L} $$
+
+这便是标准的牛顿法。
+
+### 1.2 牛顿法与自然梯度的关系
+
+*   **牛顿法**使用的是 **Hessian ($\mathbf{H}$)**：它衡量的是 **Loss 曲面** 的几何弯曲程度。
+*   **自然梯度**使用的是 **Fisher Matrix ($\mathbf{F}$)**：它衡量的是 **概率分布流形** 的弯曲程度。
+
+**联系：**
+当损失函数为负对数似然（Negative Log-Likelihood, NLL），即 $\mathcal{L}(\theta) = -\mathbb{E}[\log p(x|\theta)]$ 时，可以证明海森矩阵的期望渐近等于 Fisher 信息矩阵：
+$$ \mathbb{E}_{x \sim P_{\text{data}}} [\nabla^2 \mathcal{L}] \approx \mathbf{F} $$
+因此，在深度学习常见的分类任务中，牛顿法与自然梯度法在期望意义上是等价的。它们都试图通过“除以曲率”来拉伸或压缩梯度，使得在平坦方向步子大一点，陡峭方向步子小一点。
+
+---
+
+# 自适应优化
+
+在 Part 2 中，我们得到了自然梯度 $d = -\mathbf{F}^{-1} \nabla \mathcal{L}$。
+为了工程落地，现代优化器做出了两个核心的数学假设与近似。我们需要通过推导来看看，这每一步近似到底是在优化什么。
+
+## 1. 对角化近似：经验 Fisher 矩阵 
+
+首先，我们解决矩阵 $\mathbf{F}$ 太大的问题。
+**假设 1：** 参数之间相互独立，即 $\mathbf{F}$ 是对角矩阵。
+**假设 2：** 用单次采样的梯度的外积来近似 Fisher 矩阵的期望。
+
+Fisher 矩阵定义为 Score Function 的协方差：
+$$ \mathbf{F} = \mathbb{E}_{x \sim P_\theta} [\nabla \log p(x) \nabla \log p(x)^T] $$
+
+如果我们取对角线元素 $\mathbf{F}_{ii}$，并用当前的梯度 $g_t$ 进行单点估计：
+$$ \hat{F}_{ii} \approx g_{t,i}^2 $$
+
+如果是 Adam/RMSProp，我们会用指数移动平均（EMA）来获得更稳定的估计（即二阶动量 $v_t$）：
+$$ v_{t,i} \approx \mathbb{E}[g_{t,i}^2] \approx F_{ii} $$
+
+> **停！这里有一个巨大的陷阱。**
+> 如果我们直接照搬牛顿法/自然梯度 $\theta \leftarrow \theta - \mathbf{F}^{-1} g$，那么更新公式应该是：
+> $$ \Delta \theta_i \propto - \frac{g_i}{v_i} = - \frac{g_i}{g_i^2} = - \frac{1}{g_i} $$
+> **这非常荒谬！** 如果梯度很小，步长反而变成无穷大？这显然不是 Adam 的做法（Adam 是除以 $\sqrt{v}$）。
+> **这说明：Adam 并不是简单的“对角化自然梯度”。它背后的优化目标变了。**
+
+## 2. 为什么是根号？
+
+要推导出 $\frac{g}{\sqrt{v}}$，我们需要引入**缩放不变性 ** 或者 **信赖域 ** 的约束。
+
+### 路径 A：维度分析 
+
+假设我们将 Loss 函数放大 $k$ 倍：$\tilde{\mathcal{L}} = k \mathcal{L}$。
+*   理想的优化器，其参数更新轨迹 $\theta_{t+1} - \theta_t$ 应该不随 $k$ 的变化而变化。
+
+1.  **梯度下降 (SGD):**
+    $\Delta \theta \propto g$.
+    如果 $\mathcal{L} \to k\mathcal{L}$，则 $g \to kg$。步长变大 $k$ 倍。
+    **结论：SGD 不具有缩放不变性。**
+
+2.  **牛顿法 :**
+    $\Delta \theta \propto H^{-1} g$.
+    $g \to kg$，海森矩阵 $H \to kH$。
+    $\Delta \theta \to (kH)^{-1} (kg) = k^{-1} k H^{-1} g = H^{-1} g$.
+    **结论：牛顿法具有缩放不变性。** (这是二阶方法的优点)
+
+3.  **Adam ($g / \sqrt{v}$):**
+    $v$ 是梯度平方的期望，所以 $v \to k^2 v$。
+    $$ \Delta \theta \propto \frac{g}{\sqrt{v}} \to \frac{kg}{\sqrt{k^2 v}} = \frac{kg}{k\sqrt{v}} = \frac{g}{\sqrt{v}} $$
+    **结论：Adam 具有缩放不变性。**
+
+**洞察：** Adam 的分母 $\sqrt{v}$ 其实是在做一个**归一化**。它消除了梯度幅值的影响，只保留了梯度的**符号**和**信噪比**。这就是为什么 Adam 有时被称为 "Sign Gradient Descent" 的平滑版。
+
+### 路径 B：最优信赖域
+
+我们换一个更数学的优化目标。我们不限制步长的欧氏距离（SGD），也不限制步长的 KL 散度（Natural Gradient），我们要限制的是“标准化后的步长”。
+
+我们希望在每一步 $t$，找到一个更新量 $\delta$，最大化 Loss 的下降，但是要满足一个几何约束：步长在各个维度上的分量，应该根据该维度的不确定性进行加权。
+
+**优化问题：**
+$$ \min_{\delta} \quad \nabla \mathcal{L}^T \delta $$
+$$ \text{s.t.} \quad || \delta ||_{\mathbf{D}}^2 \le \epsilon^2 $$
+
+这里的 $||\cdot||_{\mathbf{D}}$ 是一个加权的范数：
+$$ || \delta ||_{\mathbf{D}}^2 = \sum_{i=1}^d \frac{\delta_i^2}{\alpha_i^2} $$
+其中 $\alpha_i$ 是第 $i$ 个维度的**特征尺度 **。
+*   如果第 $i$ 维梯度波动很大（$g_i^2$ 大），说明这里很陡峭/不稳定，我们应该谨慎，特征尺度 $\alpha_i$ 应该小？还是大？
+*   在 **AdaGrad** (Duchi et al., 2011) 的原始论文证明中，为了最小化 **Regret Bound**（遗憾界），最优的加权矩阵 $\mathbf{D}$ 的对角元应该是**梯度平方和的根号**。
+
+让我们用拉格朗日乘子法解这个几何约束问题：
+
+1.  **拉格朗日函数：**
+    $$ L(\delta, \lambda) = \sum_i g_i \delta_i + \lambda \left( \sum_i \frac{\delta_i^2}{\alpha_i^2} - \epsilon^2 \right) $$
+
+2.  **对 $\delta_i$ 求导并令为 0：**
+    $$ g_i + 2\lambda \frac{\delta_i}{\alpha_i^2} = 0 $$
+    $$ \delta_i = - \frac{\alpha_i^2}{2\lambda} g_i $$
+
+3.  **确定最优的特征尺度 $\alpha_i$：**
+    AdaGrad/RMSProp 的核心洞见在于：**我们应该用过去梯度的均方根 (RMS) 来定义这个特征尺度 $\alpha_i$。**
+    $$ \alpha_i^2 \approx \mathbb{E}[g_i^2] = v_i $$
+    (注意：这里 $\alpha$ 对应的是 scaling factor，在 AdaGrad 的遗憾界推导中，最优的 Preconditioner $G = \text{diag}(\sqrt{\sum g^2})$，这直接导致了分母是根号)。
+
+    如果我们取 $\alpha_i^2 \propto \sqrt{v_i}$ (这里稍微有点绕，让我们回到最直接的 RMSProp 定义)：
+    我们定义度量矩阵 $\mathbf{M} = \text{diag}(\sqrt{v_i})$。
+    我们希望步长 $\delta$ 在度量 $\mathbf{M}$ 下是单位长度：
+    $$ \delta^T \mathbf{M} \delta \le \epsilon $$
+    (这就相当于我们在一个被 $\sqrt{v}$ 拉伸过的空间里走 SGD)。
+
+    等一下，让我们回到最本质的 AdaGrad 结论。Duchi 证明了，要最小化在线凸优化的 Regret：
+    $$ R(T) = \sum_{t=1}^T f_t(\theta_t) - \min_{\theta} \sum_{t=1}^T f_t(\theta) $$
+    最优的对角预处理矩阵 $\mathbf{G}$ 具有形式：
+    $$ G_{ii} = \sqrt{\sum_{t=1}^T g_{t,i}^2} $$
+
+    因此更新规则变成了：
+    $$ \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{\sum g^2}} g_t $$
+
+    **这就是根号的数学来源：它是 Regret Minimization 问题的解析解。**
+
+## 3. Adam 的完整形态：动量 + RMS 缩放
+
+现在我们把拼图拼起来。Adam 其实是做两件事的组合：
+
+1.  **分子 $m_t$ (First Moment):**
+    这不是简单的梯度 $g_t$，而是梯度的 EMA。
+    $$ m_t \leftarrow \beta_1 m_{t-1} + (1-\beta_1) g_t $$
+    **物理意义：** 这是一个**低通滤波器**。它过滤掉了高频的震荡噪声，提取了梯度的主要下降方向。
+
+2.  **分母 $\sqrt{v_t}$ (Second Moment Root):**
+    这是梯度的均方根 (RMS)。
+    $$ v_t \leftarrow \beta_2 v_{t-1} + (1-\beta_2) g_t^2 $$
+    **物理意义：** 这是一个**自适应的信噪比度量**。
+    $$ \text{Step Size}_i \approx \eta \cdot \frac{\mathbb{E}[g_i]}{\sqrt{\mathbb{E}[g_i^2]}} $$
+
+    *   如果某维度梯度一直很大且稳定（$m$ 大，$\sqrt{v}$ 大），步长接近 $\eta$。
+    *   如果某维度梯度很小（$m$ 小，$\sqrt{v}$ 小），步长也接近 $\eta$。
+    *   **关键点：** Adam 试图把所有维度的更新步长**归一化到同一个量级**（大约是 $\eta$）。它不在乎地形是陡峭还是平坦，它只在乎方向是否确定。
+
+## 4. 总结：Adam 到底近似了什么？
+
+我们在可以这样总结 Adam ：
+
+Adam **不是** 直接近似牛顿法（$\mathbf{H}^{-1} g$）。
+Adam **是** 近似了 **符号梯度下降**，并引入了 **Trust Region** 的概念。
+
+它通过 $\mathbf{D} = \text{diag}(\sqrt{v_t})$ 这个度规矩阵，将原始的参数空间变换成了一个**超立方体 **。在这个变换后的空间里，所有参数维度的梯度幅度都是 1（或者说信噪比一致）。然后，它在这个“标准化”的空间里，沿着平滑后的一阶动量方向 $m_t$ 前进。
+
+这就是为什么 Adam 对学习率 $\eta$ 不敏感，且收敛极快的原因——因为它消除了参数空间的**尺度差异 **。
