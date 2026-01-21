@@ -1,115 +1,14 @@
 <div class="fixed inset-0 -z-0 bg-[#050505] overflow-hidden pointer-events-none select-none">
     
+    <!-- 背景图片 -->
     <img 
-        src="/images/bg3.png" 
+        src="/images/IMG_0511.PNG" 
         alt="Secret Blueprint"
         class="absolute inset-0 w-full h-full object-cover z-0"
-        style="image-rendering: -webkit-optimize-contrast;"
+        style="image-rendering: -webkit-optimize-contrast; opacity: 0.65;" 
     />
-
-    <canvas id="flashlight-canvas" class="absolute inset-0 w-full h-full z-10 block"></canvas>
+    
+    <!-- 如果原本觉得图片太亮，可以加这一层纯 CSS 的遮罩，性能消耗几乎为 0 -->
+    <!-- 如果不需要变暗，把下面这一行删掉即可 -->
 
 </div>
-
-<script>
-    function initFlashlight() {
-        const canvas = document.getElementById('flashlight-canvas') as HTMLCanvasElement;
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        // 遮罩颜色：纯黑
-        const VOID_COLOR = '#050505'; 
-        let width, height;
-        let mouse = { x: -9999, y: -9999 };
-
-        // 1. 初始化尺寸
-        const resize = () => {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            // 初始全黑
-            ctx.fillStyle = VOID_COLOR;
-            ctx.fillRect(0, 0, width, height);
-        };
-
-        // 2. 绘图循环
-        const draw = () => {
-            // A. 重置：先铺满全黑
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.fillStyle = VOID_COLOR;
-            ctx.fillRect(0, 0, width, height);
-
-            // B. 挖洞：把鼠标位置变透明 (露出底下的图片)
-            if (mouse.x > -100) {
-                ctx.globalCompositeOperation = 'destination-out';
-                
-                // 光圈半径 (调大一点，视野更开阔)
-                const radius = 350; 
-                
-                // 径向渐变：中心完全透明(露出图片)，边缘半透明
-                const gradient = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, radius);
-                gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');   // 中心挖空力度 100%
-                gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.5)'); // 中间过渡
-                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');   // 边缘不挖空
-
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(mouse.x, mouse.y, radius, 0, Math.PI * 2);
-                ctx.fill();
-
-                // C. 装饰：画蓝色准星 (画在黑色图层之上)
-                ctx.globalCompositeOperation = 'source-over';
-                
-                // 十字线
-                ctx.strokeStyle = '#2E5CFF'; // 瑞士蓝
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                const crossSize = 20;
-                ctx.moveTo(mouse.x - crossSize, mouse.y);
-                ctx.lineTo(mouse.x + crossSize, mouse.y);
-                ctx.moveTo(mouse.x, mouse.y - crossSize);
-                ctx.lineTo(mouse.x, mouse.y + crossSize);
-                ctx.stroke();
-
-                // 外圈细线
-                ctx.strokeStyle = 'rgba(46, 92, 255, 0.3)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.arc(mouse.x, mouse.y, 100, 0, Math.PI * 2); // 小一点的准星圈
-                ctx.stroke();
-            }
-
-            requestAnimationFrame(draw);
-        };
-
-        // 事件监听
-        window.addEventListener('resize', resize);
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-        window.addEventListener('touchstart', (e) => {
-             mouse.x = e.touches[0].clientX;
-             mouse.y = e.touches[0].clientY;
-        });
-        window.addEventListener('touchmove', (e) => {
-             mouse.x = e.touches[0].clientX;
-             mouse.y = e.touches[0].clientY;
-        });
-
-        // 启动
-        resize();
-        draw();
-        
-        // 清理
-        (window as any)._bgCleanup = () => {
-            window.removeEventListener('resize', resize);
-        };
-    }
-
-    document.addEventListener('astro:page-load', () => {
-        if ((window as any)._bgCleanup) (window as any)._bgCleanup();
-        initFlashlight();
-    });
-</script>
