@@ -106,13 +106,13 @@ $$ Q^* = \arg\min_{Q \in \mathcal{Q}} D_{KL}(P || Q) $$
 
 1.  **参数 $\theta$ 只是载体**，我们真正优化的是它背后的**概率分布 $Q_\theta$**。
 2.  **优化的本质**：是在信息空间中，寻找一种编码方式 $Q$，使得它对真实世界 $P$ 的描述最省流。
-3.  **度量标准**：不是参数走了多远，而是信息损失了多少（KL 散度 / 交叉熵）。
+3.  **度量标准**：不是参数走了多远，而是信息损失了多少。
 
 
 
 ---
 
-# Part 2: 统计流形与
+# Part 2: 统计流形
 
 在 Part 1 中，我们确立了优化问题的核心目标：最小化真实分布 $P$ 与模型分布 $P_\theta$ 之间的信息差异（即 KL 散度）。
 
@@ -226,11 +226,11 @@ $$ L_{Euclid} = \nabla \mathcal{L}^T \delta + \lambda (\delta^T I \delta - \epsi
 $$ \nabla \mathcal{L} + 2\lambda \delta = 0 \implies \delta = -\frac{1}{2\lambda} \nabla \mathcal{L} $$
 这就导出了我们熟悉的 **标准梯度下降 (SGD)**：
 $$ \theta_{t+1} = \theta_t - \eta \nabla \mathcal{L}(\theta_t) $$
-几何上，这是沿着等高线的法线方向（与切平面垂直）移动。
+几何上，这是沿着等高线的法线方向移动。
 
 ### 3.2 统计流形的最速下降 
 
-若我们要在这个弯曲的统计流形上进行最速下降，限制条件应由流形的内蕴距离（KL 散度）给出。即我们希望在改变分布程度固定的前提下，最大化 Loss 的下降：
+若我们要在这个弯曲的统计流形上进行最速下降，限制条件应由流形的内蕴距离给出。即我们希望在改变分布程度固定的前提下，最大化 Loss 的下降：
 
 $$
 \begin{aligned}
@@ -259,12 +259,12 @@ $$ \theta_{t+1} = \theta_t - \eta \mathbf{F}^{-1} \nabla \mathcal{L}(\theta_t) $
 
 从微分几何的角度来看：
 *   损失函数的梯度 $\nabla \mathcal{L}$ 是一个 **余切向量**，也就是一个 1-form（协变），其分量随坐标变换而逆变。
-*   参数更新量 $\delta$ 是一个 **切向量 **（逆变）。
+*   参数更新量 $\delta$ 是一个 **切向量**（逆变）。
 *   在黎曼流形上，切空间与余切空间不是自然同构的。我们需要通过度量张量（及其逆）来建立映射：
     *   $\sharp$ 算子：将余切向量映射为切向量。
     *   在局部坐标下，这对应于左乘度规的逆矩阵 $G^{-1}$（即 $F^{-1}$）。
 
-因此，自然梯度 $\tilde{\nabla} \mathcal{L} = \mathbf{F}^{-1} \nabla \mathcal{L}$ 才是流形上真正的梯度方向（切向量），它指向了黎曼流形上函数下降最快的方向。它试图沿着流形的 **测地线 ** 前进，从而消除了参数化方式带来的畸变。
+因此，自然梯度 $\tilde{\nabla} \mathcal{L} = \mathbf{F}^{-1} \nabla \mathcal{L}$ 才是流形上真正的梯度方向，它指向了黎曼流形上函数下降最快的方向。它试图沿着流形的 **测地线** 前进，从而消除了参数化方式带来的畸变。
 
 ---
 
@@ -273,9 +273,9 @@ $$ \theta_{t+1} = \theta_t - \eta \mathbf{F}^{-1} \nabla \mathcal{L}(\theta_t) $
 
 # Part 3: 自适应优化 —— 寻找低成本的二阶近似
 
-在 Part 2 中，我们推导出了**自然梯度下降 (Natural Gradient Descent, NGD)**：
+在 Part 2 中，我们推导出了**自然梯度下降**：
 $$ \theta_{t+1} = \theta_t - \eta \mathbf{F}^{-1} \nabla \mathcal{L} $$
-以及类似的**牛顿法 (Newton's Method)**：
+以及类似的**牛顿法**：
 $$ \theta_{t+1} = \theta_t - \eta \mathbf{H}^{-1} \nabla \mathcal{L} $$
 
 然而，在深度学习中，这两个方法都有一个致命的缺陷：**计算复杂度**。
@@ -313,7 +313,7 @@ $$ \delta = - \mathbf{H}^{-1} \nabla \mathcal{L} $$
 *   **自然梯度**使用的是 **Fisher Matrix ($\mathbf{F}$)**：它衡量的是 **概率分布流形** 的弯曲程度。
 
 **联系：**
-当损失函数为负对数似然（Negative Log-Likelihood, NLL），即 $\mathcal{L}(\theta) = -\mathbb{E}[\log p(x|\theta)]$ 时，可以证明海森矩阵的期望渐近等于 Fisher 信息矩阵：
+当损失函数为负对数似然，即 $\mathcal{L}(\theta) = -\mathbb{E}[\log p(x|\theta)]$ 时，可以证明海森矩阵的期望渐近等于 Fisher 信息矩阵：
 $$ \mathbb{E}_{x \sim P_{\text{data}}} [\nabla^2 \mathcal{L}] \approx \mathbf{F} $$
 因此，在深度学习常见的分类任务中，牛顿法与自然梯度法在期望意义上是等价的。它们都试图通过“除以曲率”来拉伸或压缩梯度，使得在平坦方向步子大一点，陡峭方向步子小一点。
 
