@@ -1,12 +1,12 @@
 ---
-import Background from '../components/Background.astro';
-import LinkPreview from '../components/LinkPreview.astro';
-import Search from '../components/Search.astro';
-import { ViewTransitions } from 'astro:transitions';
-import Analytics from '@vercel/analytics/astro'
+import Background from "../components/Background.astro";
+import LinkPreview from "../components/LinkPreview.astro";
+import Search from "../components/Search.astro";
+import { ViewTransitions } from "astro:transitions";
+import Analytics from "@vercel/analytics/astro";
 
 interface Props {
-    title: string;
+  title: string;
 }
 
 const { title } = Astro.props;
@@ -14,154 +14,221 @@ const { title } = Astro.props;
 
 <!doctype html>
 <html lang="en" class="h-full bg-void">
-    <head>
-        <meta charset="UTF-8" />
-        <Analytics />
-        <meta name="viewport" content="width=device-width" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <title>{title} | Feixiang Tao</title>
+  <head>
+    <meta charset="UTF-8" />
+    <Analytics />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} | Feixiang Tao</title>
 
-        <ViewTransitions />
+    <ViewTransitions />
 
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-        <script>
-            document.addEventListener('astro:page-load', () => {
-                // @ts-ignore
-                if (window.renderMathInElement) {
-                    // @ts-ignore
-                    window.renderMathInElement(document.body, {
-                        delimiters: [
-                            {left: '$$', right: '$$', display: true},
-                            {left: '$', right: '$', display: false}
-                        ]
-                    });
-                }
-            });
-        </script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    ></script>
+    <script>
+      document.addEventListener("astro:page-load", () => {
+        // @ts-ignore
+        if (window.renderMathInElement) {
+          // @ts-ignore
+          window.renderMathInElement(document.body, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "$", right: "$", display: false },
+            ],
+          });
+        }
+      });
+    </script>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
-        
-        <style is:global>
-            /* 1. 全局滚动条美化 */
-            ::-webkit-scrollbar { width: 6px; }
-            ::-webkit-scrollbar-track { background: #080808; }
-            ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-            ::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+      rel="stylesheet"
+    />
 
-            /* 2. 选中色 */
-            ::selection { background: #3B82F6; color: #FFFFFF; }
+    <style is:global>
+      /* 1. 全局滚动条美化 */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #080808;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #3b82f6;
+      }
 
-            /* 3. 静态噪点优化 */
-            .noise-overlay {
-                position: fixed;
-                top: 0; left: 0; width: 100%; height: 100%;
-                pointer-events: none;
-                z-index: 9998;
-                opacity: 0.05;
-                background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAA5OTkAAABMTExERERmZmYzMzMyMjJwk2xJAAAACHRSTlMAMwAqzMzM/wO30h4AAAB4SURBVDjLxZFJDsAgDAQD9f8/2h4QkRDThpWlRZZL2pG9/1TITC2wYxX46glx657Qz07LxEwsTGT+PQv5i4x7FhISFhIaEh4yE5kXmYvMTOZfM5O5memQ6Z/ZkNmZ2ZkNmQ+ZC5kPmQ+ZC5kPmQ+ZC5kPmQ+ZC5kPmQ+ZCwF49kY0r+H5AAAAAElFTkSuQmCC");
-                background-repeat: repeat;
-            }
+      /* 2. 选中色 */
+      ::selection {
+        background: #3b82f6;
+        color: #ffffff;
+      }
 
-            /* 4. KaTeX 公式显示通用设置 (去除了重复定义) */
-            .katex-display {
-                max-width: 100%;
-                overflow-x: auto;
-                overflow-y: hidden;
-                padding: 1rem 0;
-                /* 隐藏滚动条但保留功能 */
-                scrollbar-width: none; 
-                -ms-overflow-style: none;
-                -webkit-overflow-scrolling: touch;
-            }
-            .katex-display::-webkit-scrollbar {
-                display: none;
-            }
+      /* 3. 静态噪点优化 */
+      .noise-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9998;
+        opacity: 0.05;
+        background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAA5OTkAAABMTExERERmZmYzMzMyMjJwk2xJAAAACHRSTlMAMwAqzMzM/wO30h4AAAB4SURBVDjLxZFJDsAgDAQD9f8/2h4QkRDThpWlRZZL2pG9/1TITC2wYxX46glx657Qz07LxEwsTGT+PQv5i4x7FhISFhIaEh4yE5kXmYvMTOZfM5O5memQ6Z/ZkNmZ2ZkNmQ+ZC5kPmQ+ZC5kPmQ+ZC5kPmQ+ZC5kPmQ+ZCwF49kY0r+H5AAAAAElFTkSuQmCC");
+        background-repeat: repeat;
+      }
 
-            /* 5. 首页大公式特供 (只负责隐藏滚动条，布局由 Tailwind 控制) */
-            #formula-render {
-                scrollbar-width: none; /* Firefox */
-                -ms-overflow-style: none; /* IE/Edge */
-            }
-            #formula-render::-webkit-scrollbar {
-                display: none; /* Chrome/Safari */
-            }
+      /* 4. KaTeX 公式显示通用设置 (去除了重复定义) */
+      .katex-display {
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 1rem 0;
+        /* 隐藏滚动条但保留功能 */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .katex-display::-webkit-scrollbar {
+        display: none;
+      }
 
-            /* 移动端字体微调 */
-            @media (max-width: 640px) {
-                #formula-render {
-                    font-size: 1.75rem !important; 
-                }
-            }
-        </style>
-    </head>
-    
-    <body class="bg-void text-ink h-full overflow-hidden p-0 md:p-4 font-mono relative">
-        
-        <Background />
-        <LinkPreview />
-        <Search />
+      /* 5. 首页大公式特供 (只负责隐藏滚动条，布局由 Tailwind 控制) */
+      #formula-render {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+      }
+      #formula-render::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+      }
 
-        <div class="noise-overlay"></div>
-        
-        <div class="fixed top-6 left-6 z-50 pointer-events-none hidden md:block">
-            <div class="flex items-center gap-2 border border-white/10 bg-void/50 px-2 py-1 backdrop-blur-sm rounded-sm">
-                <span class="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
-                <span class="text-[10px] font-bold tracking-widest text-concrete">SYS_ONLINE</span>
-            </div>
+      /* 移动端字体微调 */
+      @media (max-width: 640px) {
+        #formula-render {
+          font-size: 1.75rem !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body
+    class="bg-void text-ink h-full overflow-hidden p-0 md:p-4 font-mono relative"
+  >
+    <Background />
+    <LinkPreview />
+    <Search />
+
+    <div class="noise-overlay"></div>
+
+    <div class="fixed top-6 left-6 z-50 pointer-events-none hidden md:block">
+      <div
+        class="flex items-center gap-2 border border-white/10 bg-void/50 px-2 py-1 rounded-sm"
+      >
+        <span class="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
+        <span class="text-[10px] font-bold tracking-widest text-concrete"
+          >SYS_ONLINE</span
+        >
+      </div>
+    </div>
+
+    <div
+      class="fixed bottom-6 right-6 z-50 pointer-events-none hidden md:block"
+    >
+      <span
+        class="text-[10px] font-mono text-concrete border-l border-accent pl-2"
+      >
+        ~/manifold/root
+      </span>
+    </div>
+
+    <div
+      class="w-full h-full border border-white/10 relative overflow-y-auto overflow-x-hidden bg-void/60"
+      id="main-viewport"
+    >
+      <nav
+        class="sticky top-0 z-40 flex justify-between items-center p-6 border-b border-white/10 bg-void/90 backdrop-blur-md"
+        transition:persist
+      >
+        <div class="flex items-center gap-6">
+          <a
+            href={import.meta.env.BASE_URL}
+            class="text-2xl font-serif italic font-bold text-white hover:text-accent transition-colors"
+          >
+            TFX
+          </a>
         </div>
-        
-        <div class="fixed bottom-6 right-6 z-50 pointer-events-none hidden md:block">
-             <span class="text-[10px] font-mono text-concrete border-l border-accent pl-2">
-                ~/manifold/root
-             </span>
+
+        <div class="hidden md:block absolute left-1/2 -translate-x-1/2">
+          <button
+            id="search-trigger"
+            class="flex items-center gap-3 px-4 py-1.5 border border-white/10 bg-white/5 hover:border-accent/50 hover:bg-white/10 transition-all group rounded-sm"
+          >
+            <span
+              class="text-xs text-concrete group-hover:text-accent font-mono transition-colors"
+              >> Search_Index</span
+            >
+            <kbd
+              class="text-[9px] border border-white/10 px-1 text-concrete bg-black"
+              >⌘K</kbd
+            >
+          </button>
         </div>
 
-        <div class="w-full h-full border border-white/10 relative overflow-y-auto overflow-x-hidden bg-void/60 backdrop-blur-[2px]" id="main-viewport">
-            
-            <nav class="sticky top-0 z-40 flex justify-between items-center p-6 border-b border-white/10 bg-void/90 backdrop-blur-md" transition:persist>
-                
-                <div class="flex items-center gap-6">
-                    <a href={import.meta.env.BASE_URL} class="text-2xl font-serif italic font-bold text-white hover:text-accent transition-colors">
-                        TFX
-                    </a>
-                </div>
-
-                <div class="hidden md:block absolute left-1/2 -translate-x-1/2">
-                     <button id="search-trigger" class="flex items-center gap-3 px-4 py-1.5 border border-white/10 bg-white/5 hover:border-accent/50 hover:bg-white/10 transition-all group rounded-sm">
-                        <span class="text-xs text-concrete group-hover:text-accent font-mono transition-colors">> Search_Index</span>
-                        <kbd class="text-[9px] border border-white/10 px-1 text-concrete bg-black">⌘K</kbd>
-                     </button>
-                </div>
-
-                <div class="flex gap-8 text-xs font-bold tracking-tight text-concrete">
-                    <a href="/notes" class="hover:text-white transition-colors relative group">
-                        NOTES
-                        <span class="absolute -bottom-2 left-0 w-0 h-[2px] bg-accent transition-all group-hover:w-full"></span>
-                    </a>
-                    <a href="/projects" class="hover:text-white transition-colors relative group">
-                        ARCHIVES
-                        <span class="absolute -bottom-2 left-0 w-0 h-[2px] bg-accent transition-all group-hover:w-full"></span>
-                    </a>
-                    <a href="/about" class="hover:text-white transition-colors relative group">
-                        ABOUT
-                        <span class="absolute -bottom-2 left-0 w-0 h-[2px] bg-accent transition-all group-hover:w-full"></span>
-                    </a>
-                </div>
-            </nav>
-
-            <main class="relative z-10 min-h-screen" transition:animate="fade">
-                <slot />
-            </main>
-
-            <footer class="border-t border-white/10 p-12 text-[10px] text-center text-concrete font-mono uppercase tracking-widest">
-                Feixiang Tao // 2026 // Shenzhen
-            </footer>
-
+        <div class="flex gap-8 text-xs font-bold tracking-tight text-concrete">
+          <a
+            href="/notes"
+            class="hover:text-white transition-colors relative group"
+          >
+            NOTES
+            <span
+              class="absolute -bottom-2 left-0 w-0 h-[2px] bg-accent transition-all group-hover:w-full"
+            ></span>
+          </a>
+          <a
+            href="/projects"
+            class="hover:text-white transition-colors relative group"
+          >
+            ARCHIVES
+            <span
+              class="absolute -bottom-2 left-0 w-0 h-[2px] bg-accent transition-all group-hover:w-full"
+            ></span>
+          </a>
+          <a
+            href="/about"
+            class="hover:text-white transition-colors relative group"
+          >
+            ABOUT
+            <span
+              class="absolute -bottom-2 left-0 w-0 h-[2px] bg-accent transition-all group-hover:w-full"
+            ></span>
+          </a>
         </div>
-    </body>
-   
+      </nav>
+
+      <main class="relative z-10 min-h-screen" transition:animate="fade">
+        <slot />
+      </main>
+
+      <footer
+        class="border-t border-white/10 p-12 text-[10px] text-center text-concrete font-mono uppercase tracking-widest"
+      >
+        Feixiang Tao // 2026 // Shenzhen
+      </footer>
+    </div>
+  </body>
 </html>
