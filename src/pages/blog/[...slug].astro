@@ -94,7 +94,7 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
             ) : <div />}
         </nav>
 
-        <Giscus term={`blog/${post.slug}`} />
+        <Giscus />
 
     </article>
 </BaseLayout>

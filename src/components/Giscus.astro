@@ -1,67 +1,54 @@
----
-interface Props {
-  term: string;
-}
-const { term } = Astro.props;
----
-
 <section class="mt-16 pt-8 border-t border-edge" id="comments">
-  <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-6">
-    Comments
-  </h3>
-  <div class="giscus"></div>
+    <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-6">
+        Comments
+    </h3>
+    <div class="giscus"></div>
 </section>
 
-<script define:vars={{ term }}>
-  function loadGiscus() {
-    const container = document.querySelector(".giscus");
-    if (!container || container.querySelector("iframe")) return;
+<script>
+    function loadGiscus() {
+        const container = document.querySelector('.giscus');
+        if (!container || container.querySelector('iframe') || container.querySelector('script')) return;
 
-    const theme = document.documentElement.classList.contains("dark")
-      ? "noborder_dark"
-      : "noborder_light";
+        const isDark = document.documentElement.classList.contains('dark');
 
-    const script = document.createElement("script");
-    script.src = "https://giscus.app/client.js";
-    script.setAttribute("data-repo", "kevin258258/tensorfieldx");
-    script.setAttribute("data-repo-id", "R_kgDOQyBo-g");
-    script.setAttribute("data-category", "评论");
-    script.setAttribute("data-category-id", "DIC_kwDOQyBo-s4C44Gn");
-    script.setAttribute("data-mapping", "specific");
-    script.setAttribute("data-term", term);
-    script.setAttribute("data-strict", "0");
-    script.setAttribute("data-reactions-enabled", "1");
-    script.setAttribute("data-emit-metadata", "0");
-    script.setAttribute("data-input-position", "top");
-    script.setAttribute("data-theme", theme);
-    script.setAttribute("data-lang", "zh-CN");
-    script.setAttribute("data-loading", "lazy");
-    script.crossOrigin = "anonymous";
-    script.async = true;
-
-    container.appendChild(script);
-  }
-
-  function updateGiscusTheme() {
-    const iframe = document.querySelector<HTMLIFrameElement>(
-      "iframe.giscus-frame",
-    );
-    if (!iframe) return;
-    const theme = document.documentElement.classList.contains("dark")
-      ? "noborder_dark"
-      : "noborder_light";
-    iframe.contentWindow?.postMessage(
-      { giscus: { setConfig: { theme } } },
-      "https://giscus.app",
-    );
-  }
-
-  const observer = new MutationObserver((mutations) => {
-    for (const m of mutations) {
-      if (m.attributeName === "class") updateGiscusTheme();
+        const script = document.createElement('script');
+        script.src = 'https://giscus.app/client.js';
+        script.setAttribute('data-repo', 'kevin258258/tensorfieldx');
+        script.setAttribute('data-repo-id', 'R_kgDOQyBo-g');
+        script.setAttribute('data-category', '评论');
+        script.setAttribute('data-category-id', 'DIC_kwDOQyBo-s4C44Gn');
+        script.setAttribute('data-mapping', 'pathname');
+        script.setAttribute('data-strict', '0');
+        script.setAttribute('data-reactions-enabled', '1');
+        script.setAttribute('data-emit-metadata', '0');
+        script.setAttribute('data-input-position', 'bottom');
+        script.setAttribute('data-theme', isDark ? 'noborder_dark' : 'noborder_light');
+        script.setAttribute('data-lang', 'zh-CN');
+        script.setAttribute('data-loading', 'lazy');
+        script.crossOrigin = 'anonymous';
+        script.async = true;
+        container.appendChild(script);
     }
-  });
-  observer.observe(document.documentElement, { attributes: true });
 
-  document.addEventListener("astro:page-load", loadGiscus);
+    function updateGiscusTheme() {
+        const iframe = document.querySelector('iframe.giscus-frame') as HTMLIFrameElement;
+        if (!iframe) return;
+        const theme = document.documentElement.classList.contains('dark')
+            ? 'noborder_dark'
+            : 'noborder_light';
+        iframe.contentWindow?.postMessage(
+            { giscus: { setConfig: { theme } } },
+            'https://giscus.app'
+        );
+    }
+
+    const observer = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+            if (m.attributeName === 'class') updateGiscusTheme();
+        }
+    });
+    observer.observe(document.documentElement, { attributes: true });
+
+    document.addEventListener('astro:page-load', loadGiscus);
 </script>
