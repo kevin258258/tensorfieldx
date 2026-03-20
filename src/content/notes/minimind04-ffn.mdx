@@ -1,0 +1,443 @@
+---
+title: "MiniMind 04: FFN"
+description: "拆解门控 FFN 在 Transformer block 中的角色、形状变化与工程设计。"
+pubDate: 2026-03-18
+tags: ["LLM", "MiniMind", "FFN"]
+series: "MiniMind Reproduction"
+seriesOrder: 4
+---
+
+# Part 4 FFN
+
+这一部分讲 Transformer 里的 `FFN`，也就是 `FeedForward Network`。它看起来没有 attention 那么显眼，但实际上是每个 block 里非常关键的一半：
+
+```text
+attention 负责“和别人交互”，FFN 负责“把自己想明白”。
+```
+
+如果说 attention 是跨 token 的信息路由器，那么 FFN 更像是每个 token 自己内部的一次深加工。
+
+## 1. 为什么 attention 后面还必须接一个 FFN
+
+只用 attention 会有一个问题：
+
+- token 能彼此看见
+- token 能彼此交换信息
+- 但每个 token 自己内部的特征变换能力还不够强
+
+更具体一点：
+
+attention 擅长的是：
+
+```text
+我该从谁那里拿信息
+```
+
+而 FFN 擅长的是：
+
+```text
+我拿到这些信息之后，怎么在我自己的特征空间里重新组合、放大、抑制和改写
+```
+
+所以在一个完整的 Transformer block 里：
+
+- attention 负责 token 间通信
+- FFN 负责 token 内计算
+
+这两者缺一不可。
+
+---
+
+## 2. 一个很重要的高层理解
+
+## Insight：attention 更像“路由”，FFN 更像“计算”
+
+很多人一开始会把 Transformer 的能力几乎都归功于 attention。
+
+但从系统视角看，attention 只是决定：
+
+- 看谁
+- 看多少
+- 从哪里拿上下文
+
+而 FFN 则承担了大量“真正把特征变复杂”的工作。
+
+所以一个很有用的心智模型是：
+
+```text
+attention 决定信息流向，FFN 决定信息内容被怎样改写。
+```
+
+也可以更口语化一点记：
+
+```text
+attention 在搬运，FFN 在加工。
+```
+
+---
+
+## 3. 你当前代码里的 FFN 不是普通两层 MLP，而是门控 FFN
+
+当前实现是：
+
+```python
+class FeedForward(nn.Module):
+    def __init__(self, args: HollowStoneMindConfig):
+        ...
+        self.up_proj = nn.Linear(args.hidden_size, args.intermediate_size, bias=False)
+        self.down_proj = nn.Linear(args.intermediate_size, args.hidden_size, bias=False)
+        self.gate_proj = nn.Linear(args.hidden_size, args.intermediate_size, bias=False)
+        self.dropout = nn.Dropout(args.dropout)
+        self.act_fn = ACT2FN[args.hidden_act]
+
+    def forward(self, x: torch.Tensor):
+        return self.dropout(self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x)))
+```
+
+这不是最朴素的：
+
+```text
+Linear -> Activation -> Linear
+```
+
+而是带门控的结构，通常可以理解成 `GLU / SwiGLU` 这一类风格。
+
+---
+
+## 4. 函数签名和输入输出形状
+
+签名非常简单：
+
+```python
+def forward(self, x: torch.Tensor)
+```
+
+输入通常是：
+
+```python
+[B, S, hidden_size]
+```
+
+输出也是：
+
+```python
+[B, S, hidden_size]
+```
+
+所以和 attention 一样，FFN 不改变：
+
+- batch size
+- sequence length
+- hidden size
+
+它改变的是：
+
+```text
+每个 token 在 hidden 维度里的内部表示
+```
+
+---
+
+## 5. FFN 里具体发生了什么
+
+假设输入：
+
+```python
+x.shape = [B, S, hidden_size]
+```
+
+### 第一步：两条并行投影
+
+```python
+up_proj(x)
+gate_proj(x)
+```
+
+都会把最后一维从 `hidden_size` 扩到 `intermediate_size`。
+
+所以：
+
+```python
+[B, S, hidden_size]
+-> [B, S, intermediate_size]
+```
+
+分别得到两路中间表示：
+
+- `up_proj(x)`：主分支
+- `gate_proj(x)`：门控分支
+
+### 第二步：对门控分支做激活
+
+```python
+act_fn(self.gate_proj(x))
+```
+
+依然是：
+
+```python
+[B, S, intermediate_size]
+```
+
+如果 `hidden_act = "silu"`，那这里就是 `SiLU`。
+
+### 第三步：门控相乘
+
+```python
+act_fn(gate_proj(x)) * up_proj(x)
+```
+
+结果还是：
+
+```python
+[B, S, intermediate_size]
+```
+
+这一乘非常关键，它的含义不是普通的“融合一下”，而是：
+
+```text
+用一条分支去控制另一条分支哪些特征该通过、该压低、该放大。
+```
+
+### 第四步：投影回 hidden size
+
+```python
+down_proj(...)
+```
+
+于是形状从：
+
+```python
+[B, S, intermediate_size]
+```
+
+变回：
+
+```python
+[B, S, hidden_size]
+```
+
+### 第五步：dropout
+
+形状不变。
+
+所以整个 FFN 的形状流可以概括成：
+
+```text
+[B, S, hidden_size]
+-> [B, S, intermediate_size]
+-> [B, S, intermediate_size]
+-> [B, S, hidden_size]
+```
+
+---
+
+## 6. 为什么要先升维再降维
+
+这也是 FFN 最核心的结构直觉。
+
+如果一直停留在 `hidden_size`，模型在每个 token 内部能做的非线性组合其实是受限的。
+
+而先升到一个更大的 `intermediate_size`，相当于：
+
+```text
+给模型一个更宽的“中间计算草稿纸”
+```
+
+它可以先在更高维空间里组合、筛选、门控特征，再压回原来的 hidden size。
+
+所以这个过程很像：
+
+- 先展开表达空间
+- 再压缩成对下游层最有用的表示
+
+这也是为什么 FFN 往往占模型里相当大的一部分参数量。
+
+## Insight：attention 决定 token 与谁交互，FFN 决定每个 token 在自己内部开出多少“特征电路”
+
+从容量角度看，FFN 其实很像模型在每个 token 上配置的一台局部计算机。
+
+- attention 帮你把上下文拿过来
+- FFN 决定这些上下文在本 token 里怎么被解释、重组、写回
+
+这也是为什么很多分析会说：
+
+```text
+attention 像 communication，FFN 像 computation
+```
+
+---
+
+## 7. 你这里为什么用了门控 FFN
+
+普通两层 MLP 是：
+
+```text
+Linear -> Activation -> Linear
+```
+
+而门控 FFN 多了一条控制分支：
+
+```text
+gate(x) * value(x)
+```
+
+这样做的直观好处是：
+
+- 不是所有中间特征都同等重要
+- 模型可以更细致地控制哪些维度通过
+- 表达会更柔和，也更有选择性
+
+这和很多现代 LLM 里的 `SwiGLU` 风格是一致的。
+
+你现在的实现：
+
+```python
+self.act_fn(self.gate_proj(x)) * self.up_proj(x)
+```
+
+就是这种门控思路。
+
+---
+
+## 8. `intermediate_size` 为什么是 `8 / 3 * hidden_size`
+
+你当前代码里，如果用户没手动指定：
+
+```python
+intermediate_size = int(args.hidden_size * 8 / 3)
+args.intermediate_size = 64 * ((intermediate_size + 63) // 64)
+```
+
+可以拆开理解：
+
+### 8.1 为什么不是简单的 `4 * hidden_size`
+
+在普通 ReLU MLP 里，常见配置确实是：
+
+```text
+intermediate_size ≈ 4 * hidden_size
+```
+
+但门控 FFN 结构因为有两条并行投影分支，参数和计算方式跟普通 MLP 不完全一样，所以很多实现会选一个不同的倍率来平衡参数量和效果。
+
+`8 / 3 * hidden_size` 就是这种折中下常见的一种设定。
+
+### 8.2 为什么还要对齐到 64 的倍数
+
+```python
+64 * ceil(intermediate_size / 64)
+```
+
+这是典型的工程优化：
+
+- 更利于张量核心 / GEMM 对齐
+- 更利于底层 kernel 跑得顺
+- 不影响结构本质，但对实际速度常常更友好
+
+所以这一步不是数学必须，而是工程友好。
+
+---
+
+## 9. FFN 在一个 `MindBlock` 里处于什么位置
+
+在你当前的 block 里：
+
+```python
+hidden_states, present_kv = self.attention(self.input_layernorm(hidden_states), ...)
+hidden_states = residual + hidden_states
+hidden_states = hidden_states + self.mlp(self.post_attention_layernorm(hidden_states))
+```
+
+这意味着：
+
+1. 先做 attention
+2. attention 输出和残差相加
+3. 再做一层 norm
+4. 再过 FFN
+5. 再做一次残差相加
+
+所以 FFN 不是孤立模块，而是 block 的后半段：
+
+```text
+Attention 负责“看外部”
+FFN 负责“改内部”
+```
+
+两者串起来，才是完整的 Transformer block。
+
+---
+
+## 10. 从张量角度把整个 FFN 背下来
+
+建议直接背这条：
+
+```text
+x: [B, S, hidden_size]
+-> up_proj(x): [B, S, intermediate_size]
+-> gate_proj(x): [B, S, intermediate_size]
+-> act(gate_proj(x)) * up_proj(x): [B, S, intermediate_size]
+-> down_proj(...): [B, S, hidden_size]
+-> dropout: [B, S, hidden_size]
+```
+
+这条一旦记住，你以后看 gated FFN 都会很顺。
+
+---
+
+## 11. 一个更高层的系统理解
+
+有一个很值得长期记住的 insight：
+
+## Insight：Transformer 的一层，并不是“attention 主导一切”，而是“attention + FFN”共同完成一次表示重写
+
+更准确地说：
+
+- attention 决定上下文从哪里来
+- FFN 决定拿到上下文后，如何在当前 token 的特征空间里重新组织它
+
+因此，很多真正复杂的 feature circuit，未必只在 attention 里形成；FFN 往往承担了大量“写特征”的工作。
+
+如果把整个 Transformer 看成一台不断改写 token 表示的机器，那么：
+
+- attention 像总线和交换机
+- FFN 像每个核心里的运算单元
+
+这个视角会比“FFN 就是个两层 MLP”更接近真实作用。
+
+---
+
+## 12. 这一部分最值得记住的话
+
+如果只记四句，建议记这四句：
+
+1. attention 负责 token 间通信，FFN 负责 token 内计算。
+2. 你当前用的不是普通 MLP，而是门控 FFN。
+3. FFN 的典型形状流是：`hidden_size -> intermediate_size -> hidden_size`。
+4. 升维不是为了好看，而是为了给每个 token 一个更宽的中间计算空间。
+
+一句适合以后回忆的总结：
+
+```text
+如果说 attention 决定“信息从哪里来”，那 FFN 决定“这些信息在我这里变成什么”。
+```
+
+---
+
+## 数学形式化
+
+**标准 FFN (ReLU)**：$\text{FFN}(\mathbf{x}) = W_2 \cdot \text{ReLU}(W_1 \mathbf{x} + b_1) + b_2$
+
+**门控 FFN (SwiGLU)**：$\text{FFN}(\mathbf{x}) = W_{\text{down}} \cdot \bigl[\text{SiLU}(W_{\text{gate}} \mathbf{x}) \odot (W_{\text{up}} \mathbf{x})\bigr]$
+
+其中 SiLU（又称 Swish）定义为 $\text{SiLU}(x) = x \cdot \sigma(x)$，$\sigma$ 是 sigmoid 函数。
+
+**参数量对比**：标准 FFN 有 $2 \times d \times d_{\text{ff}}$ 参数（忽略偏置），门控 FFN 有 $3 \times d \times d_{\text{ff}}$ 参数（三个投影矩阵）。为保持总参数量一致，门控 FFN 通常将 $d_{\text{ff}}$ 从 $4d$ 降至 $\frac{8}{3}d$，使得 $3 \times d \times \frac{8}{3}d = 8d^2 \approx 2 \times d \times 4d = 8d^2$。
+
+---
+
+## 参考
+
+- Shazeer, N. "GLU Variants Improve Transformer." *arXiv:2002.05202*, 2020. — SwiGLU 及其他门控变体的系统实验
+- Dauphin, Y. et al. "Language Modeling with Gated Convolutional Networks." *ICML*, 2017. — GLU 门控机制的最初提出
+- Touvron, H. et al. "LLaMA: Open and Efficient Foundation Language Models." *arXiv:2302.13971*, 2023. — 在 LLaMA 中采用 SwiGLU 的工程选择

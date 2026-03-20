@@ -1,0 +1,551 @@
+---
+title: "MiniMind 02: RoPE & YaRN"
+description: "从注意力几何出发梳理 RoPE 的位置编码机制与 YaRN 的长上下文扩展。"
+pubDate: 2026-03-18
+tags: ["LLM", "MiniMind", "RoPE"]
+series: "MiniMind Reproduction"
+seriesOrder: 2
+---
+
+# Part 2 RoPE & YaRN
+
+这一部分讲两个问题：
+
+1. Transformer 为什么必须想办法注入位置信息
+2. 为什么 minimind / HollowStoneMind 这里选择的是 `RoPE + YaRN`
+
+我们会从 attention 的本质出发，先讲它“为什么需要位置”，再讲 `RoPE` 如何把相对位置信息写进注意力，最后讲 `YaRN` 为什么能把上下文长度扩展得更平滑。
+
+## 1. Attention 本身其实不认识顺序
+
+先看最原始的 self-attention：
+
+```text
+score(i, j) = q_i · k_j
+```
+
+这里发生的事情只是：
+
+- 第 `i` 个 token 拿自己的 query
+- 去和所有 token 的 key 做匹配
+- 匹配结果决定它该看谁
+
+问题在于：
+
+如果你只给模型 token 内容，不给它位置信息，那 attention 看到的其实只是：
+
+```text
+a bag of token vectors
+```
+
+它知道“有哪些词”，但不知道：
+
+- 谁在前面
+- 谁在后面
+- 谁离我近
+- 谁离我远
+
+所以如果没有位置编码，句子：
+
+```text
+A loves B
+```
+
+和：
+
+```text
+B loves A
+```
+
+在结构上就很容易混掉。
+
+---
+
+## 2. 为什么绝对位置编码不够理想
+
+一种最直接的做法是：
+
+```text
+给每个位置一个固定的 embedding
+```
+
+比如：
+
+- 第 0 位有一个向量
+- 第 1 位有一个向量
+- 第 2 位有一个向量
+
+这就是绝对位置编码的思路。
+
+它能解决“模型完全不知道位置”这个问题，但还有两个不够理想的地方。
+
+### 2.1 它学的是“我是第几位”，不是“你离我多远”
+
+语言里很多关系更像是相对的：
+
+- 主语在动词前面
+- 修饰词离中心词很近
+- 当前 token 往前看 3 个位置常常有信息
+
+模型真正更需要的，往往是：
+
+```text
+m - n
+```
+
+也就是相对距离，而不是：
+
+```text
+m 和 n 各自绝对是多少
+```
+
+### 2.2 它对长度泛化不自然
+
+如果模型主要在 2048 长度内训练，那么它对“位置 19”“位置 233”这些绝对编号会学得比较熟。
+
+但当长度扩展到 8192、16384 时，它面对的是很多训练期不熟悉的位置。
+
+从这个角度看，绝对位置更像是在记一张“位置编号表”，而不是学习一种真正可外推的相对结构。
+
+---
+
+## 3. RoPE 的核心思想
+
+RoPE 的目标非常漂亮，可以压缩成一句话：
+
+```text
+让 attention 的匹配结果依赖于相对位置差，而不是依赖绝对位置本身。
+```
+
+更形式化地说，它希望实现类似这样的性质：
+
+```text
+⟨f(q, m), f(k, n)⟩ = g(q, k, m - n)
+```
+
+意思是：
+
+- query 在位置 `m`
+- key 在位置 `n`
+- 它们经过位置变换后再点积
+- 结果主要取决于 `m - n`
+
+这就是 RoPE 最迷人的地方：
+
+```text
+它不是把位置信息简单“加到向量上”，而是把位置信息写进了点积几何本身。
+```
+
+---
+
+## 4. RoPE 是怎么做到的
+
+核心操作是：
+
+- 把向量按二维一组拆开
+- 对每一组做一个与位置相关的旋转
+
+可以把最后一维想成一对一对的平面坐标：
+
+```text
+(x_0, x_1), (x_2, x_3), (x_4, x_5), ...
+```
+
+每一对都在二维平面里旋转一个角度，角度取决于：
+
+- 当前位置 `pos`
+- 当前维度对应的频率
+
+在你的实现里，这个过程体现在两个函数中：
+
+1. `precompute_freqs_cis(...)`
+2. `apply_rope(...)`
+
+---
+
+## 5. `precompute_freqs_cis(...)` 在算什么
+
+函数签名：
+
+```python
+def precompute_freqs_cis(
+    dim: int,
+    end: int = 32 * 1024,
+    rope_base: float = 1e6,
+    rope_scaling: Optional[dict] = None,
+)
+```
+
+输入：
+
+- `dim`: 每个 attention head 的维度 `head_dim`
+- `end`: 预计算到多长的位置
+- `rope_base`: RoPE 的频率底数
+- `rope_scaling`: 如果启用长上下文缩放，这里会带 YaRN 参数
+
+输出：
+
+- `cos`: `[end, dim]`
+- `sin`: `[end, dim]`
+
+这两张表的含义是：
+
+- 第 `p` 行对应位置 `p`
+- 每一列对应某个维度上的旋转频率
+
+所以你可以把它理解成：
+
+```text
+RoPE 预先为“每个位置、每个维度”准备好了旋转参数
+```
+
+这样 forward 时不需要重复计算三角函数。
+
+---
+
+## 6. 为什么不同维度的旋转频率不一样
+
+RoPE 的一个关键设计是：
+
+```text
+前面的维度旋转更快，后面的维度旋转更慢
+```
+
+直觉上可以理解成：
+
+- 高频维度更擅长表示短程、细粒度位置差
+- 低频维度更擅长表示长程、平滑的位置信息
+
+这其实和信号处理里的多尺度表示很像。
+
+因此，RoPE 不是只给了模型“一个位置编码”，而是给了它一套跨频率的相对位置坐标系。
+
+## Insight：RoPE 真正编码的不是“位置标签”，而是“距离的几何结构”
+
+这也是为什么很多人觉得 RoPE 比简单位置 embedding 更优雅：
+
+- 它不是额外塞进去一个标签
+- 它是直接修改了 query 和 key 的相对比较方式
+
+所以它更像是在说：
+
+```text
+你们以后比较相似度时，不要只比较内容，也要按照位置旋转过后的坐标系来比较。
+```
+
+---
+
+## 7. `apply_rope(...)` 具体做了什么
+
+函数签名：
+
+```python
+def apply_rope(cos, sin, Q, K, position_ids=None, unsqueeze_dim=1)
+```
+
+在你当前模型里，输入通常是：
+
+- `cos`: `[max_pos, D]`
+- `sin`: `[max_pos, D]`
+- `Q`: `[B, H_q, S, D]`
+- `K`: `[B, H_kv, S, D]`
+- `position_ids`: `[1, S]`
+
+### 第一步：按真实位置取出这一段 cos/sin
+
+```python
+cos = cos[position_ids]
+sin = sin[position_ids]
+```
+
+于是：
+
+```python
+[1, S, D]
+```
+
+### 第二步：扩维到能和 `Q/K` 广播
+
+```python
+cos = cos.unsqueeze(1)
+sin = sin.unsqueeze(1)
+```
+
+变成：
+
+```python
+[1, 1, S, D]
+```
+
+### 第三步：做“半维旋转”
+
+内部有个 `rotate_half(x)`，它会把：
+
+```text
+(x_0, x_1), (x_2, x_3), ...
+```
+
+变成：
+
+```text
+(-x_1, x_0), (-x_3, x_2), ...
+```
+
+这实际上就是二维旋转矩阵里的那部分结构。
+
+### 第四步：组合出真正旋转后的向量
+
+```python
+q_embed = Q * cos + rotate_half(Q) * sin
+k_embed = K * cos + rotate_half(K) * sin
+```
+
+最后返回：
+
+- `q_embed`: `[B, H_q, S, D]`
+- `k_embed`: `[B, H_kv, S, D]`
+
+也就是说：
+
+```text
+RoPE 不改 Q/K 的形状，只改它们的数值几何。
+```
+
+---
+
+## 8. 为什么 cache 场景下 `position_ids` 很重要
+
+在增量解码里，当前位置不是从 0 重新开始的。
+
+比如：
+
+- 历史已经有 20 个 token
+- 现在新进来 3 个 token
+
+那它们真正的位置应该是：
+
+```text
+20, 21, 22
+```
+
+而不是：
+
+```text
+0, 1, 2
+```
+
+所以你代码里这句很关键：
+
+```python
+position_ids = torch.arange(past_len, past_len + S)
+```
+
+这件事的本质是：
+
+```text
+RoPE 编码的是“绝对位置上的旋转角度”，而相对位置信息是在 QK 点积里自然显现出来的。
+```
+
+因此绝对位置编号本身必须对。
+
+---
+
+## 9. 长上下文为什么会成为问题
+
+RoPE 很强，但它不是没有边界。
+
+如果模型主要在长度 `L` 上训练，它学到的是：
+
+- 在这个长度范围内
+- 各种频率如何配合
+- 位置差如何映射到可用的 attention 结构
+
+当你把长度直接扩到远超训练长度时，会有一个问题：
+
+```text
+有些维度对应的旋转频率太快了，在长距离上会“转太多圈”。
+```
+
+一旦旋转太多，远距离位置之间的区分会变得混乱，甚至 aliasing。
+
+这就是长上下文扩展时，为什么不能只靠“把 max_position_embeddings 改大”。
+
+---
+
+## 10. YaRN 在解决什么
+
+YaRN 的目标是：
+
+```text
+尽可能保留原本 RoPE 的短程分辨率，同时把长程位置扩展得更平滑。
+```
+
+它的思路不是简单粗暴地把所有频率都按同一个比例压缩，而是：
+
+- 高频部分尽量少动
+- 低频部分做更多缩放
+- 中间部分平滑过渡
+
+原因很自然：
+
+- 高频维度本来就负责细粒度局部结构
+- 如果把它们也强行压得太狠，短程分辨率会变差
+- 低频维度更适合承担长程扩展任务
+
+所以 YaRN 其实是在做一件非常有工程美感的事：
+
+```text
+把不同频率维度的“位置预算”重新分配。
+```
+
+---
+
+## 11. 你当前代码里的 YaRN 参数是什么意思
+
+在配置里：
+
+```python
+self.rope_scaling = {
+    "beta_fast": 32,
+    "beta_slow": 1,
+    "factor": 16,
+    "original_max_position_embeddings": 2048,
+    "attention_factor": 1.0,
+    "type": "yarn",
+}
+```
+
+可以这么理解：
+
+- `original_max_position_embeddings`
+  - 原本训练时主要服务的上下文长度
+- `factor`
+  - 想扩长多少倍
+- `beta_fast`
+  - 高频区域的边界
+- `beta_slow`
+  - 低频区域的边界
+- `attention_factor`
+  - 对 attention 温度进行补偿
+
+在 `precompute_freqs_cis(...)` 里，你的实现会根据这些参数算一个 `ramp`，再把频率做线性插值式调整。
+
+也就是说，你不是一刀切改所有维度，而是在不同频段做不同程度的缩放。
+
+---
+
+## 12. 从更高一层看：RoPE 和 YaRN 分别负责什么
+
+这两个机制虽然常常一起出现，但职责并不一样。
+
+### RoPE 负责：
+
+```text
+把相对位置信息优雅地写进 attention 几何里
+```
+
+### YaRN 负责：
+
+```text
+在不破坏原有短程能力太多的前提下，把这套几何尽量往长上下文平滑延展
+```
+
+所以：
+
+- `RoPE` 是位置编码机制本身
+- `YaRN` 是长上下文扩展策略
+
+这是两个层级的问题，不要混在一起看。
+
+---
+
+## 13. 一个特别值得记住的宏观 insight
+
+## Insight：RoPE 把“位置”从一个额外特征，变成了相似度计算规则的一部分
+
+很多位置编码方案的感觉是：
+
+```text
+给 token 再加一点位置标签
+```
+
+而 RoPE 的感觉更像是：
+
+```text
+直接改写了 query 和 key 之间比较相似度的坐标系
+```
+
+这件事很深刻，因为 attention 的核心就是 QK 点积。
+
+也就是说，RoPE 不是在 attention 外面补东西，而是在 attention 的心脏上动手。
+
+这也是为什么它的表达力和工程效果都这么强。
+
+## Insight：YaRN 的本质是“按频率分配上下文分辨率”
+
+这比“把序列压缩一下”高明得多。
+
+因为长上下文的难点从来都不只是位置变长，而是：
+
+```text
+你想把有限的频率分辨率预算，优先留给哪些距离区间？
+```
+
+YaRN 的答案是：
+
+- 短程别毁掉
+- 长程尽量扩出去
+- 中间平滑接住
+
+这是一个很有“系统设计感”的折中。
+
+---
+
+## 14. 这一部分最值得记住的话
+
+如果只记四句，建议记这四句：
+
+1. attention 本身不认识顺序，所以必须有位置机制。
+2. RoPE 的目标不是标记“我是第几位”，而是让 QK 点积自然依赖相对距离。
+3. `precompute_freqs_cis` 负责生成位置对应的 `cos/sin` 表，`apply_rope` 负责把它作用到 Q/K 上。
+4. YaRN 不是新的位置编码，而是 RoPE 的长上下文扩展策略。
+
+一句适合以后回忆的总结：
+
+```text
+RoPE 决定模型如何感知“距离”，YaRN 决定这种距离感如何被安全地拉长。
+```
+
+---
+
+## 数学形式化
+
+**RoPE 的旋转矩阵表示。** 对 $d$ 维向量，将其视为 $d/2$ 个二维子空间。在位置 $m$ 处，第 $k$ 个子空间的旋转矩阵为：
+
+$$
+R_{\theta_k}(m) = \begin{pmatrix} \cos(m\theta_k) & -\sin(m\theta_k) \\ \sin(m\theta_k) & \cos(m\theta_k) \end{pmatrix}, \quad \theta_k = \text{base}^{-2k/d}
+$$
+
+RoPE 的关键性质是：
+
+$$
+\langle R_\Theta(m)\mathbf{q},\, R_\Theta(n)\mathbf{k} \rangle = \langle R_\Theta(m-n)\mathbf{q},\, \mathbf{k} \rangle
+$$
+
+即内积只依赖相对位置 $m - n$，因为旋转矩阵是正交的。
+
+**YaRN 的频率缩放。** 对扩展因子 $s$，YaRN 对不同频率维度 $k$ 施加不同的缩放：
+
+$$
+\theta'_k = \begin{cases} \theta_k & \text{高频维度（保持不变）} \\ \theta_k / s & \text{低频维度（线性插值）} \\ \text{ramp}(k) \cdot \theta_k + (1 - \text{ramp}(k)) \cdot \theta_k/s & \text{中间维度（平滑过渡）} \end{cases}
+$$
+
+其中 ramp 函数由 $\beta_{\text{fast}}$ 和 $\beta_{\text{slow}}$ 参数控制过渡区域。
+
+---
+
+## 参考
+
+- Su, J. et al. "RoFormer: Enhanced Transformer with Rotary Position Embedding." *Neurocomputing*, 2024. — RoPE 的原始论文
+- Peng, B. et al. "YaRN: Efficient Context Window Extension of Large Language Models." *ICLR*, 2024. — YaRN 长上下文扩展
+- Chen, S. et al. "Extending Context Window of Large Language Models via Positional Interpolation." *arXiv:2306.15595*, 2023. — 位置插值的先驱工作

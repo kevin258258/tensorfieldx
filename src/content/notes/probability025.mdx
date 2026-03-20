@@ -1,0 +1,181 @@
+---
+title: "概率论随笔 2.5：一些细节"
+description: "梳理期望的三种等价写法、推前测度记号与条件期望的投影视角。"
+pubDate: 2026-02-27
+tags: ["Mathematics", "Probability", "Expectation"]
+series: "Probability Theory"
+seriesOrder: 2.5
+---
+
+# 期望的三种等价写法与概率论符号梳理
+
+> 用生动严谨的数学语言，理清期望的定义、符号混淆、投影视角与矩的泛函解释。
+
+---
+
+## 1 期望的三种等价写法（别再被符号绕）
+
+### 1.1 最通用定义（在样本空间 $\Omega$ 上）
+
+$$
+\mathbb{E}[Y] = \int_{\Omega} Y(\omega) \, \mathrm{d}P(\omega)
+$$
+
+这里 $P$ 是“世界的概率规则”，给事件赋概率。$\mathrm{d}P(\omega)$ 只是“对测度 $P$ 积分”的记号；真正算题时要把它展开成求和/对密度积分。
+
+### 1.2 换到值域（推前测度 / 分布）
+
+定义 $X$ 的**分布（推前测度）**
+
+$$
+\mu_X := P \circ X^{-1}
+$$
+
+则
+
+$$
+\mathbb{E}[g(X)] = \int_{\mathbb{R}} g(x) \, \mathrm{d}\mu_X(x)
+$$
+
+这一步是“拉回/换定义域”，中间必须补上 $\mu_X$ 才不跳步。
+
+### 1.3 有 pdf 时的可计算形式
+
+若 $\mathrm{d}\mu_X(x) = f_X(x) \, \mathrm{d}x$（即存在概率密度函数），则
+
+$$
+\mathbb{E}[g(X)] = \int_{\mathbb{R}} g(x) \, f_X(x) \, \mathrm{d}x
+$$
+
+这是工程中最常用的形式。
+
+---
+
+## 2 符号澄清：为什么 $P_X$ 让人不舒服
+
+- $P$ 是 $\Omega$ 上的概率测度；
+- $\mu_X$（或教材常写的 $P_X$）是 $\mathbb{R}$ 上由 $X$ 诱导的**分布测度**。
+
+教材用同一个字母 $P$ 容易让人以为“又造了一个概率”，这种不舒服是合理的。更干净的记法是
+
+$$
+\mu_X = \mathrm{Law}(X)
+$$
+
+明确区分“原空间的概率”与“随机变量诱导的分布”。
+
+---
+
+## 3 投影视角：期望与条件期望在 $L^2$ 里是最小二乘
+
+### 3.1 期望作为投影到常数子空间
+
+$\mathbb{E}[X] \cdot 1$ 是 $X$ 在“常数子空间”上的最小均方误差近似（投影到 $1$）。即
+
+$$
+\mathbb{E}[X] = \arg\min_{c \in \mathbb{R}} \mathbb{E}[(X - c)^2]
+$$
+
+### 3.2 条件期望作为投影到子空间
+
+设 $\mathcal{G}$ 是一个子 $\sigma$-代数，$L^2(\mathcal{G})$ 表示 $\mathcal{G}$-可测的平方可积函数空间。则
+
+$$
+\mathbb{E}[X \mid \mathcal{G}] \quad \text{是 } X \text{ 在子空间 } L^2(\mathcal{G}) \text{ 上的投影。}
+$$
+
+**几何性质**：
+
+- **塔性质**：投影的复合等于直接投影到更小的子空间。
+- **全期望公式**：$\mathbb{E}[\mathbb{E}[X \mid \mathcal{G}]] = \mathbb{E}[X]$（先投影到 $L^2(\mathcal{G})$，再投影到常数）。
+- **全方差分解**：勾股定理 $\|X\|^2 = \|\mathbb{E}[X \mid \mathcal{G}]\|^2 + \|X - \mathbb{E}[X \mid \mathcal{G}]\|^2$。
+
+你用这个方法推了几何分布的均值方差（选 $Y$ = 第一次是否成功，然后用全期望/全方差递推）正是投影思想的典型应用。
+
+---
+
+## 4 “沿 $X$ 的分布”是什么意思
+
+不是“pdf 沿着什么走”，而是：**用 $X$ 的分布当权重去平均**：
+
+$$
+\int g \, \mathrm{d}\mu_X
+$$
+
+有 pdf 时才写成 $\int g(x) f_X(x) \, \mathrm{d}x$。
+
+换句话说，“沿 $X$ 的分布”就是**把 $g$ 对测度 $\mu_X$ 积分**，$\mu_X$ 已经包含了 $X$ 取值的权重信息。
+
+---
+
+## 5 矩、基、泛函：你抓到的正确直觉
+
+$n$ 阶矩
+
+$$
+m_n = \int x^n \, \mathrm{d}\mu_X(x)
+$$
+
+是“分布（测度）对测试函数 $x^n$ 的线性测量”。
+
+- 写成 $\langle x^n, f_X \rangle_{L^2(\mathrm{d}x)}$ 很“工程直观”，因为把分布显式化成 pdf；
+- 写成 $\langle x^n, 1 \rangle_{L^2(\mu_X)}$ 则把分布藏进了内积里，所以不显眼但更统一。
+
+你也意识到：把 pdf 当 $L^2(\mathrm{d}x)$ 向量做内积很顺手，但它依赖“存在 pdf”；而 $\mathrm{d}\mu$ 写法是为了覆盖离散/连续/混合分布。
+
+---
+
+## 6 换元公式的严格版本：为什么三种写法等价
+
+上面三种写法之所以等价，背后的严格保证是**测度论中的换元公式**（也称抽象替换定理）。
+
+**定理（换元公式/Transfer Theorem）.** 设 $X: (\Omega, \mathcal{F}, P) \to (\mathbb{R}, \mathcal{B})$ 是可测函数，$g: \mathbb{R} \to \mathbb{R}$ 是博雷尔函数。则
+
+$$
+\int_\Omega g(X(\omega))\, \mathrm{d}P(\omega) = \int_{\mathbb{R}} g(x)\, \mathrm{d}\mu_X(x)
+$$
+
+两边要么同时存在（有限），要么同时发散。
+
+这个定理的意义在于：它允许我们在"原因空间" $\Omega$ 和"结果空间" $\mathbb{R}$ 之间自由切换积分定义域，同时保持数值一致。从写法 1.1 到 1.2 的过渡就是这个定理的直接应用。
+
+**注意**：从写法 1.2 到 1.3 的过渡则依赖于 **Radon-Nikodym 定理**——当推前测度 $\mu_X$ 关于 Lebesgue 测度绝对连续时，其密度（Radon-Nikodym 导数）就是 pdf $f_X$。
+
+这两步构成了概率论中最常用的"降维链"：
+
+$$
+\underbrace{\int_\Omega g(X) \, \mathrm{d}P}_{\text{抽象但普适}} \xrightarrow{\text{换元}} \underbrace{\int_{\mathbb{R}} g \, \mathrm{d}\mu_X}_{\text{仍抽象但已降维}} \xrightarrow{\text{R-N}} \underbrace{\int_{\mathbb{R}} g \cdot f_X \, \mathrm{d}x}_{\text{可算的}}
+$$
+
+---
+
+## 7 速查表（符号对照 + 三个万能公式 + 两条投影法则）
+
+### 符号对照
+
+| 记号 | 含义 | 备注 |
+| --- | --- | --- |
+| $P$ | $\Omega$ 上的概率测度 | “世界的规则” |
+| $\mu_X = P \circ X^{-1}$ | $X$ 的分布（推前测度） | 也记作 $\mathrm{Law}(X)$ |
+| $f_X(x)$ | $X$ 的概率密度函数（若存在） | $\mathrm{d}\mu_X(x) = f_X(x)\mathrm{d}x$ |
+| $\mathbb{E}[Y]$ | $Y$ 的期望 | 定义在 $\Omega$ 上 |
+| $\mathbb{E}[g(X)]$ | $g(X)$ 的期望 | 可转到 $\mathbb{R}$ 上算 |
+
+### 三个万能公式
+
+1. **样本空间积分**：$\mathbb{E}[Y] = \int_\Omega Y(\omega) \mathrm{d}P(\omega)$
+2. **分布积分**：$\mathbb{E}[g(X)] = \int_{\mathbb{R}} g(x) \mathrm{d}\mu_X(x)$
+3. **密度积分**（若存在 pdf）：$\mathbb{E}[g(X)] = \int_{\mathbb{R}} g(x) f_X(x) \mathrm{d}x$
+
+### 两条投影法则
+
+1. **期望投影**：$\mathbb{E}[X]$ 是 $X$ 在常数子空间上的 $L^2$ 投影。
+2. **条件期望投影**：$\mathbb{E}[X \mid \mathcal{G}]$ 是 $X$ 在 $L^2(\mathcal{G})$ 上的 $L^2$ 投影。
+
+---
+
+## 8 后记
+
+这份笔记旨在帮你把“符号的森林”变成“地图”。当你再次看到 $\mathrm{d}P(\omega)$ 或 $P_X$ 时，可以快速定位到对应的积分形式与几何意义。继续用这种“既严谨又直观”的方式推进，概率论会越来越亲切。
+
+> 笔记整理于 2026-02-27，基于你对期望、分布、投影的讨论。

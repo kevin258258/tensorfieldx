@@ -1,0 +1,589 @@
+---
+title: "概率论随笔 2：期望、条件与独立性"
+description: "从信息与投影视角梳理期望、条件期望和独立性的几何结构。"
+pubDate: 2026-02-26
+tags: ["Mathematics", "Probability", "Expectation"]
+series: "Probability Theory"
+seriesOrder: 2
+---
+
+# 第一部分：映射与空间
+
+## 1. 随机变量的本质
+
+### 1.1 定义域的统一
+
+在上一篇中，我们定义了随机变量 $X: \Omega \to \mathbb{R}$。
+当我们同时讨论两个随机变量 $X, Y$ 时，必须保证它们定义在**同一个**底层概率空间 $(\Omega, \mathcal{F}, P)$ 上。
+
+为什么？因为概率论中我们最终要讨论的是：
+
+$$
+P(X \in A,\ Y \in B) = P\bigl(\{\omega : X(\omega) \in A\} \cap \{\omega : Y(\omega) \in B\}\bigr)
+$$
+
+如果 $X$ 和 $Y$ 定义在不同的 $\Omega$ 上，交集就没有意义。
+
+这不是一个无关紧要的技术细节。在应用中，当我们从不同实验收集数据，试图建立联合模型时，第一步正是确认或构造一个公共的概率空间。
+
+### 1.2 可测性的直觉回顾
+
+回顾：$X$ 是 $\mathcal{F}$-可测的，等价于对所有 $B \in \mathcal{B}(\mathbb{R})$，有 $X^{-1}(B) \in \mathcal{F}$。
+
+直觉上，$\mathcal{F}$ 可以理解为"上帝可以观测的事件名册"。$X$ 的可测性要求：$X$ 生成的任何事件，都必须在这个名册中。
+
+实际判定中，我们只需要验证生成元：只要 $\{X \le c\} \in \mathcal{F}$ 对所有 $c \in \mathbb{R}$ 成立即可。
+
+### 1.3 随机变量的运算封闭性
+
+如果 $X$ 和 $Y$ 都是可测函数，那么：
+
+- $X + Y$, $X - Y$, $XY$ 都是可测函数
+- 对可数序列 $(X_n)$，$\sup_n X_n$, $\inf_n X_n$, $\limsup_n X_n$, $\liminf_n X_n$ 都是可测函数
+- 如果 $f: \mathbb{R} \to \mathbb{R}$ 是博雷尔函数（特别地，任何连续函数），则 $f(X)$ 是可测函数
+
+这些结果保证了：在概率论的框架内，我们可以自由地对随机变量做代数运算和取极限。
+
+---
+
+## 2. 期望的泛函定义
+
+### 2.1 从直觉到严格：Lebesgue 积分
+
+期望的严格定义是 Lebesgue 积分：
+
+$$
+\mathbb{E}[X] = \int_\Omega X(\omega)\, \mathrm{d}P(\omega)
+$$
+
+构造过程遵循标准的"三步走"：
+
+**第一步：简单函数。** 若 $X = \sum_{i=1}^n a_i \mathbf{1}_{A_i}$（其中 $A_i \in \mathcal{F}$），则
+
+$$
+\mathbb{E}[X] = \sum_{i=1}^n a_i P(A_i)
+$$
+
+**第二步：非负可测函数。** 对一般非负可测 $X \ge 0$，取逼近它的简单函数递增序列 $0 \le s_1 \le s_2 \le \cdots \uparrow X$，然后定义
+
+$$
+\mathbb{E}[X] = \sup_n \mathbb{E}[s_n] = \lim_n \mathbb{E}[s_n]
+$$
+
+此极限的存在性由单调收敛定理保证。
+
+**第三步：一般可测函数。** 将 $X$ 分解为 $X = X^+ - X^-$（正部减负部），定义
+
+$$
+\mathbb{E}[X] = \mathbb{E}[X^+] - \mathbb{E}[X^-]
+$$
+
+当且仅当 $\mathbb{E}[|X|] < \infty$ 时（即 $X$ 可积），此定义是有限的且良定义的。
+
+### 2.2 $L^2$ 希尔伯特空间
+
+当我们进一步要求 $\mathbb{E}[X^2] < \infty$ 时，随机变量 $X$ 属于 $L^2(\Omega, \mathcal{F}, P)$ 空间。这个空间有一个自然的内积结构：
+
+$$
+\langle X, Y \rangle := \mathbb{E}[XY]
+$$
+
+对应的范数为
+
+$$
+\|X\| := \sqrt{\mathbb{E}[X^2]}
+$$
+
+在 $L^2$ 中，"距离"的含义是**均方误差**：
+
+$$
+\|X - Y\|^2 = \mathbb{E}[(X-Y)^2]
+$$
+
+$L^2$ 是一个完备的内积空间（Hilbert 空间），这意味着柯西序列都收敛。这个完备性在后面讨论条件期望时至关重要——它保证了"投影"的存在性。
+
+### 2.3 期望作为线性泛函
+
+期望 $\mathbb{E}: L^1 \to \mathbb{R}$ 是一个正线性泛函：
+
+$$
+\mathbb{E}[\alpha X + \beta Y] = \alpha\mathbb{E}[X] + \beta\mathbb{E}[Y]
+$$
+
+这不是直觉判断，而是 Lebesgue 积分的基本性质。线性性来源于积分对简单函数的线性性，然后通过逼近传递到一般情形。
+
+在 $L^2$ 语言中，$\mathbb{E}[X] = \langle X, \mathbf{1} \rangle$，其中 $\mathbf{1}$ 是常值函数 $\mathbf{1}(\omega) = 1$。也就是说：
+
+> **期望就是随机变量在常数方向上的分量。**
+
+---
+
+# 第二部分：信息论视角——$\sigma$-代数与观测
+
+## 3. 变量即信息
+
+### 3.1 由随机变量生成的 $\sigma$-代数
+
+**定义 3.1.** 随机变量 $X$ 生成的 $\sigma$-代数定义为
+
+$$
+\sigma(X) := \bigl\{ X^{-1}(B) : B \in \mathcal{B}(\mathbb{R}) \bigr\}
+$$
+
+直觉上，$\sigma(X)$ 代表了**通过观测 $X$ 所能获得的全部信息**。
+
+**例子：** 设 $\Omega = \{1, 2, 3, 4, 5, 6\}$（掷骰子），$X(\omega) = \omega \mod 2$（只观测奇偶性）。则
+
+$$
+\sigma(X) = \bigl\{\emptyset,\ \{1,3,5\},\ \{2,4,6\},\ \Omega\bigr\}
+$$
+
+观测 $X$ 后，你知道结果是奇还是偶，但无法区分具体是哪个面。这就是 $\sigma(X)$ 所编码的信息粒度。
+
+### 3.2 信息的包含与损失
+
+复合操作通常会**压缩**信息。考虑两个随机变量 $X$ 和 $Y$，其和 $Z = X + Y$ 满足
+
+$$
+\sigma(X + Y) \subseteq \sigma(X, Y)
+$$
+
+知道 $X + Y = 7$ 不意味着你知道 $X = 3, Y = 4$ 还是 $X = 2, Y = 5$。加法运算将二维信息压缩到了一维。
+
+**定理 3.1 (Doob-Dynkin 引理).** 若 $Y$ 是 $\sigma(X)$-可测的，则存在博雷尔函数 $g: \mathbb{R} \to \mathbb{R}$ 使得 $Y = g(X)$。
+
+这个引理揭示了可测性的本质含义：
+
+> $Y$ 关于 $\sigma(X)$ 可测 $\iff$ $Y$ 的值可以完全由 $X$ 的值确定。
+
+换言之，$Y$ 没有超出 $X$ 观测范围的"额外信息"。
+
+### 3.3 $\sigma$-代数的格结构
+
+$\mathcal{F}$ 的所有子 $\sigma$-代数构成一个偏序集（按集合包含排序），它具有格结构：
+
+- **最小元素**：平凡 $\sigma$-代数 $\{\emptyset, \Omega\}$（零信息）
+- **最大元素**：$\mathcal{F}$ 本身（完全信息）
+- **交**（meet）：$\mathcal{G}_1 \cap \mathcal{G}_2$（共同信息）
+- **并**（join）：$\sigma(\mathcal{G}_1 \cup \mathcal{G}_2)$（合并信息）
+
+这种结构使得我们可以精确地讨论"谁知道的更多"、"两个观测的公共知识是什么"等问题。
+
+## 4. 联合分布与边缘分布
+
+### 4.1 乘积空间
+
+当 $X$ 和 $Y$ 定义在同一个概率空间上时，它们的**联合分布**是 $\mathbb{R}^2$ 上的概率测度：
+
+$$
+\mu_{(X,Y)}(A \times B) = P(X \in A,\ Y \in B)
+$$
+
+**边缘分布**通过积分恢复：
+
+$$
+\mu_X(A) = \mu_{(X,Y)}(A \times \mathbb{R}), \qquad \mu_Y(B) = \mu_{(X,Y)}(\mathbb{R} \times B)
+$$
+
+关键的不对称性在于：
+
+> 联合分布唯一确定边缘分布，但边缘分布**不能**唯一确定联合分布。
+
+### 4.2 Copula：剥离边缘、暴露依赖
+
+**定理 4.1 (Sklar 定理).** 对任何联合分布函数 $F_{X,Y}(x,y)$ 和边缘分布函数 $F_X(x)$, $F_Y(y)$，存在一个 Copula $C: [0,1]^2 \to [0,1]$ 使得
+
+$$
+F_{X,Y}(x,y) = C\bigl(F_X(x),\, F_Y(y)\bigr)
+$$
+
+当边缘分布连续时，$C$ 是唯一的。
+
+Copula 的哲学意义在于它实现了一种**解耦**：
+
+- $F_X$, $F_Y$ 各自描述边缘行为（"肉体"）
+- $C$ 单独刻画依赖结构（"灵魂"）
+
+这在金融风险建模中至关重要：不同资产可能有各自的边缘分布（对数正态、$t$-分布等），但它们之间的相关性结构由 Copula 独立建模。
+
+---
+
+# 第三部分：条件期望——正交投影
+
+## 5. 条件期望的公理化定义
+
+### 5.1 定义：$L^2$ 投影
+
+**定义 5.1.** 设 $X \in L^2(\Omega, \mathcal{F}, P)$，$\mathcal{G} \subseteq \mathcal{F}$ 是子 $\sigma$-代数。$X$ 关于 $\mathcal{G}$ 的条件期望 $\mathbb{E}[X \mid \mathcal{G}]$ 是（几乎处处唯一的）满足以下两个条件的随机变量：
+
+1. **可测性**：$\mathbb{E}[X \mid \mathcal{G}]$ 是 $\mathcal{G}$-可测的
+2. **正交性**：对所有 $\mathcal{G}$-可测的有界随机变量 $Z$，有
+
+$$
+\mathbb{E}\bigl[(X - \mathbb{E}[X \mid \mathcal{G}]) \cdot Z\bigr] = 0
+$$
+
+存在性由 $L^2$ 空间的完备性和 Hilbert 投影定理保证。唯一性是几乎处处意义下的。
+
+### 5.2 几何解读
+
+$L^2(\mathcal{G})$ 是 $L^2(\mathcal{F})$ 的一个**闭子空间**，由所有 $\mathcal{G}$-可测的平方可积随机变量构成。
+$\mathbb{E}[X \mid \mathcal{G}]$ 就是 $X$ 在这个子空间上的**正交投影**。
+
+这意味着：
+
+$$
+\mathbb{E}[X \mid \mathcal{G}] = \arg\min_{Y \in L^2(\mathcal{G})} \mathbb{E}[(X - Y)^2]
+$$
+
+> **条件期望就是在有限信息下对 $X$ 的最佳均方预测。**
+
+误差 $X - \mathbb{E}[X \mid \mathcal{G}]$ 与所有 $\mathcal{G}$-可测函数正交，这正是"已经提取了所有可用信息"的精确数学表述。
+
+### 5.3 退化情形与极端情形
+
+**情形 1：完全无知。** 当 $\mathcal{G} = \{\emptyset, \Omega\}$ 时，所有 $\mathcal{G}$-可测函数都是常数。此时
+
+$$
+\mathbb{E}[X \mid \mathcal{G}] = \mathbb{E}[X]
+$$
+
+在"一无所知"时，最佳预测就是无条件期望。
+
+**情形 2：完全知情。** 当 $\mathcal{G} = \mathcal{F}$ 时，
+
+$$
+\mathbb{E}[X \mid \mathcal{F}] = X
+$$
+
+如果你已经拥有所有信息，最佳预测就是 $X$ 本身。
+
+**情形 3：条件于随机变量。** 当 $\mathcal{G} = \sigma(Y)$ 时，
+
+$$
+\mathbb{E}[X \mid Y] := \mathbb{E}[X \mid \sigma(Y)]
+$$
+
+由 Doob-Dynkin 引理，$\mathbb{E}[X \mid Y] = g(Y)$ 对某个博雷尔函数 $g$。函数 $g$ 就是"最佳回归函数"：
+
+$$
+g(y) = \mathbb{E}[X \mid Y = y]
+$$
+
+## 6. 条件期望的核心性质
+
+条件期望作为投影算子，继承了一系列优美的代数和分析性质。
+
+### 6.1 塔性（Tower Property）
+
+**定理 6.1.** 若 $\mathcal{H} \subseteq \mathcal{G} \subseteq \mathcal{F}$，则
+
+$$
+\mathbb{E}\bigl[\mathbb{E}[X \mid \mathcal{G}] \mid \mathcal{H}\bigr] = \mathbb{E}[X \mid \mathcal{H}]
+$$
+
+**几何证明。** 设 $P_\mathcal{G}$, $P_\mathcal{H}$ 分别为对应子空间的投影算子。由于 $L^2(\mathcal{H}) \subseteq L^2(\mathcal{G})$，先投影到大空间再投影到小空间，等价于直接投影到小空间：
+
+$$
+P_\mathcal{H} \circ P_\mathcal{G} = P_\mathcal{H}
+$$
+
+> **影子的影子，就是直接投向更低分辨率空间的影子。**
+
+**推论（全期望公式）。** 取 $\mathcal{H} = \{\emptyset, \Omega\}$，得
+
+$$
+\mathbb{E}[\mathbb{E}[X \mid \mathcal{G}]] = \mathbb{E}[X]
+$$
+
+### 6.2 提取已知信息
+
+**定理 6.2.** 若 $Y$ 是 $\mathcal{G}$-可测的且有界，则
+
+$$
+\mathbb{E}[XY \mid \mathcal{G}] = Y \cdot \mathbb{E}[X \mid \mathcal{G}]
+$$
+
+直觉上：如果 $Y$ 在 $\mathcal{G}$ 的信息下已经完全确定了，那么在条件期望中可以把 $Y$ "提到外面"当作已知常数处理。
+
+### 6.3 独立性下的退化
+
+**定理 6.3.** 若 $X$ 独立于 $\mathcal{G}$，则
+
+$$
+\mathbb{E}[X \mid \mathcal{G}] = \mathbb{E}[X]
+$$
+
+独立意味着 $\mathcal{G}$ 中不包含任何关于 $X$ 的有用信息，所以条件期望退化为无条件期望。
+
+## 7. 条件概率的本质
+
+### 7.1 测度变换视角
+
+给定事件 $B$（$P(B) > 0$），条件概率定义为
+
+$$
+P(A \mid B) = \frac{P(A \cap B)}{P(B)}
+$$
+
+从测度论的角度看，$P(\cdot \mid B)$ 本身是一个新的概率测度。它可以理解为：
+
+1. **坍缩**：将全空间 $\Omega$ 限制到 $B$
+2. **重归一化**：除以 $P(B)$ 使总概率重新为 1
+
+### 7.2 Radon-Nikodym 视角
+
+更一般地，如果我们有两个测度 $Q \ll P$（$Q$ 关于 $P$ 绝对连续），则 Radon-Nikodym 定理保证存在非负可测函数 $\frac{\mathrm{d}Q}{\mathrm{d}P}$（Radon-Nikodym 导数），使得
+
+$$
+Q(A) = \int_A \frac{\mathrm{d}Q}{\mathrm{d}P}(\omega)\, \mathrm{d}P(\omega)
+$$
+
+条件概率就是这种框架的特例。从这个角度看，条件期望可以理解为一种"测度变换的汇率"——它告诉你在不同的信息状态下，概率的权重如何重新分配。
+
+---
+
+# 第四部分：波动与能量——方差的几何学
+
+## 8. 方差的几何重新定义
+
+### 8.1 方差 = 到常数空间的距离平方
+
+回忆 $\mathbb{E}[X]$ 是 $X$ 在常数子空间上的投影。方差就是投影误差的"能量"：
+
+$$
+\operatorname{Var}(X) = \mathbb{E}[(X - \mathbb{E}[X])^2] = \|X - \mathbb{E}[X] \cdot \mathbf{1}\|^2
+$$
+
+从 $L^2$ 的角度看，方差衡量的是 $X$ 离常数子空间有多远——也就是 $X$ 中有多少"不确定性"或"波动"无法被一个常数预测捕获。
+
+### 8.2 勾股定理
+
+$$
+\mathbb{E}[X^2] = (\mathbb{E}[X])^2 + \operatorname{Var}(X)
+$$
+
+这正是 $L^2$ 空间中的勾股定理：
+
+$$
+\|X\|^2 = \|P_{\text{const}} X\|^2 + \|X - P_{\text{const}} X\|^2
+$$
+
+向量的总能量 = 投影分量的能量 + 残差分量的能量。
+
+## 9. 全方差公式（Eve's Law）
+
+### 9.1 陈述
+
+**定理 9.1 (全方差公式/Eve's Law).**
+
+$$
+\operatorname{Var}(X) = \mathbb{E}[\operatorname{Var}(X \mid Y)] + \operatorname{Var}(\mathbb{E}[X \mid Y])
+$$
+
+### 9.2 几何证明
+
+在 $L^2$ 中，我们有三个嵌套的子空间：
+
+$$
+\{\text{常数}\} \subseteq L^2(\sigma(Y)) \subseteq L^2(\mathcal{F})
+$$
+
+对应三级投影：$X \to \mathbb{E}[X \mid Y] \to \mathbb{E}[X]$。
+
+将 $X - \mathbb{E}[X]$ 分解为两个正交分量：
+
+$$
+X - \mathbb{E}[X] = \underbrace{(X - \mathbb{E}[X \mid Y])}_{\text{投影残差}} + \underbrace{(\mathbb{E}[X \mid Y] - \mathbb{E}[X])}_{\text{投影间隙}}
+$$
+
+由于这两个分量正交（第一个垂直于 $L^2(\sigma(Y))$，第二个在 $L^2(\sigma(Y))$ 内），勾股定理给出
+
+$$
+\|X - \mathbb{E}[X]\|^2 = \|X - \mathbb{E}[X \mid Y]\|^2 + \|\mathbb{E}[X \mid Y] - \mathbb{E}[X]\|^2
+$$
+
+翻译回概率语言：
+
+- 左边：$\operatorname{Var}(X)$
+- 第一项：$\mathbb{E}[\operatorname{Var}(X \mid Y)]$（"平均条件方差"——给定 $Y$ 后仍然无法解释的波动）
+- 第二项：$\operatorname{Var}(\mathbb{E}[X \mid Y])$（"条件均值的方差"——$Y$ 能解释的那部分波动）
+
+### 9.3 直觉
+
+$$
+\text{总不确定性} = \text{知道 } Y \text{ 后仍然不确定的部分} + \text{} Y \text{ 能解释的部分}
+$$
+
+这就是 ANOVA（方差分析）的数学本质：将总方差分解为"组内方差"和"组间方差"。
+
+---
+
+# 第五部分：独立性
+
+## 10. 独立性的几何化
+
+### 10.1 定义
+
+**定义 10.1.** 随机变量 $X$ 和 $Y$ 独立，当且仅当对所有博雷尔集 $A, B$：
+
+$$
+P(X \in A,\ Y \in B) = P(X \in A) \cdot P(Y \in B)
+$$
+
+等价地：联合分布等于边缘分布的乘积，$\mu_{(X,Y)} = \mu_X \otimes \mu_Y$。
+
+### 10.2 独立 $\Rightarrow$ 不相关
+
+若 $X$ 和 $Y$ 独立，则
+
+$$
+\mathbb{E}[XY] = \mathbb{E}[X] \cdot \mathbb{E}[Y]
+$$
+
+即 $\operatorname{Cov}(X, Y) = 0$。用 $L^2$ 语言说：**独立的中心化随机变量正交。**
+
+$$
+\langle X - \mathbb{E}[X],\ Y - \mathbb{E}[Y] \rangle = 0
+$$
+
+但反过来不成立：不相关（正交）不蕴涵独立。正交只是 $L^2$ 中的二阶条件，而独立是所有阶的条件。
+
+### 10.3 方差的可加性
+
+**定理 10.1.** 若 $X_1, \ldots, X_n$ 两两独立，则
+
+$$
+\operatorname{Var}\left(\sum_{i=1}^n X_i\right) = \sum_{i=1}^n \operatorname{Var}(X_i)
+$$
+
+这正是正交向量的勾股定理：
+
+$$
+\left\|\sum_{i=1}^n (X_i - \mathbb{E}[X_i])\right\|^2 = \sum_{i=1}^n \|X_i - \mathbb{E}[X_i]\|^2
+$$
+
+### 10.4 独立性与条件期望
+
+由定理 6.3，$X \perp\!\!\!\perp Y$ 蕴涵 $\mathbb{E}[X \mid Y] = \mathbb{E}[X]$。
+
+直觉：独立意味着 $Y$ 提供的信息对预测 $X$ 完全无用。从投影的角度看，$X$ 到 $L^2(\sigma(Y))$ 的投影坍缩为到常数子空间的投影。
+
+---
+
+# 第六部分：递归结构的投影处理
+
+## 11. 全期望与全方差公式的威力
+
+### 11.1 方法论
+
+面对包含"第一步"或"重启"结构的随机模型，全期望和全方差公式提供了一个统一的递归框架：
+
+1. **选取条件变量** $Y$：通常选"第一步发生的事"
+2. **写条件表达式**：$\mathbb{E}[X \mid Y = y]$
+3. **利用全期望** $\mathbb{E}[X] = \mathbb{E}[\mathbb{E}[X \mid Y]]$ 得到关于 $\mathbb{E}[X]$ 的方程
+4. **解方程**
+
+### 11.2 案例：几何分布
+
+设 $N \sim \text{Geom}(p)$（首次成功所需的试验次数），令 $Y = \mathbf{1}_{\text{第一次成功}}$。
+
+**求 $\mathbb{E}[N]$：**
+
+$$
+\mathbb{E}[N \mid Y = 1] = 1, \qquad \mathbb{E}[N \mid Y = 0] = 1 + \mathbb{E}[N]
+$$
+
+第二个等式用到了几何分布的无记忆性：第一次失败后，等待时间"重启"。
+
+全期望公式：
+
+$$
+\mathbb{E}[N] = p \cdot 1 + (1-p)(1 + \mathbb{E}[N])
+$$
+
+$$
+\mathbb{E}[N] = p + (1-p) + (1-p)\mathbb{E}[N] = 1 + (1-p)\mathbb{E}[N]
+$$
+
+$$
+p\,\mathbb{E}[N] = 1 \implies \mathbb{E}[N] = \frac{1}{p}
+$$
+
+**求 $\operatorname{Var}(N)$：** 类似地，利用全方差公式
+
+$$
+\operatorname{Var}(N) = \mathbb{E}[\operatorname{Var}(N \mid Y)] + \operatorname{Var}(\mathbb{E}[N \mid Y])
+$$
+
+条件方差：
+
+$$
+\operatorname{Var}(N \mid Y = 1) = 0, \qquad \operatorname{Var}(N \mid Y = 0) = \operatorname{Var}(N)
+$$
+
+$$
+\mathbb{E}[\operatorname{Var}(N \mid Y)] = (1-p)\operatorname{Var}(N)
+$$
+
+条件均值的方差：
+
+$$
+\mathbb{E}[N \mid Y] = \begin{cases} 1, & Y = 1 \\ 1 + 1/p, & Y = 0 \end{cases}
+$$
+
+$$
+\operatorname{Var}(\mathbb{E}[N \mid Y]) = p(1-p)\left(\frac{1}{p}\right)^2 = \frac{1-p}{p}
+$$
+
+代入：
+
+$$
+\operatorname{Var}(N) = (1-p)\operatorname{Var}(N) + \frac{1-p}{p}
+$$
+
+$$
+p\,\operatorname{Var}(N) = \frac{1-p}{p} \implies \operatorname{Var}(N) = \frac{1-p}{p^2}
+$$
+
+整个推导没有用到概率生成函数或求和技巧——只使用了投影分解和递归结构。
+
+### 11.3 为什么这个方法如此强大
+
+全期望/全方差公式之所以能够"秒杀"递归模型，根源在于：
+
+> 投影算子具有**幂等性**：投影的投影等于投影本身。
+
+当随机过程具有自相似结构（如几何分布的无记忆性、随机游走的马尔可夫性），塔性恰好把这种自相似性变成了代数递推关系。
+
+这不是一个技巧，而是 $L^2$ 投影框架的结构性后果。
+
+---
+
+# 第七部分：展望
+
+到此为止，我们建立了以下图景：
+
+| 概念 | 几何对应 |
+|------|----------|
+| 随机变量 | $L^2$ 空间中的向量 |
+| 期望 $\mathbb{E}[X]$ | 投影到常数子空间 |
+| 条件期望 $\mathbb{E}[X \mid \mathcal{G}]$ | 投影到 $L^2(\mathcal{G})$ 子空间 |
+| 方差 $\operatorname{Var}(X)$ | 到常数子空间的距离平方 |
+| 独立性 | 中心化后正交 |
+| 全方差公式 | 勾股定理 |
+| 塔性 | 投影的复合 |
+
+这套框架的真正力量，在后续篇章中会进一步展现：
+
+- **鞅论**：鞅就是"条件期望等于当前值"的过程，即 $\mathbb{E}[X_{n+1} \mid \mathcal{F}_n] = X_n$。整个鞅理论本质上就是在研究投影序列的收敛行为。
+- **大数定律与中心极限定理**：它们分别对应 $L^2$ 投影的几乎处处收敛和分布收敛。
+- **统计推断**：最小方差无偏估计就是在约束子空间上的投影问题。
+
+---
+
+## 参考
+
+- Williams, D. *Probability with Martingales*. Cambridge, 1991. — 投影视角的经典教材
+- Durrett, R. *Probability: Theory and Examples*. 5th ed., Cambridge, 2019. — 标准测度论概率论教材
+- Billingsley, P. *Probability and Measure*. 3rd ed., Wiley, 1995.
