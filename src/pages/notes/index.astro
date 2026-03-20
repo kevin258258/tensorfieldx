@@ -3,19 +3,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import NotesExplorer from '../../components/NotesExplorer';
 
-// 1. 获取所有笔记数据
 const allNotes = await getCollection('notes');
 
-// 2. 序列化数据传递给 React
-// Astro 传递 Props 时会自动序列化，但为了类型安全和 Date 对象的处理，
-// 我们显式地转换一下，特别是 Date 对象转为 ISO 字符串
 const notesForReact = allNotes.map(note => ({
     slug: note.slug,
     data: {
         title: note.data.title,
         description: note.data.description,
-        // 将 Date 对象转为字符串，避免 React hydration mismatch
-        pubDate: note.data.pubDate.toISOString(), 
+        pubDate: note.data.pubDate.toISOString(),
         tags: note.data.tags,
         series: note.data.series,
         seriesOrder: note.data.seriesOrder
@@ -24,27 +19,17 @@ const notesForReact = allNotes.map(note => ({
 ---
 
 <BaseLayout title="Research Notes">
-    <div class="max-w-5xl mx-auto px-6 py-20 min-h-screen">
-        
-        {/* Header Area */}
-        <header class="mb-16">
-            <div class="font-mono text-xs text-accent font-bold mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 bg-accent animate-pulse"></span>
-                /// DATABASE_INDEX::ACTIVE
-            </div>
-            <h1 class="text-5xl md:text-7xl font-serif font-bold text-white tracking-tight mb-6">
-                Research <span class="text-accent italic">Index</span>.
+    <div class="max-w-4xl mx-auto px-6 py-16 min-h-screen">
+
+        <header class="mb-14">
+            <h1 class="text-4xl md:text-5xl font-display font-bold text-primary tracking-tight mb-4">
+                Notes
             </h1>
-            <p class="text-concrete font-mono text-sm max-w-xl leading-relaxed">
-                A dynamic archive of technical derivations and theoretical explorations.
-                <br/>
-                <span class="opacity-50">Select 'Graph View' to visualize connection topology.</span>
+            <p class="text-secondary font-body text-base max-w-xl leading-relaxed">
+                Technical derivations and theoretical explorations in physics, mathematics, and computer science.
             </p>
         </header>
 
-        {/* 核心交互组件 
-            client:only="react" 是必须的，因为 KnowledgeGraph 依赖 window/canvas，无法在服务端渲染
-        */}
         <NotesExplorer client:only="react" notes={notesForReact} />
 
     </div>

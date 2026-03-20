@@ -9,232 +9,129 @@ const sortedNotes = allNotes.sort(
 ---
 
 <BaseLayout title="Home">
-	
-	<section class="min-h-[60vh] flex flex-col justify-center items-center relative p-4 border-b border-white/10">
-        
-        <div class="absolute top-6 left-6 font-mono text-xs text-accent border border-accent px-2 py-1 animate-pulse">
-            :: SYSTEM_READY
-        </div>
 
-		<div class="relative z-10 text-center w-full max-w-4xl">
-            <a id="math-link" href="#" target="_blank" class="block group relative min-h-[120px] flex flex-col justify-center items-center mb-12 cursor-help">
-                <div id="formula-raw" class="font-mono text-sm md:text-base text-accent bg-black px-4 py-2 border border-accent/50 group-hover:bg-accent group-hover:text-black transition-colors"></div>
-<div id="formula-render" class="hidden w-full overflow-x-auto md:w-auto md:overflow-visible text-3xl md:text-5xl lg:text-7xl font-serif text-ink group-hover:scale-105 transition-transform duration-100 px-4 pb-2"></div>                <div class="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity duration-0">
-                    <span class="font-mono text-[10px] text-black bg-accent px-2 py-1 font-bold">
-                        [DECRYPT_SOURCE]
-                    </span>
-                </div>
-            </a>
-            
-            <h1 class="font-serif text-6xl md:text-8xl lg:text-9xl leading-none tracking-tighter text-white mix-blend-difference">
-                Tensor<span class="text-accent font-normal italic">Field</span>X
-            </h1>
+	<!-- Hero: Full-bleed artwork with dramatic color -->
+	<section class="relative min-h-[85vh] flex flex-col justify-end overflow-hidden" id="hero-section">
+
+		<div class="absolute inset-0 z-0">
+			<img
+				src="/images/hero.png"
+				alt=""
+				class="absolute inset-0 w-full h-full object-cover"
+				loading="eager"
+			/>
+			<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+		</div>
+
+		<div class="relative z-10 px-6 pb-16 md:pb-24 max-w-6xl mx-auto w-full">
+			<h1 class="font-display text-6xl md:text-8xl lg:text-9xl font-bold leading-[0.9] tracking-tighter text-white">
+				Tensor<span class="italic font-normal opacity-80">Field</span>X
+			</h1>
+
+			<p class="mt-6 font-sans text-sm md:text-base text-white/70 max-w-md leading-relaxed">
+				A personal archive of physics, mathematics, and computer science.
+			</p>
+		</div>
+
+		<!-- Gradient fade to paper -->
+		<div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-paper to-transparent z-10"></div>
+
+		<!-- Scroll hint -->
+		<div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 animate-bounce">
+			<svg class="w-5 h-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+				<path d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" />
+			</svg>
 		</div>
 	</section>
 
-    <section class="border-b border-white/10 bg-void">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12">
-            <div class="lg:col-span-4 p-8 border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col justify-center">
-                <div class="font-mono text-[10px] text-concrete mb-4 tracking-widest">// IDENTITY</div>
-                <div class="flex items-center gap-6 mb-6">
-                    <div class="w-16 h-16 bg-accent text-black flex items-center justify-center text-4xl font-serif italic font-bold">T</div>
-                    <div><h3 class="text-white font-serif text-2xl">Feixiang Tao</h3><p class="text-accent font-mono text-xs mt-1">Freshman @ SUSTech</p></div>
-                </div>
-                <ul class="space-y-3 font-mono text-xs text-concrete">
-                    <li class="flex justify-between border-b border-white/5 pb-1"><span>MAJOR</span><span class="text-ink">TBD</span></li>
-                    <li class="flex justify-between border-b border-white/5 pb-1"><span>FOCUS</span><span class="text-ink">Physics / Math / AI</span></li>
-                </ul>
-            </div>
+	<!-- Identity -->
+	<section class="relative z-20">
+		<div class="max-w-4xl mx-auto px-6 py-20 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-12 items-start">
 
-            <div class="lg:col-span-8 p-12 flex flex-col justify-center relative">
-                <div class="absolute top-0 right-0 p-4 text-9xl font-serif text-white/5 pointer-events-none select-none font-bold leading-none overflow-hidden">
-                    HELLO
-                </div>
-                <div class="prose prose-invert prose-lg max-w-none relative z-10">
-                    <p class="font-serif text-2xl md:text-3xl leading-snug text-ink">
-                        "Documenting my undergraduate journey at <span class="text-accent border-b border-accent">SUSTech</span>."
-                    </p>
-                    <p class="font-mono text-xs md:text-sm text-concrete mt-6 leading-loose max-w-2xl">
-                        Welcome to my personal archive. Here, I record my learning process in Computer Science, Physics, and Mathematics. 
-                        This site serves as a repository for my course notes, technical explorations, and project blueprints.
-                        <br/><br/>
-                        <span class="text-ink">Simple, open, and always learning.</span>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
+			<div>
+				<div class="w-16 h-16 bg-accent text-white flex items-center justify-center text-3xl font-display italic font-bold rounded-lg mb-5">
+					T
+				</div>
+				<h2 class="font-display text-2xl font-bold text-primary">Feixiang Tao</h2>
+				<p class="font-sans text-sm text-accent mt-1 font-medium">Freshman @ SUSTech</p>
 
-	<section class="py-24 border-b border-white/10 bg-void">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="font-mono text-xs text-concrete mb-12 flex items-center gap-4">
-                <span class="w-3 h-3 bg-accent"></span>
-                ACCESS_MODULES:
-            </div>
+				<div class="mt-6 space-y-2 font-sans text-xs text-muted">
+					<div class="flex justify-between">
+						<span>Focus</span>
+						<span class="text-secondary">Physics / Math / AI</span>
+					</div>
+					<div class="flex justify-between">
+						<span>Location</span>
+						<span class="text-secondary">Shenzhen, CN</span>
+					</div>
+				</div>
+			</div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/10">
-                <a href="/notes" class="group md:col-span-2 relative border-b md:border-b-0 md:border-r border-white/10 bg-void p-12 flex flex-col justify-between hover:bg-white/5 transition-colors duration-0">
-                    <span class="absolute right-4 bottom-0 text-[180px] font-serif font-bold text-white/5 group-hover:text-accent/10 transition-colors leading-none">N</span>
-                    <div>
-                        <h3 class="text-4xl font-serif font-bold text-white group-hover:text-accent transition-colors">Notes</h3>
-                        <p class="font-mono text-xs text-concrete mt-4 max-w-sm">
-                            Documentation of learning processes in Matrix Calculus, Statistical Mechanics, and System Architecture.
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-2 font-mono text-xs text-accent mt-12 group-hover:underline decoration-2">
-                        <span>ENTER_DB</span> ->
-                    </div>
-                </a>
+			<div>
+				<p class="font-body text-xl md:text-2xl text-primary leading-relaxed mb-6">
+					Documenting my undergraduate journey at <span class="text-accent">SUSTech</span> &mdash;
+					course notes, technical explorations, and project blueprints.
+				</p>
+				<p class="font-body text-base text-secondary leading-relaxed">
+					Welcome to my personal archive. Here I record my learning process across disciplines,
+					from differential geometry to deep learning architectures. Simple, open, and always learning.
+				</p>
+			</div>
+		</div>
+	</section>
 
-                <div class="flex flex-col">
-                    <a href="/projects" class="group flex-1 relative border-b border-white/10 bg-void p-8 flex flex-col justify-center hover:bg-white/5 transition-colors duration-0">
-                        <div class="absolute top-4 right-4 text-[10px] font-mono border border-white/20 px-1 text-concrete">EXE</div>
-                        <h3 class="text-2xl font-serif font-bold mb-2 text-white group-hover:text-accent transition-colors">Archives</h3>
-                        <p class="font-mono text-[10px] text-concrete">Experiments & Coursework.</p>
-                    </a>
-                    <a href="/about" class="group flex-1 relative bg-void p-8 flex flex-col justify-center hover:bg-white/5 transition-colors duration-0">
-                        <div class="absolute top-4 right-4 text-[10px] font-mono border border-white/20 px-1 text-concrete">USR</div>
-                        <h3 class="text-2xl font-serif font-bold mb-2 text-white group-hover:text-accent transition-colors">About</h3>
-                        <p class="font-mono text-[10px] text-concrete">Profile & Contact.</p>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
+	<!-- Navigation Cards -->
+	<section class="border-t border-edge">
+		<div class="max-w-4xl mx-auto px-6 py-16">
+			<h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-8">Explore</h2>
 
-	<section class="bg-void py-24">
-        <div class="max-w-7xl mx-auto px-6">
-            <h2 class="font-mono text-xs text-concrete mb-8 flex items-center gap-2"><span class="w-2 h-2 bg-concrete"></span>RECENT_LOGS:</h2>
-            <div class="border-t border-b border-white/10">
-                {sortedNotes.slice(0, 5).map((note, index) => {
-                    const hexId = `0x${(sortedNotes.length - index).toString(16).padStart(2, '0').toUpperCase()}`;
-                    return (
-                        <a href={`/notes/${note.slug}`} class="group grid grid-cols-12 gap-4 px-4 py-6 items-baseline border-b border-white/5 last:border-0 hover:bg-accent hover:text-white transition-colors duration-0">
-                            <div class="col-span-2 md:col-span-1 font-mono text-xs text-concrete group-hover:text-white font-bold">{hexId}</div>
-                            <div class="col-span-3 md:col-span-2 font-mono text-xs text-ink group-hover:text-white">{note.data.pubDate.toISOString().split('T')[0]}</div>
-                            <div class="col-span-7 md:col-span-6"><h3 class="font-serif text-xl font-bold text-white group-hover:text-white">{note.data.title}</h3></div>
-                            <div class="col-span-2 md:col-span-2 text-right hidden md:block font-mono text-xs text-concrete group-hover:text-white">[{note.data.tags?.[0]}]</div>
-                            <div class="col-span-1 text-right hidden md:block font-mono text-xs text-concrete group-hover:text-white">-></div>
-                        </a>
-                    )
-                })}
-            </div>
-            <div class="mt-12 text-center">
-                 <a href="/notes" class="inline-block border border-white/10 px-8 py-3 font-mono text-xs text-accent hover:bg-accent hover:text-white hover:border-accent transition-colors font-bold">VIEW_ALL_RECORDS</a>
-            </div>
-        </div>
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<a href="/notes" class="group p-6 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+					<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">Notes</h3>
+					<p class="font-sans text-xs text-muted leading-relaxed">Course notes and technical derivations.</p>
+				</a>
+				<a href="/projects" class="group p-6 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+					<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">Projects</h3>
+					<p class="font-sans text-xs text-muted leading-relaxed">Experiments and coursework.</p>
+				</a>
+				<a href="/about" class="group p-6 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+					<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">About</h3>
+					<p class="font-sans text-xs text-muted leading-relaxed">Profile and contact.</p>
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- Recent Notes -->
+	<section class="border-t border-edge">
+		<div class="max-w-4xl mx-auto px-6 py-16">
+			<h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-8">Recent</h2>
+
+			<div class="divide-y divide-edge">
+				{sortedNotes.slice(0, 6).map((note) => (
+					<a href={`/notes/${note.slug}`} class="group flex items-baseline gap-4 py-4 hover:bg-accent/3 -mx-3 px-3 rounded transition-colors">
+						<span class="font-mono text-[11px] text-muted w-24 shrink-0">
+							{note.data.pubDate.toISOString().split('T')[0]}
+						</span>
+						<span class="font-body text-base text-primary group-hover:text-accent transition-colors flex-1">
+							{note.data.title}
+						</span>
+						{note.data.series && (
+							<span class="hidden md:inline font-sans text-[10px] text-muted">
+								{note.data.series}
+							</span>
+						)}
+					</a>
+				))}
+			</div>
+
+			<div class="mt-8">
+				<a href="/notes" class="inline-flex items-center gap-2 font-sans text-sm text-accent hover:underline underline-offset-4">
+					View all notes
+					<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14m0 0-7-7m7 7-7 7"/></svg>
+				</a>
+			</div>
+		</div>
 	</section>
 
 </BaseLayout>
-
-<script>
-    // ... Math Hero Script ...
-    // (保留之前的 Script 代码，不需要修改)
-const formulas = [
-    // --- 理论物理 (Theoretical Physics: QFT & GR) ---
-    // 1. 路径积分 (量子场论) - 费曼的终极浪漫，一切物理皆为路径求和
-    { tex: "Z = \\int \\mathcal{D}\\phi \\, e^{iS[\\phi]}", link: "https://en.wikipedia.org/wiki/Path_integral_formulation" },
-    // 2. 杨-米尔斯作用量 (规范场论) - 标准模型的数学基础
-    { tex: "S_{YM} = -\\frac{1}{2} \\int \\text{Tr}(F_{\\mu\\nu}F^{\\mu\\nu}) d^4x", link: "https://en.wikipedia.org/wiki/Yang%E2%80%93Mills_theory" },
-    // 3. 爱因斯坦场方程 (广义相对论) - 时空弯曲的本质
-    { tex: "R_{\\mu\\nu} - \\frac{1}{2}Rg_{\\mu\\nu} = 8\\pi G T_{\\mu\\nu}", link: "https://en.wikipedia.org/wiki/Einstein_field_equations" },
-    // 4. 狄拉克方程 (QED) - 协变形式，自旋与反物质的起源
-    { tex: "(i\\gamma^\\mu D_\\mu - m)\\psi = 0", link: "https://en.wikipedia.org/wiki/Dirac_equation" },
-    // 5. 正则对易关系 (量子力学) - 场算符的量子化条件
-    { tex: "[\\hat{\\phi}(x), \\hat{\\pi}(y)] = i\\hbar \\delta(x-y)", link: "https://en.wikipedia.org/wiki/Canonical_quantization" },
-    // 6. 卡伦-西曼齐克方程 (重整化群) - 描述物理规律随能量尺度的变化
-    { tex: "(\\mu \\frac{\\partial}{\\partial \\mu} + \\beta \\frac{\\partial}{\\partial g}) \\Gamma^{(n)} = 0", link: "https://en.wikipedia.org/wiki/Callan%E2%80%93Symanzik_equation" },
-    // 7. 测地线方程 (微分几何/GR) - 弯曲时空中的“直线”
-    { tex: "\\frac{d^2x^\\mu}{d\\tau^2} + \\Gamma^\\mu_{\\alpha\\beta} \\frac{dx^\\alpha}{d\\tau} \\frac{dx^\\beta}{d\\tau} = 0", link: "https://en.wikipedia.org/wiki/Geodesic" },
-    // 8. 诺特定理 (理论力学) - 对称性对应守恒定律
-    { tex: "\\partial_\\mu j^\\mu = 0", link: "https://en.wikipedia.org/wiki/Noether%27s_theorem" },
-    // 9. 密度矩阵演化 (开放量子系统) - 冯·诺依曼方程
-    { tex: "i\\hbar \\frac{\\partial \\rho}{\\partial t} = [H, \\rho]", link: "https://en.wikipedia.org/wiki/Density_matrix" },
-    // 10. 贝肯斯坦-霍金熵 (黑洞热力学) - 信息与引力的交汇
-    { tex: "S_{BH} = \\frac{k_B A}{4 l_P^2}", link: "https://en.wikipedia.org/wiki/Black_hole_thermodynamics" },
-
-    // --- 高等数学 (Advanced Math: Functional & Topology) ---
-    // 11. 阿蒂亚-辛格指标定理 (拓扑/几何) - 分析与拓扑的深刻联系
-    { tex: "\\text{ind}(\\mathcal{D}) = \\int_{\\mathcal{M}} \\text{ch}(E) \\wedge \\hat{A}(\\mathcal{M})", link: "https://en.wikipedia.org/wiki/Atiyah%E2%80%93Singer_index_theorem" },
-    // 12. 斯托克斯定理 (微分流形) - 所有的微积分归结于此
-    { tex: "\\int_{\\partial\\Omega} \\omega = \\int_\\Omega d\\omega", link: "https://en.wikipedia.org/wiki/Generalized_Stokes_theorem" },
-    // 13. 里奇流 (几何分析) - 庞加莱猜想的证明工具
-    { tex: "\\frac{\\partial g_{ij}}{\\partial t} = -2R_{ij}", link: "https://en.wikipedia.org/wiki/Ricci_flow" },
-    // 14. 里斯表示定理 (泛函分析) - 希尔伯特空间的对偶性
-    { tex: "f(x) = \\langle x, y \\rangle", link: "https://en.wikipedia.org/wiki/Riesz_representation_theorem" },
-    // 15. 留数定理 (复变函数) - 围道积分的核心
-    { tex: "\\oint_\\gamma f(z) dz = 2\\pi i \\sum \\text{Res}(f, a_k)", link: "https://en.wikipedia.org/wiki/Residue_theorem" },
-    // 16. 巴拿赫不动点定理 (度量空间) - 压缩映射
-    { tex: "d(T(x), T(y)) \\leq q d(x, y)", link: "https://en.wikipedia.org/wiki/Banach_fixed-point_theorem" },
-    // 17. 德拉姆上同调 (代数拓扑) - 微分形式与拓扑
-    { tex: "H^k_{dR}(M) = \\frac{\\ker d_k}{\\text{im } d_{k-1}}", link: "https://en.wikipedia.org/wiki/De_Rham_cohomology" },
-    // 18. 李导数 (微分几何) - 张量场的导数
-    { tex: "\\mathcal{L}_X Y = [X, Y]", link: "https://en.wikipedia.org/wiki/Lie_derivative" },
-    // 19. 庞加莱对偶 (代数拓扑)
-    { tex: "H^k(M) \\cong H_{n-k}(M)", link: "https://en.wikipedia.org/wiki/Poincar%C3%A9_duality" },
-    // 20. 谱定理 (算子理论) - 算子的对角化
-    { tex: "A = \\int \\lambda dE(\\lambda)", link: "https://en.wikipedia.org/wiki/Spectral_theorem" },
-
-    // --- 理论计算机科学与AI (Theoretical CS & AI) ---
-    // 21. ELBO (变分推断) - VAE与生成模型的核心
-    { tex: "\\mathcal{L} = \\mathbb{E}_q[\\ln p(x|z)] - D_{KL}(q||p)", link: "https://en.wikipedia.org/wiki/Evidence_lower_bound" },
-    // 22. 再生核希尔伯特空间 (RKHS) - 核方法的数学基础
-    { tex: "f(x) = \\langle f, K_x \\rangle_{\\mathcal{H}}", link: "https://en.wikipedia.org/wiki/Reproducing_kernel_Hilbert_space" },
-    // 23. 最优传输 (Wasserstein Distance) - GANs的高级度量
-    { tex: "W_p(\\mu, \\nu) = (\\inf_{\\gamma} \\int d(x,y)^p d\\gamma)^{1/p}", link: "https://en.wikipedia.org/wiki/Wasserstein_metric" },
-    // 24. Y组合子 (Lambda演算) - 函数式编程的递归之源
-    { tex: "Y = \\lambda f.(\\lambda x.f(xx))(\\lambda x.f(xx))", link: "https://en.wikipedia.org/wiki/Fixed-point_combinator" },
-    // 25. VC维 (统计学习理论) - 机器学习可学习性的界
-    { tex: "P(\\text{error}) \\leq O(\\sqrt{\\frac{d_{VC}}{n}})", link: "https://en.wikipedia.org/wiki/Vapnik%E2%80%93Chervonenkis_dimension" },
-    // 26. 拉普拉斯-贝尔特拉米算子 (流形学习/几何深度学习)
-    { tex: "\\Delta f = \\text{div}(\\nabla f)", link: "https://en.wikipedia.org/wiki/Laplace%E2%80%93Beltrami_operator" },
-    // 27. 注意力机制 (Transformer) - 矩阵形式
-    { tex: "\\text{softmax}(\\frac{QK^T}{\\sqrt{d_k}})V", link: "https://en.wikipedia.org/wiki/Attention_(machine_learning)" },
-    // 28. 香农信道容量 (信息论)
-    { tex: "C = \\sup_{p(x)} I(X;Y)", link: "https://en.wikipedia.org/wiki/Channel_capacity" },
-    // 29. 奇异值分解 (线性代数) - 数据压缩与降维
-    { tex: "A = U \\Sigma V^T", link: "https://en.wikipedia.org/wiki/Singular_value_decomposition" },
-    // 30. 海森矩阵 (优化理论) - 二阶导数矩阵
-    { tex: "H_{ij} = \\frac{\\partial^2 f}{\\partial x_i \\partial x_j}", link: "https://en.wikipedia.org/wiki/Hessian_matrix" }
-];
-
-    function initMathHero() {
-        // ... 逻辑同上 ...
-        const rawEl = document.getElementById('formula-raw');
-        const renderEl = document.getElementById('formula-render');
-        const linkEl = document.getElementById('math-link');
-
-        if (!renderEl || !linkEl) return;
-        if(rawEl) rawEl.style.display = 'none';
-
-        const selected = formulas[Math.floor(Math.random() * formulas.length)];
-        linkEl.setAttribute('href', selected.link);
-
-        renderEl.classList.remove('hidden');
-        renderEl.innerHTML = "";
-
-        // @ts-ignore
-        if (typeof window.katex === 'undefined') {
-            renderEl.innerText = selected.tex;
-            renderEl.style.fontFamily = 'monospace';
-            return;
-        }
-
-        try {
-            // @ts-ignore
-            window.katex.render(selected.tex, renderEl, { throwOnError: false, displayMode: true });
-        } catch (e) { renderEl.innerText = selected.tex; }
-
-        const symbols = renderEl.querySelectorAll('.katex-html .mord, .katex-html .mbin, .katex-html .mrel, .katex-html .mopen, .katex-html .mclose, .katex-html .mpunct, .katex-html .minner');
-        
-        if (symbols.length === 0) { renderEl.style.opacity = '1'; return; }
-
-        symbols.forEach(el => { (el as HTMLElement).style.opacity = '0'; (el as HTMLElement).style.transition = 'opacity 0.1s ease-out'; });
-
-        let delay = 0;
-        const step = 30;
-        symbols.forEach((el) => { setTimeout(() => { (el as HTMLElement).style.opacity = '1'; }, delay); delay += step; });
-        setTimeout(() => { const allSpans = renderEl.querySelectorAll('span'); allSpans.forEach(el => el.style.opacity = '1'); }, delay + 500);
-    }
-    document.addEventListener('astro:page-load', initMathHero);
-</script>

@@ -1,0 +1,100 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidenote from '../../components/Sidenote.astro';
+import Giscus from '../../components/Giscus.astro';
+
+export async function getStaticPaths() {
+    const allPosts = await getCollection('blog');
+    const sorted = allPosts
+        .filter(post => !post.data.draft)
+        .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
+    return sorted.map((post, i) => ({
+        params: { slug: post.slug },
+        props: {
+            post,
+            prev: i > 0 ? { slug: sorted[i - 1].slug, title: sorted[i - 1].data.title } : null,
+            next: i < sorted.length - 1 ? { slug: sorted[i + 1].slug, title: sorted[i + 1].data.title } : null,
+        },
+    }));
+}
+
+const { post, prev, next } = Astro.props;
+const { Content, headings } = await post.render();
+
+const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
+---
+
+<BaseLayout title={post.data.title}>
+
+    <article class="max-w-3xl mx-auto px-6 py-16">
+
+        <nav class="flex items-center gap-1.5 font-sans text-[11px] text-muted mb-6" aria-label="Breadcrumb">
+            <a href="/" class="hover:text-accent transition-colors">Home</a>
+            <span>/</span>
+            <a href="/blog" class="hover:text-accent transition-colors">Blog</a>
+            <span>/</span>
+            <span class="text-primary truncate max-w-[200px]">{post.data.title}</span>
+        </nav>
+
+        <header class="mb-10">
+            <div class="flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted mb-5">
+                <span>{post.data.pubDate.toLocaleDateString('en-CA')}</span>
+                <span>·</span>
+                <span>{readTime} min read</span>
+            </div>
+
+            <h1 class="text-3xl md:text-5xl font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
+                {post.data.title}
+            </h1>
+
+            {post.data.tags && (
+                <div class="flex flex-wrap gap-2">
+                    {post.data.tags.map((tag: string) => (
+                        <a href={`/tags/${tag}`} class="text-[11px] font-sans text-muted border border-edge px-2 py-0.5 rounded hover:text-accent hover:border-accent/30 transition-colors">
+                            {tag}
+                        </a>
+                    ))}
+                </div>
+            )}
+        </header>
+
+        <div class="prose prose-lg max-w-none
+            prose-headings:font-display prose-headings:font-bold prose-headings:text-primary
+            prose-p:font-body prose-p:text-primary/85 prose-p:leading-[1.85]
+            prose-strong:text-primary
+            prose-a:text-accent prose-a:no-underline prose-a:border-b prose-a:border-accent/30 hover:prose-a:border-accent prose-a:transition-colors
+            prose-li:text-primary/80 prose-li:marker:text-accent
+            prose-blockquote:border-accent/30 prose-blockquote:text-secondary prose-blockquote:not-italic
+            prose-code:font-mono prose-code:text-sm prose-code:bg-surface prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:border prose-code:border-edge prose-code:before:content-none prose-code:after:content-none
+            prose-pre:bg-surface prose-pre:border prose-pre:border-edge prose-pre:rounded-lg
+            prose-hr:border-edge">
+
+            <Content components={{ Sidenote }} />
+
+        </div>
+
+        <nav class="mt-16 pt-8 border-t border-edge grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {prev ? (
+                <a href={`/blog/${prev.slug}`} class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+                    <span class="font-mono text-[10px] text-muted mb-1">&larr; Previous</span>
+                    <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{prev.title}</span>
+                </a>
+            ) : (
+                <a href="/blog" class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+                    <span class="font-mono text-[10px] text-muted mb-1">&larr;</span>
+                    <span class="font-body text-sm text-primary group-hover:text-accent transition-colors">All Posts</span>
+                </a>
+            )}
+            {next ? (
+                <a href={`/blog/${next.slug}`} class="group flex flex-col items-end text-right p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+                    <span class="font-mono text-[10px] text-muted mb-1">Next &rarr;</span>
+                    <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{next.title}</span>
+                </a>
+            ) : <div />}
+        </nav>
+
+        <Giscus term={`blog/${post.slug}`} />
+
+    </article>
+</BaseLayout>

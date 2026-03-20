@@ -1,7 +1,6 @@
 ---
-import Background from "../components/Background.astro";
-import LinkPreview from "../components/LinkPreview.astro";
 import Search from "../components/Search.astro";
+import LinkPreview from "../components/LinkPreview.astro";
 import { ViewTransitions } from "astro:transitions";
 import Analytics from "@vercel/analytics/astro";
 
@@ -10,10 +9,21 @@ interface Props {
 }
 
 const { title } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+const navLinks = [
+  { href: "/notes", label: "Notes" },
+  { href: "/blog", label: "Blog" },
+  { href: "/projects", label: "Projects" },
+  { href: "/publications", label: "Publications" },
+  { href: "/tags", label: "Tags" },
+  { href: "/cv", label: "CV" },
+  { href: "/about", label: "About" },
+];
 ---
 
 <!doctype html>
-<html lang="en" class="h-full bg-void">
+<html lang="en" class="h-full">
   <head>
     <meta charset="UTF-8" />
     <Analytics />
@@ -53,182 +63,278 @@ const { title } = Astro.props;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap"
       rel="stylesheet"
     />
 
+    <script is:inline>
+      function applyTheme() {
+        var theme = localStorage.getItem('theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+      applyTheme();
+      document.addEventListener('astro:after-swap', applyTheme);
+    </script>
+
     <style is:global>
-      /* 1. 全局滚动条美化 */
-      ::-webkit-scrollbar {
-        width: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #080808;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #333;
-        border-radius: 3px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #3b82f6;
+      :root {
+        --color-paper: 244 241 236;
+        --color-surface: 255 254 249;
+        --color-primary: 26 26 26;
+        --color-secondary: 85 82 78;
+        --color-muted: 120 116 110;
+        --color-accent: 43 91 220;
+        --color-accent-warm: 200 90 58;
+        --color-border: 190 185 175;
       }
 
-      /* 2. 选中色 */
+      .dark {
+        --color-paper: 22 22 26;
+        --color-surface: 30 30 35;
+        --color-primary: 235 233 228;
+        --color-secondary: 158 155 148;
+        --color-muted: 100 98 92;
+        --color-accent: 120 165 245;
+        --color-accent-warm: 220 110 78;
+        --color-border: 55 53 50;
+      }
+
+      ::-webkit-scrollbar { width: 5px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgb(var(--color-muted) / 0.3); border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgb(var(--color-accent) / 0.6); }
+
       ::selection {
-        background: #3b82f6;
-        color: #ffffff;
+        background: rgb(var(--color-accent) / 0.2);
+        color: rgb(var(--color-primary));
       }
 
-      /* 3. 静态噪点优化 */
-      .noise-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 9998;
-        opacity: 0.05;
-        background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAA5OTkAAABMTExERERmZmYzMzMyMjJwk2xJAAAACHRSTlMAMwAqzMzM/wO30h4AAAB4SURBVDjLxZFJDsAgDAQD9f8/2h4QkRDThpWlRZZL2pG9/1TITC2wYxX46glx657Qz07LxEwsTGT+PQv5i4x7FhISFhIaEh4yE5kXmYvMTOZfM5O5memQ6Z/ZkNmZ2ZkNmQ+ZC5kPmQ+ZC5kPmQ+ZC5kPmQ+ZC5kPmQ+ZCwF49kY0r+H5AAAAAElFTkSuQmCC");
-        background-repeat: repeat;
+      body {
+        background: rgb(var(--color-paper)) url("/images/paper-texture.png") center / cover fixed;
+      }
+      .dark body {
+        background: rgb(var(--color-paper));
       }
 
-      /* 4. KaTeX 公式显示通用设置 (去除了重复定义) */
+      :root pre[class*="astro-code"],
+      :root .astro-code {
+        background: rgb(252 250 245) !important;
+        border: 1px solid rgb(var(--color-border));
+        border-radius: 0.5rem;
+      }
+      :root pre[class*="astro-code"] code span {
+        color: var(--shiki-light, inherit) !important;
+      }
+      .dark pre[class*="astro-code"],
+      .dark .astro-code {
+        background: rgb(var(--color-surface)) !important;
+        border-color: rgb(var(--color-border));
+      }
+      .dark pre[class*="astro-code"] code span {
+        color: var(--shiki-dark, inherit) !important;
+      }
+
+      pre code {
+        font-size: 0.85em;
+        line-height: 1.7;
+      }
+
       .katex-display {
         max-width: 100%;
         overflow-x: auto;
         overflow-y: hidden;
         padding: 1rem 0;
-        /* 隐藏滚动条但保留功能 */
         scrollbar-width: none;
         -ms-overflow-style: none;
-        -webkit-overflow-scrolling: touch;
       }
-      .katex-display::-webkit-scrollbar {
-        display: none;
-      }
+      .katex-display::-webkit-scrollbar { display: none; }
 
-      /* 5. 首页大公式特供 (只负责隐藏滚动条，布局由 Tailwind 控制) */
-      #formula-render {
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE/Edge */
-      }
-      #formula-render::-webkit-scrollbar {
-        display: none; /* Chrome/Safari */
-      }
+      .dark .katex { color: rgb(var(--color-primary)); }
 
-      /* 移动端字体微调 */
       @media (max-width: 640px) {
-        #formula-render {
-          font-size: 1.75rem !important;
-        }
+        .katex-display .katex { font-size: 0.9em; }
       }
     </style>
   </head>
 
-  <body
-    class="bg-void text-ink h-full overflow-hidden p-0 md:p-4 font-mono relative"
-  >
-    <Background />
-    <LinkPreview />
+  <body class="text-primary min-h-screen font-body relative">
+
     <Search />
+    <LinkPreview />
 
-    <div class="noise-overlay"></div>
-
-    <div class="fixed top-6 left-6 z-50 pointer-events-none hidden md:block">
-      <div
-        class="flex items-center gap-2 border border-white/10 bg-void/50 px-2 py-1 rounded-sm"
-      >
-        <span class="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
-        <span class="text-[10px] font-bold tracking-widest text-concrete"
-          >SYS_ONLINE</span
-        >
-      </div>
-    </div>
-
-    <div
-      class="fixed bottom-6 right-6 z-50 pointer-events-none hidden md:block"
-    >
-      <span
-        class="text-[10px] font-mono text-concrete border-l border-accent pl-2"
-      >
-        ~/manifold/root
-      </span>
-    </div>
-
-    <div
-      class="w-full h-full border border-white/10 relative overflow-y-auto overflow-x-hidden bg-void/60"
-      id="main-viewport"
-    >
+    <div class="relative z-10 min-h-screen flex flex-col">
       <nav
-        class="sticky top-0 z-40 flex justify-between items-center p-6 border-b border-white/10 bg-void/90 backdrop-blur-md"
+        class="sticky top-0 z-40 border-b border-edge bg-paper/95 backdrop-blur-md"
         transition:persist
       >
-        <div class="flex items-center gap-6">
+        <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <a
             href={import.meta.env.BASE_URL}
-            class="text-2xl font-serif italic font-bold text-white hover:text-accent transition-colors"
+            class="text-xl font-display italic font-bold text-primary hover:text-accent transition-colors"
           >
             TFX
           </a>
+
+          <div class="hidden md:flex items-center gap-7 text-[13px] font-sans font-medium text-secondary">
+            {navLinks.map(link => (
+              <a
+                href={link.href}
+                class:list={[
+                  "hover:text-primary transition-colors",
+                  { "text-primary": currentPath.startsWith(link.href) }
+                ]}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button
+              id="search-trigger"
+              class="flex items-center gap-2 px-3 py-1.5 border border-edge rounded-md hover:border-accent/40 hover:bg-accent/5 transition-all group"
+            >
+              <svg class="w-3.5 h-3.5 text-muted group-hover:text-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+              </svg>
+              <kbd class="hidden md:inline text-[10px] text-muted font-mono">⌘K</kbd>
+            </button>
+
+            <button
+              id="theme-toggle"
+              class="p-2 rounded-md hover:bg-primary/5 transition-colors text-secondary hover:text-primary"
+              aria-label="Toggle theme"
+            >
+              <svg class="w-4 h-4 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+              </svg>
+              <svg class="w-4 h-4 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+              </svg>
+            </button>
+
+            <button
+              id="mobile-menu-toggle"
+              class="md:hidden p-2 rounded-md hover:bg-primary/5 text-secondary"
+              aria-label="Menu"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path d="M3.75 9h16.5m-16.5 6.75h16.5" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <div class="hidden md:block absolute left-1/2 -translate-x-1/2">
-          <button
-            id="search-trigger"
-            class="flex items-center gap-3 px-4 py-1.5 border border-white/10 bg-white/5 hover:border-accent/50 hover:bg-white/10 transition-all group rounded-sm"
-          >
-            <span
-              class="text-xs text-concrete group-hover:text-accent font-mono transition-colors"
-              >> Search_Index</span
-            >
-            <kbd
-              class="text-[9px] border border-white/10 px-1 text-concrete bg-black"
-              >⌘K</kbd
-            >
-          </button>
-        </div>
-
-        <div class="flex gap-8 text-xs font-bold tracking-tight text-concrete">
-          <a
-            href="/notes"
-            class="hover:text-white transition-colors relative group"
-          >
-            NOTES
-            <span
-              class="absolute -bottom-2 left-0 w-0 h-[2px] bg-accent transition-all group-hover:w-full"
-            ></span>
-          </a>
-          <a
-            href="/projects"
-            class="hover:text-white transition-colors relative group"
-          >
-            ARCHIVES
-            <span
-              class="absolute -bottom-2 left-0 w-0 h-[2px] bg-accent transition-all group-hover:w-full"
-            ></span>
-          </a>
-          <a
-            href="/about"
-            class="hover:text-white transition-colors relative group"
-          >
-            ABOUT
-            <span
-              class="absolute -bottom-2 left-0 w-0 h-[2px] bg-accent transition-all group-hover:w-full"
-            ></span>
-          </a>
+        <div id="mobile-menu" class="hidden md:hidden border-t border-edge bg-paper px-6 py-4">
+          <div class="flex flex-col gap-3 text-sm font-sans text-secondary">
+            {navLinks.map(link => (
+              <a
+                href={link.href}
+                class:list={[
+                  "hover:text-primary transition-colors py-1",
+                  { "text-primary font-medium": currentPath.startsWith(link.href) }
+                ]}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
         </div>
       </nav>
 
-      <main class="relative z-10 min-h-screen" transition:animate="fade">
+      <main class="flex-1" transition:animate="fade">
         <slot />
       </main>
 
-      <footer
-        class="border-t border-white/10 p-12 text-[10px] text-center text-concrete font-mono uppercase tracking-widest"
+      <button
+        id="back-to-top"
+        class="fixed bottom-6 right-6 z-40 p-2.5 rounded-full bg-surface border border-edge shadow-lg text-muted hover:text-accent hover:border-accent/40 transition-all opacity-0 translate-y-4 pointer-events-none"
+        aria-label="Back to top"
       >
-        Feixiang Tao // 2026 // Shenzhen
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M5 15l7-7 7 7"/>
+        </svg>
+      </button>
+
+      <footer class="border-t border-edge">
+        <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-sans text-muted">
+          <span>Feixiang Tao · 2026 · Shenzhen</span>
+          <div class="flex items-center gap-4">
+            <a href="/rss.xml" class="hover:text-primary transition-colors">RSS</a>
+            <a href="https://github.com/kevin258258" target="_blank" class="hover:text-primary transition-colors">GitHub</a>
+          </div>
+        </div>
       </footer>
     </div>
+
+    <script>
+      function initThemeToggle() {
+        const toggle = document.getElementById('theme-toggle');
+        if (!toggle) return;
+        toggle.onclick = () => {
+          const isDark = document.documentElement.classList.toggle('dark');
+          localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        };
+      }
+
+      function initMobileMenu() {
+        const toggle = document.getElementById('mobile-menu-toggle');
+        const menu = document.getElementById('mobile-menu');
+        if (!toggle || !menu) return;
+        toggle.onclick = () => menu.classList.toggle('hidden');
+      }
+
+      function initBackToTop() {
+        const btn = document.getElementById('back-to-top');
+        if (!btn) return;
+
+        function toggle() {
+          if (window.scrollY > 400) {
+            btn!.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            btn!.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+          } else {
+            btn!.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            btn!.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+          }
+        }
+
+        window.addEventListener('scroll', toggle, { passive: true });
+        btn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+        toggle();
+      }
+
+      function initCopyCode() {
+        document.querySelectorAll('pre').forEach(pre => {
+          if (pre.querySelector('.copy-btn')) return;
+          const wrapper = document.createElement('div');
+          wrapper.className = 'relative group/code';
+          pre.parentNode?.insertBefore(wrapper, pre);
+          wrapper.appendChild(pre);
+
+          const btn = document.createElement('button');
+          btn.className = 'copy-btn absolute top-2 right-2 p-1.5 rounded bg-primary/5 border border-edge text-muted hover:text-accent hover:border-accent/30 opacity-0 group-hover/code:opacity-100 transition-all text-xs font-mono';
+          btn.textContent = 'Copy';
+          btn.onclick = async () => {
+            const code = pre.querySelector('code')?.textContent || pre.textContent || '';
+            await navigator.clipboard.writeText(code);
+            btn.textContent = 'Copied!';
+            btn.classList.add('text-accent');
+            setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('text-accent'); }, 2000);
+          };
+          wrapper.appendChild(btn);
+        });
+      }
+
+      document.addEventListener('astro:page-load', () => {
+        initThemeToggle();
+        initMobileMenu();
+        initBackToTop();
+        initCopyCode();
+      });
+    </script>
   </body>
 </html>

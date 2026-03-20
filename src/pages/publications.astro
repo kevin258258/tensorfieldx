@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+let publications: any[] = [];
+try {
+    const allPubs = await getCollection('publications');
+    publications = allPubs.sort((a, b) => b.data.year - a.data.year);
+} catch (e) {
+    // No publications yet
+}
+---
+
+<BaseLayout title="Publications">
+    <div class="max-w-3xl mx-auto px-6 py-16 min-h-screen">
+
+        <header class="mb-14">
+            <h1 class="text-4xl md:text-5xl font-display font-bold text-primary tracking-tight mb-4">
+                Publications
+            </h1>
+            <p class="text-secondary font-body text-base leading-relaxed">
+                Academic papers and research outputs.
+            </p>
+        </header>
+
+        {publications.length > 0 ? (
+            <div class="space-y-8">
+                {publications.map(pub => (
+                    <article class="border-l-2 border-accent/30 pl-6 py-1">
+                        <h2 class="font-body text-base font-semibold text-primary mb-1">
+                            {pub.data.title}
+                        </h2>
+                        <p class="font-sans text-sm text-secondary mb-1">
+                            {pub.data.authors.join(', ')}
+                        </p>
+                        <p class="font-sans text-xs text-muted mb-2">
+                            {pub.data.venue} · {pub.data.year}
+                        </p>
+                        <div class="flex gap-3">
+                            {pub.data.doi && (
+                                <a href={`https://doi.org/${pub.data.doi}`} target="_blank" class="font-mono text-[11px] text-accent hover:underline">DOI</a>
+                            )}
+                            {pub.data.pdf && (
+                                <a href={pub.data.pdf} target="_blank" class="font-mono text-[11px] text-accent hover:underline">PDF</a>
+                            )}
+                        </div>
+                        {pub.data.abstract && (
+                            <p class="font-body text-sm text-secondary/80 mt-3 leading-relaxed">{pub.data.abstract}</p>
+                        )}
+                    </article>
+                ))}
+            </div>
+        ) : (
+            <div class="text-center py-20">
+                <p class="font-body text-secondary text-lg mb-2">No publications yet.</p>
+                <p class="font-sans text-sm text-muted">This page will be populated as research progresses.</p>
+            </div>
+        )}
+
+    </div>
+</BaseLayout>

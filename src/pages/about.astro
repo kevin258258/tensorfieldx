@@ -1,93 +1,117 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-// 真实联系方式
 const contacts = [
     { label: "GitHub", value: "@kevin258258", url: "https://github.com/kevin258258" },
+    { label: "X", value: "@Fu_manifold", url: "https://x.com/Fu_manifold" },
     { label: "Zhihu", value: "Three-23-89", url: "https://www.zhihu.com/people/three-23-89" },
     { label: "Email", value: "12512619@mail.sustech.edu.cn", url: "mailto:12512619@mail.sustech.edu.cn" }
+];
+
+const interests = [
+    "Differential Geometry",
+    "Statistical Mechanics",
+    "Deep Learning",
+    "Matrix Calculus",
+    "System Architecture",
 ];
 ---
 
 <BaseLayout title="About">
-    
-    <div class="max-w-6xl mx-auto px-6 py-20">
-        
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 items-start">
-            
-            <aside class="lg:col-span-5 bg-void border border-white/10 p-8 shadow-2xl">
-                
-                <div class="font-mono text-[10px] text-concrete mb-8 tracking-widest">
-                    // IDENTITY
+
+    <!-- Hero banner with photo -->
+    <div class="relative h-48 md:h-72 overflow-hidden">
+        <img
+            src="/images/IMG_0511.PNG"
+            alt=""
+            class="absolute inset-0 w-full h-full object-cover"
+            loading="eager"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-paper via-paper/40 to-transparent"></div>
+        <div class="absolute inset-0 flex items-end">
+            <div class="max-w-4xl mx-auto px-6 pb-8 w-full">
+                <h1 class="font-display text-4xl md:text-5xl font-bold text-primary tracking-tight">About</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-6 py-16">
+        <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-16 items-start">
+
+            <aside>
+                <div class="w-20 h-20 bg-accent text-white flex items-center justify-center text-4xl font-display italic font-bold rounded-xl mb-6">
+                    T
                 </div>
 
-                <div class="w-24 h-24 bg-accent flex items-center justify-center mb-8">
-                    <span class="font-serif italic font-bold text-5xl text-black">T</span>
-                </div>
+                <h2 class="font-display text-2xl font-bold text-primary mb-1">Feixiang Tao</h2>
+                <p class="font-sans text-sm text-accent font-medium mb-6">Freshman @ SUSTech</p>
 
-                <div class="mb-8">
-                    <h1 class="text-4xl font-serif text-white mb-2">Feixiang Tao</h1>
-                    <p class="font-mono text-sm text-accent font-bold">Freshman @ SUSTech</p>
-                </div>
-
-                <div class="w-full h-px bg-white/10 mb-8"></div>
-
-                <div class="space-y-4 font-mono text-xs">
-                    <div class="flex justify-between items-baseline">
-                        <span class="text-concrete uppercase tracking-wider">Major</span>
-                        <span class="text-white text-right">TBD</span>
+                <div class="space-y-3 font-sans text-sm border-t border-edge pt-6">
+                    <div class="flex justify-between">
+                        <span class="text-muted">Major</span>
+                        <span class="text-secondary">TBD</span>
                     </div>
-                    <div class="flex justify-between items-baseline">
-                        <span class="text-concrete uppercase tracking-wider">Focus</span>
-                        <span class="text-white text-right">Physics / Math / AI</span>
+                    <div class="flex justify-between">
+                        <span class="text-muted">Focus</span>
+                        <span class="text-secondary">Physics / Math / AI</span>
                     </div>
-                    <div class="flex justify-between items-baseline">
-                        <span class="text-concrete uppercase tracking-wider">Loc</span>
-                        <span class="text-white text-right">Shenzhen, CN</span>
+                    <div class="flex justify-between">
+                        <span class="text-muted">Location</span>
+                        <span class="text-secondary">Shenzhen, CN</span>
                     </div>
                 </div>
-
             </aside>
 
-            <main class="lg:col-span-7 flex flex-col justify-center pt-4">
-                
-                <div class="prose prose-invert prose-lg max-w-none mb-12">
-                    <p class="font-serif text-2xl text-ink leading-relaxed mb-6">
-                        "Hi, I'm Feixiang. A freshman undergraduate student at <span class="text-accent">SUSTech</span>."
+            <main>
+                <div class="mb-12">
+                    <p class="font-body text-xl text-primary leading-relaxed mb-6">
+                        Hi, I'm Feixiang. A freshman undergraduate student at
+                        <span class="text-accent font-medium">SUSTech</span>.
                     </p>
-                    
-                    <div class="text-concrete text-sm font-mono leading-loose space-y-4">
+
+                    <div class="font-body text-base text-secondary leading-[1.85] space-y-4">
                         <p>
-                            I am currently building my foundational knowledge in Computer Science,Physics and Mathematics.
+                            I am currently building my foundational knowledge in Computer Science,
+                            Physics and Mathematics.
                         </p>
                         <p>
-                            This website serves as a personal archive for my undergraduate studies. I use it to document course notes, lab experiments, and my understanding of fundamental theories. 
+                            This website serves as a personal archive for my undergraduate studies.
+                            I use it to document course notes, lab experiments, and my understanding
+                            of fundamental theories.
                         </p>
-                        <p>
+                        <p class="text-primary font-medium">
                             Always learning, always exploring.
                         </p>
                     </div>
                 </div>
 
-                <div class="border-t border-white/10 pt-8">
-                    <h3 class="font-mono text-xs text-concrete mb-6 flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 bg-accent"></span>
-                        CONNECT
-                    </h3>
-                    <div class="space-y-3">
+                <div class="mb-12">
+                    <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-4">Interests</h3>
+                    <div class="flex flex-wrap gap-2">
+                        {interests.map(interest => (
+                            <span class="font-sans text-xs text-secondary border border-edge px-3 py-1.5 rounded-md">
+                                {interest}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-4">Connect</h3>
+                    <div class="space-y-2">
                         {contacts.map(contact => (
-                            <a href={contact.url} target="_blank" class="flex items-center justify-between group py-2 hover:bg-white/5 px-2 -mx-2 transition-colors rounded-sm">
-                                <span class="font-serif text-lg text-white group-hover:text-accent transition-colors">
+                            <a href={contact.url} target="_blank" class="flex items-center justify-between group py-2.5 px-3 -mx-3 hover:bg-accent/5 transition-colors rounded-md">
+                                <span class="font-body text-base text-primary group-hover:text-accent transition-colors">
                                     {contact.label}
                                 </span>
-                                <span class="font-mono text-xs text-concrete group-hover:text-white transition-colors">
-                                    {contact.value} ↗
+                                <span class="font-mono text-xs text-muted group-hover:text-secondary transition-colors">
+                                    {contact.value}
+                                    <svg class="inline w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7m0 0H7m10 0v10"/></svg>
                                 </span>
                             </a>
                         ))}
                     </div>
                 </div>
-
             </main>
         </div>
     </div>

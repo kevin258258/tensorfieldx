@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+const posts = allPosts
+    .filter(post => !post.data.draft)
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<BaseLayout title="Blog">
+    <div class="max-w-3xl mx-auto px-6 py-16 min-h-screen">
+
+        <header class="mb-14">
+            <h1 class="text-4xl md:text-5xl font-display font-bold text-primary tracking-tight mb-4">
+                Blog
+            </h1>
+            <p class="text-secondary font-body text-base max-w-xl leading-relaxed">
+                Long-form writing on research ideas, technical explorations, and reflections.
+            </p>
+        </header>
+
+        {posts.length > 0 ? (
+            <div class="divide-y divide-edge">
+                {posts.map((post) => (
+                    <a href={`/blog/${post.slug}`} class="group block py-6 hover:bg-accent/3 -mx-3 px-3 rounded transition-colors">
+                        <div class="flex items-baseline gap-3 mb-2">
+                            <span class="font-mono text-[11px] text-muted shrink-0">
+                                {post.data.pubDate.toISOString().split('T')[0]}
+                            </span>
+                        </div>
+                        <h2 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">
+                            {post.data.title}
+                        </h2>
+                        {post.data.description && (
+                            <p class="font-body text-sm text-secondary leading-relaxed line-clamp-2">
+                                {post.data.description}
+                            </p>
+                        )}
+                        {post.data.tags && (
+                            <div class="flex gap-2 mt-3">
+                                {post.data.tags.slice(0, 3).map(tag => (
+                                    <span class="text-[10px] font-sans text-muted">{tag}</span>
+                                ))}
+                            </div>
+                        )}
+                    </a>
+                ))}
+            </div>
+        ) : (
+            <div class="text-center py-20">
+                <p class="font-body text-secondary text-lg mb-2">No posts yet.</p>
+                <p class="font-sans text-sm text-muted">Check back soon.</p>
+            </div>
+        )}
+
+    </div>
+</BaseLayout>

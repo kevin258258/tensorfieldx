@@ -1,9 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Folder, FileText, ChevronRight, ChevronDown, Network } from 'lucide-react';
-import KnowledgeGraph from './KnowledgeGraph'; // 下一步我们会创建这个
+import KnowledgeGraph from './KnowledgeGraph';
 
-// 数据接口定义
 interface Note {
   slug: string;
   data: {
@@ -11,8 +9,8 @@ interface Note {
     description: string;
     pubDate: Date;
     tags: string[];
-    series?: string;      // 新增
-    seriesOrder?: number; // 新增
+    series?: string;
+    seriesOrder?: number;
   };
 }
 
@@ -22,8 +20,7 @@ interface Props {
 
 export default function NotesExplorer({ notes }: Props) {
   const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
-  
-  // --- 核心逻辑：数据分组 (Grouping) ---
+
   const { seriesGroups, singles } = useMemo(() => {
     const groups: Record<string, Note[]> = {};
     const singleItems: Note[] = [];
@@ -38,7 +35,6 @@ export default function NotesExplorer({ notes }: Props) {
       }
     });
 
-    // 对系列内文章进行排序 (按 seriesOrder 或 日期)
     Object.keys(groups).forEach(key => {
       groups[key].sort((a, b) => (a.data.seriesOrder || 0) - (b.data.seriesOrder || 0));
     });
@@ -47,46 +43,46 @@ export default function NotesExplorer({ notes }: Props) {
   }, [notes]);
 
   return (
-    <div className="w-full min-h-[500px]">
-      
-      {/* 顶部工具栏：视图切换 */}
-      <div className="flex justify-end mb-8 border-b border-white/10 pb-4">
-        <div className="flex gap-4 font-mono text-xs">
-           <button 
-             onClick={() => setViewMode('list')}
-             className={`flex items-center gap-2 px-3 py-1 transition-colors ${viewMode === 'list' ? 'text-accent bg-white/5 border border-accent/30' : 'text-gray-500 hover:text-white'}`}
-           >
-             <FileText className="w-3 h-3" /> LIST_VIEW
-           </button>
-           <button 
-             onClick={() => setViewMode('graph')}
-             className={`flex items-center gap-2 px-3 py-1 transition-colors ${viewMode === 'graph' ? 'text-accent bg-white/5 border border-accent/30' : 'text-gray-500 hover:text-white'}`}
-           >
-             <Network className="w-3 h-3" /> GRAPH_VIEW
-           </button>
+    <div className="w-full min-h-[400px]">
+
+      <div className="flex justify-end mb-8 border-b pb-3" style={{ borderColor: 'rgb(var(--color-border))' }}>
+        <div className="flex gap-1 text-xs font-sans">
+          <button
+            onClick={() => setViewMode('list')}
+            className="px-3 py-1.5 rounded-md transition-colors"
+            style={{
+              color: viewMode === 'list' ? 'rgb(var(--color-accent))' : 'rgb(var(--color-muted))',
+              backgroundColor: viewMode === 'list' ? 'rgb(var(--color-accent) / 0.08)' : 'transparent',
+            }}
+          >
+            List
+          </button>
+          <button
+            onClick={() => setViewMode('graph')}
+            className="px-3 py-1.5 rounded-md transition-colors"
+            style={{
+              color: viewMode === 'graph' ? 'rgb(var(--color-accent))' : 'rgb(var(--color-muted))',
+              backgroundColor: viewMode === 'graph' ? 'rgb(var(--color-accent) / 0.08)' : 'transparent',
+            }}
+          >
+            Graph
+          </button>
         </div>
       </div>
 
-      {/* 内容区 */}
       <div className="relative">
         {viewMode === 'list' ? (
-          <div className="space-y-2">
-            
-            {/* 1. 先渲染系列 (Folders) */}
+          <div className="space-y-1">
             {Object.entries(seriesGroups).map(([seriesName, seriesNotes]) => (
               <SeriesFolder key={seriesName} title={seriesName} notes={seriesNotes} />
             ))}
-
-            {/* 2. 再渲染单篇 (Files) */}
             {singles.map((note) => (
               <NoteItem key={note.slug} note={note} />
             ))}
-            
           </div>
         ) : (
-          // Graph View (懒加载以提升性能)
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-             <KnowledgeGraph notes={notes} />
+            <KnowledgeGraph notes={notes} />
           </motion.div>
         )}
       </div>
@@ -94,24 +90,34 @@ export default function NotesExplorer({ notes }: Props) {
   );
 }
 
-// 子组件：系列文件夹 (带折叠动画)
 function SeriesFolder({ title, notes }: { title: string, notes: Note[] }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border border-white/5 rounded bg-white/[0.02] overflow-hidden">
-      <button 
+    <div className="rounded-lg overflow-hidden border" style={{ borderColor: 'rgb(var(--color-border))' }}>
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 transition-colors text-left group"
+        className="w-full flex items-center gap-3 px-4 py-3.5 transition-colors text-left group"
+        style={{ backgroundColor: isOpen ? 'rgb(var(--color-accent) / 0.04)' : 'transparent' }}
+        onMouseEnter={e => { if (!isOpen) e.currentTarget.style.backgroundColor = 'rgb(var(--color-primary) / 0.02)'; }}
+        onMouseLeave={e => { if (!isOpen) e.currentTarget.style.backgroundColor = 'transparent'; }}
       >
-        <Folder className={`w-4 h-4 transition-colors ${isOpen ? 'text-accent' : 'text-gray-500 group-hover:text-white'}`} />
-        <span className={`font-serif text-lg font-bold flex-1 ${isOpen ? 'text-white' : 'text-gray-300'}`}>
+        <svg
+          className="w-4 h-4 transition-transform"
+          style={{ color: isOpen ? 'rgb(var(--color-accent))' : 'rgb(var(--color-muted))', transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+        <span
+          className="font-display text-base font-semibold flex-1"
+          style={{ color: isOpen ? 'rgb(var(--color-primary))' : 'rgb(var(--color-secondary))' }}
+        >
           {title}
         </span>
-        <span className="font-mono text-xs text-gray-600 border border-gray-800 px-2 rounded-full">
-          {notes.length} ITEMS
+        <span className="font-mono text-[10px] px-2 py-0.5 rounded" style={{ color: 'rgb(var(--color-muted))', backgroundColor: 'rgb(var(--color-primary) / 0.04)' }}>
+          {notes.length}
         </span>
-        {isOpen ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronRight className="w-4 h-4 text-gray-500" />}
       </button>
 
       <AnimatePresence>
@@ -120,8 +126,8 @@ function SeriesFolder({ title, notes }: { title: string, notes: Note[] }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="border-t border-white/5"
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            style={{ borderTop: '1px solid rgb(var(--color-border))' }}
           >
             {notes.map(note => (
               <NoteItem key={note.slug} note={note} isChild />
@@ -133,20 +139,26 @@ function SeriesFolder({ title, notes }: { title: string, notes: Note[] }) {
   );
 }
 
-// 子组件：单篇文章
 function NoteItem({ note, isChild = false }: { note: Note, isChild?: boolean }) {
   return (
-    <a 
+    <a
       href={`/notes/${note.slug}`}
-      className={`block group flex items-baseline gap-4 py-3 border-b border-white/5 hover:bg-accent/10 transition-colors px-4 ${isChild ? 'pl-12 bg-black/20' : ''}`}
+      className="flex items-baseline gap-4 py-3 transition-colors rounded-md px-4"
+      style={{ paddingLeft: isChild ? '3rem' : '1rem' }}
+      onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgb(var(--color-accent) / 0.05)'}
+      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
     >
-      <span className="font-mono text-xs text-gray-600 w-24 shrink-0">
+      <span className="font-mono text-[11px] w-24 shrink-0" style={{ color: 'rgb(var(--color-muted))' }}>
         {new Date(note.data.pubDate).toISOString().split('T')[0]}
       </span>
-      <h3 className="font-serif text-base text-gray-300 group-hover:text-white group-hover:translate-x-1 transition-all">
+      <span className="font-body text-[15px]" style={{ color: 'rgb(var(--color-primary) / 0.85)' }}>
         {note.data.title}
-      </h3>
-      {isChild && <span className="text-xs text-gray-600 ml-auto">PART {note.data.seriesOrder}</span>}
+      </span>
+      {isChild && note.data.seriesOrder && (
+        <span className="text-[10px] font-mono ml-auto" style={{ color: 'rgb(var(--color-muted))' }}>
+          #{note.data.seriesOrder}
+        </span>
+      )}
     </a>
   );
 }

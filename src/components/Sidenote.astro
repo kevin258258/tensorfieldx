@@ -1,75 +1,49 @@
 ---
-// src/components/Sidenote.astro
 ---
 
-<span class="sidenote-wrapper group static inline align-baseline select-none" data-state="closed">
-    
-    <button 
+<span class="sidenote-wrapper group inline" data-state="closed">
+    <button
         type="button"
-        class="sidenote-trigger cursor-help text-accent font-bold text-[10px] align-super hover:underline decoration-accent underline-offset-2 transition-all mx-0.5 outline-none relative z-30"
+        class="sidenote-trigger cursor-help text-accent text-[10px] align-super hover:underline decoration-accent/50 underline-offset-2 transition-all mx-0.5 outline-none"
         style="line-height: 0;"
         aria-label="Toggle note"
     >
-        <span class="inline-flex items-center justify-center border border-accent/50 rounded-full w-3.5 h-3.5 text-[9px] text-accent bg-accent/5 transition-all duration-200 
-        group-data-[state=open]:bg-accent group-data-[state=open]:text-black group-data-[state=open]:scale-110 group-data-[state=open]:border-accent">?</span>
+        <span class="inline-flex items-center justify-center w-3.5 h-3.5 text-[9px] font-mono font-bold text-accent border border-accent/30 rounded-full
+        group-data-[state=open]:bg-accent group-data-[state=open]:text-paper group-data-[state=open]:border-accent transition-all">*</span>
     </button>
 
-    <span 
-        class="hidden xl:block absolute left-[103%] top-auto w-[250px] p-0 z-20 pointer-events-none group-data-[state=open]:pointer-events-auto"
-    >
-        <span class="block bg-[#0A0A0A]/95 border-l-[3px] border-accent/80 pl-3 pr-2 py-3 backdrop-blur-md text-[11px] leading-relaxed font-sans text-gray-300 text-left shadow-[0_4px_20px_rgba(0,0,0,0.5)] rounded-md border border-white/10
-        opacity-0 translate-x-[-10px] transition-all duration-300 ease-out origin-left
+    <span class="hidden xl:block absolute right-[-280px] top-0 w-[240px] z-20 pointer-events-none group-data-[state=open]:pointer-events-auto">
+        <span class="block border-l-2 border-accent/30 pl-4 py-1 text-[12px] leading-relaxed font-body text-secondary text-left
+        opacity-0 translate-x-[-8px] transition-all duration-300 ease-out
         group-data-[state=open]:opacity-100 group-data-[state=open]:translate-x-0">
-            
-            <span class="flex justify-between items-center border-b border-white/10 pb-2 mb-2">
-                <span class="text-accent font-bold tracking-widest text-[9px] uppercase font-mono flex items-center gap-1">
-                    // ANNOTATION
-                </span>
-            </span>
-            
-            <span class="block selection:bg-accent/30 selection:text-white break-words">
-                <slot />
-            </span>
+            <slot />
         </span>
     </span>
 
-    <span class="mobile-note hidden group-data-[state=open]:block xl:!hidden float-right clear-both w-full mt-2 mb-4 ml-1 pl-3 border-l-2 border-accent/30 font-sans text-sm text-gray-300 bg-white/5 p-3 rounded-r select-text">
-        <span class="block text-accent text-[10px] mb-1 uppercase font-mono opacity-70">// Note:</span>
+    <span class="mobile-note hidden group-data-[state=open]:block xl:!hidden w-full mt-3 mb-4 pl-4 border-l-2 border-accent/20 font-body text-sm text-secondary leading-relaxed">
         <slot />
     </span>
 </span>
 
 <script>
-    // 定义核心逻辑
     function setupSidenotes() {
-        // 先移除旧的监听器（防止热更新或多次加载导致重复绑定）
         document.body.removeEventListener('click', handleSidenoteClick);
-        // 重新绑定
         document.body.addEventListener('click', handleSidenoteClick);
     }
 
     function handleSidenoteClick(e: MouseEvent) {
         const target = e.target as HTMLElement;
         const trigger = target.closest('.sidenote-trigger');
-
         if (trigger) {
-            e.preventDefault(); 
-            e.stopPropagation(); 
-            
+            e.preventDefault();
+            e.stopPropagation();
             const wrapper = trigger.closest('.sidenote-wrapper');
             if (!wrapper) return;
-
             const currentState = wrapper.getAttribute('data-state');
-            const newState = currentState === 'open' ? 'closed' : 'open';
-            
-            wrapper.setAttribute('data-state', newState);
+            wrapper.setAttribute('data-state', currentState === 'open' ? 'closed' : 'open');
         }
     }
 
-    // 1. 首次加载运行
     setupSidenotes();
-
-    // 2. 关键修复：监听 Astro 页面切换事件
-    // 确保从首页点进文章页时，脚本重新运行
     document.addEventListener('astro:page-load', setupSidenotes);
 </script>

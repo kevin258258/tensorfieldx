@@ -2,47 +2,63 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Sidenote from '../../components/Sidenote.astro';
-import { Calendar, Clock, ArrowLeft } from 'lucide-react';
+import Giscus from '../../components/Giscus.astro';
 
 export async function getStaticPaths() {
     const posts = await getCollection('notes');
-    return posts.map((post) => ({
+    const sorted = posts.sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
+    return sorted.map((post, i) => ({
         params: { slug: post.slug },
-        props: post,
+        props: {
+            post,
+            prev: i > 0 ? { slug: sorted[i - 1].slug, title: sorted[i - 1].data.title } : null,
+            next: i < sorted.length - 1 ? { slug: sorted[i + 1].slug, title: sorted[i + 1].data.title } : null,
+            seriesPosts: post.data.series
+                ? sorted
+                    .filter(p => p.data.series === post.data.series)
+                    .sort((a, b) => (a.data.seriesOrder || 0) - (b.data.seriesOrder || 0))
+                    .map(p => ({ slug: p.slug, title: p.data.title, order: p.data.seriesOrder }))
+                : [],
+        },
     }));
 }
 
-const post = Astro.props;
+const { post, prev, next, seriesPosts } = Astro.props;
 const { Content, headings } = await post.render();
+
+const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
+const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug);
 ---
 
 <BaseLayout title={post.data.title}>
-    
-    <div class="fixed top-0 left-0 w-full h-1 z-50 pointer-events-none">
-        <div class="h-full bg-accent/50 w-[0%]" id="progress-bar"></div> 
+
+    <div class="fixed top-0 left-0 w-full h-[2px] z-50 pointer-events-none">
+        <div class="h-full bg-accent/60 w-[0%] transition-[width] duration-100" id="progress-bar"></div>
     </div>
 
-    <article class="max-w-[98vw] lg:max-w-[1600px] mx-auto mt-12 lg:mt-20 grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 lg:px-0 min-h-screen">
-        
-        <aside class="hidden lg:block lg:col-span-2 lg:col-start-1 h-full relative pl-6">
-            <div class="sticky top-32 border-l border-white/10 pl-6 py-2 transition-opacity duration-300 hover:opacity-100 opacity-40">
-                
-                <a href="/notes" class="flex items-center gap-2 text-[10px] font-mono text-gray-500 mb-8 hover:text-accent transition-colors">
-                    <ArrowLeft class="w-3 h-3" /> BACK_TO_INDEX
+    <article class="max-w-[90rem] mx-auto mt-8 lg:mt-16 grid grid-cols-1 lg:grid-cols-[220px_1fr_220px] gap-8 px-4 lg:px-8 pb-24">
+
+        <aside class="hidden lg:block h-full relative">
+            <div class="sticky top-24 py-2" id="toc-sidebar">
+
+                <a href="/notes" class="flex items-center gap-1.5 text-[11px] font-sans text-muted mb-8 hover:text-accent transition-colors">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 12H5m0 0 7 7m-7-7 7-7"/></svg>
+                    Back
                 </a>
 
-                <h3 class="font-mono text-[10px] text-accent uppercase tracking-widest mb-6 flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
-                    // Structure
+                <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-4">
+                    Contents
                 </h3>
-                <ul class="space-y-3 font-mono text-xs">
+                <ul class="space-y-2 font-sans text-xs" id="toc-list">
                     {headings.map((heading) => (
-                        <li class={`
-                            ${heading.depth === 2 ? 'font-bold text-gray-300' : 'pl-3 text-gray-500'} 
-                            hover:text-accent transition-colors duration-200
-                        `}>
-                            <a href={`#${heading.slug}`} class="block truncate leading-relaxed">
-                                {heading.depth === 3 && <span class="mr-1 opacity-50">-</span>}
+                        <li
+                            class:list={[
+                                "toc-item transition-colors duration-200 leading-snug",
+                                heading.depth === 2 ? 'font-medium text-secondary' : 'pl-3 text-muted',
+                            ]}
+                            data-depth={heading.depth}
+                        >
+                            <a href={`#${heading.slug}`} class="block truncate toc-link" data-slug={heading.slug}>
                                 {heading.text}
                             </a>
                         </li>
@@ -51,75 +67,223 @@ const { Content, headings } = await post.render();
             </div>
         </aside>
 
-        <div class="lg:col-span-8 lg:col-start-3 relative mb-32">
-            
-            <header class="mb-12 pl-1"> <div class="flex flex-wrap items-center gap-4 font-mono text-[10px] text-accent mb-6 border-b border-white/10 pb-4">
-                    <span class="bg-accent/10 px-2 py-1 rounded text-accent border border-accent/20">
-                        {post.slug.split('/')[0].toUpperCase()}
-                    </span>
-                    <span class="flex items-center gap-1 text-gray-500">
-                        <Calendar class="w-3 h-3" />
-                        {post.data.pubDate.toLocaleDateString('en-CA')}
-                    </span>
-                    <span class="flex items-center gap-1 text-gray-500">
-                        <Clock class="w-3 h-3" />
-                        {(post.body.length / 500).toFixed(0)} MIN READ
-                    </span>
+        <div class="min-w-0 relative">
+
+            <nav class="flex items-center gap-1.5 font-sans text-[11px] text-muted mb-6" aria-label="Breadcrumb">
+                <a href="/" class="hover:text-accent transition-colors">Home</a>
+                <span>/</span>
+                <a href="/notes" class="hover:text-accent transition-colors">Notes</a>
+                {post.data.series && (
+                    <Fragment>
+                        <span>/</span>
+                        <span class="text-secondary">{post.data.series}</span>
+                    </Fragment>
+                )}
+                <span>/</span>
+                <span class="text-primary truncate max-w-[200px]">{post.data.title}</span>
+            </nav>
+
+            <header class="mb-10">
+                <div class="flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted mb-5">
+                    {post.data.series && (
+                        <span class="text-accent bg-accent/8 px-2 py-0.5 rounded font-sans font-medium text-[11px]">
+                            {post.data.series}
+                        </span>
+                    )}
+                    <span>{post.data.pubDate.toLocaleDateString('en-CA')}</span>
+                    <span>·</span>
+                    <span>{readTime} min read</span>
                 </div>
 
-                <h1 class="text-4xl md:text-6xl lg:text-7xl font-serif font-bold mb-8 leading-[1.1] text-white tracking-tight">
+                <h1 class="text-3xl md:text-5xl lg:text-[3.25rem] font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
                     {post.data.title}
                 </h1>
 
                 {post.data.tags && (
                     <div class="flex flex-wrap gap-2">
-                        {post.data.tags.map(tag => (
-                            <span class="text-[10px] font-mono text-gray-400 border border-white/10 px-2 py-1 hover:text-accent hover:border-accent/50 transition-colors cursor-default">
-                                #{tag}
-                            </span>
+                        {post.data.tags.map((tag: string) => (
+                            <a href={`/tags/${tag}`} class="text-[11px] font-sans text-muted border border-edge px-2 py-0.5 rounded hover:text-accent hover:border-accent/30 transition-colors">
+                                {tag}
+                            </a>
                         ))}
                     </div>
                 )}
             </header>
 
-            <div class="prose prose-invert prose-lg max-w-none 
-                bg-[#050505]/80 backdrop-blur-xl
-                border border-white/10 rounded-lg
-                p-8 md:p-16  
-                shadow-2xl shadow-black/50
-                
-                prose-headings:font-serif prose-headings:font-bold prose-headings:text-white prose-headings:scroll-mt-24
-                prose-p:text-gray-300 prose-p:leading-8 prose-p:font-sans prose-p:opacity-90
-                prose-strong:text-white prose-strong:font-bold
-                prose-a:text-accent prose-a:no-underline prose-a:border-b prose-a:border-accent/30 hover:prose-a:border-accent hover:prose-a:bg-accent/10 prose-a:transition-all
-                prose-li:text-gray-400 prose-li:marker:text-accent
-                
-                overflow-visible relative z-10">
-                
+            <div class="prose prose-lg max-w-none
+                prose-headings:font-display prose-headings:font-bold prose-headings:text-primary prose-headings:scroll-mt-24
+                prose-p:font-body prose-p:text-primary/85 prose-p:leading-[1.85]
+                prose-strong:text-primary prose-strong:font-bold
+                prose-a:text-accent prose-a:no-underline prose-a:border-b prose-a:border-accent/30 hover:prose-a:border-accent prose-a:transition-colors
+                prose-li:text-primary/80 prose-li:marker:text-accent
+                prose-blockquote:border-accent/30 prose-blockquote:text-secondary prose-blockquote:font-body prose-blockquote:not-italic
+                prose-code:font-mono prose-code:text-sm prose-code:bg-surface prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:border prose-code:border-edge prose-code:before:content-none prose-code:after:content-none
+                prose-pre:bg-surface prose-pre:border prose-pre:border-edge prose-pre:rounded-lg
+                prose-img:rounded prose-img:border prose-img:border-edge
+                prose-hr:border-edge
+                overflow-visible relative">
+
                 <Content components={{ Sidenote }} />
-                
+
             </div>
 
-            <div class="mt-16 flex items-center justify-center gap-4 opacity-30">
-                <div class="h-px w-12 bg-white"></div>
-                <span class="font-mono text-[10px] tracking-widest text-white">END_OF_FILE</span>
-                <div class="h-px w-12 bg-white"></div>
+            <div class="mt-20 flex items-center justify-center gap-4 text-muted">
+                <div class="h-px w-16 bg-edge"></div>
+                <span class="font-mono text-[10px] tracking-widest">END</span>
+                <div class="h-px w-16 bg-edge"></div>
             </div>
+
+            {seriesPosts.length > 1 && (
+                <div class="mt-12 p-5 border border-edge rounded-lg bg-surface/50">
+                    <h4 class="font-sans text-xs font-medium text-muted uppercase tracking-wider mb-3">
+                        Series: {post.data.series}
+                    </h4>
+                    <ol class="space-y-1.5">
+                        {seriesPosts.map((sp: any, i: number) => (
+                            <li class:list={["text-sm font-body", i === currentSeriesIdx ? "text-accent font-medium" : "text-secondary"]}>
+                                <span class="font-mono text-[10px] text-muted mr-2">{i + 1}.</span>
+                                {i === currentSeriesIdx ? (
+                                    <span>{sp.title}</span>
+                                ) : (
+                                    <a href={`/notes/${sp.slug}`} class="hover:text-accent transition-colors">{sp.title}</a>
+                                )}
+                            </li>
+                        ))}
+                    </ol>
+                </div>
+            )}
+
+            <nav class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {prev ? (
+                    <a href={`/notes/${prev.slug}`} class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+                        <span class="font-mono text-[10px] text-muted mb-1">&larr; Previous</span>
+                        <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{prev.title}</span>
+                    </a>
+                ) : <div />}
+                {next ? (
+                    <a href={`/notes/${next.slug}`} class="group flex flex-col items-end text-right p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+                        <span class="font-mono text-[10px] text-muted mb-1">Next &rarr;</span>
+                        <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{next.title}</span>
+                    </a>
+                ) : <div />}
+            </nav>
+
+            <Giscus term={`notes/${post.slug}`} />
 
         </div>
 
-        <div class="hidden lg:block lg:col-span-2"></div>
+        <div class="hidden lg:block"></div>
 
     </article>
+
+    <!-- Mobile floating TOC -->
+    {headings.length > 0 && (
+        <div class="lg:hidden fixed bottom-20 right-4 z-40">
+            <button
+                id="mobile-toc-toggle"
+                class="p-3 rounded-full bg-surface border border-edge shadow-lg text-muted hover:text-accent transition-colors"
+                aria-label="Table of contents"
+            >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+                </svg>
+            </button>
+            <div id="mobile-toc-panel" class="hidden absolute bottom-14 right-0 w-64 max-h-80 overflow-y-auto bg-paper border border-edge rounded-lg shadow-xl p-4">
+                <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-3">Contents</h3>
+                <ul class="space-y-2">
+                    {headings.map((heading) => (
+                        <li class:list={[heading.depth === 2 ? '' : 'pl-3']}>
+                            <a
+                                href={`#${heading.slug}`}
+                                class="mobile-toc-link block text-xs font-sans text-secondary hover:text-accent transition-colors truncate"
+                                data-slug={heading.slug}
+                            >
+                                {heading.text}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    )}
 </BaseLayout>
 
 <script>
-    // 简单的阅读进度条逻辑
-    window.addEventListener('scroll', () => {
-        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrolled = (winScroll / height) * 100;
+    function initProgress() {
         const bar = document.getElementById("progress-bar");
-        if(bar) bar.style.width = scrolled + "%";
+        if (!bar) return;
+
+        function update() {
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            if (scrollHeight > 0) {
+                bar!.style.width = Math.min(100, (scrollTop / scrollHeight) * 100) + "%";
+            }
+        }
+
+        window.addEventListener('scroll', update, { passive: true });
+        update();
+    }
+
+    function initTocTracking() {
+        const tocLinks = document.querySelectorAll('.toc-link');
+        const tocItems = document.querySelectorAll('.toc-item');
+        if (!tocLinks.length) return;
+
+        const slugs = Array.from(tocLinks).map(l => (l as HTMLElement).dataset.slug!);
+        const headingEls = slugs.map(s => document.getElementById(s)).filter(Boolean) as HTMLElement[];
+        if (!headingEls.length) return;
+
+        function updateActive() {
+            const scrollY = window.scrollY + 120;
+            let activeIdx = 0;
+
+            for (let i = headingEls.length - 1; i >= 0; i--) {
+                if (headingEls[i].offsetTop <= scrollY) {
+                    activeIdx = i;
+                    break;
+                }
+            }
+
+            tocItems.forEach((item, i) => {
+                const link = item.querySelector('.toc-link') as HTMLElement;
+                const depth = item.getAttribute('data-depth');
+                if (i === activeIdx) {
+                    link.style.color = 'rgb(var(--color-accent))';
+                    item.classList.add('font-semibold');
+                } else {
+                    link.style.color = '';
+                    item.classList.remove('font-semibold');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', updateActive, { passive: true });
+        updateActive();
+    }
+
+    function initMobileToc() {
+        const toggle = document.getElementById('mobile-toc-toggle');
+        const panel = document.getElementById('mobile-toc-panel');
+        if (!toggle || !panel) return;
+
+        toggle.onclick = (e) => {
+            e.stopPropagation();
+            panel.classList.toggle('hidden');
+        };
+        document.addEventListener('click', (e) => {
+            if (!panel.contains(e.target as Node) && e.target !== toggle) {
+                panel.classList.add('hidden');
+            }
+        });
+        panel.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => panel.classList.add('hidden'));
+        });
+    }
+
+    document.addEventListener('astro:page-load', () => {
+        initProgress();
+        initTocTracking();
+        initMobileToc();
     });
 </script>
