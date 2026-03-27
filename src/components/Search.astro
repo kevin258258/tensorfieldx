@@ -129,14 +129,16 @@
             t.onclick = (e) => { e.preventDefault(); openModal(); };
         });
 
-        const handleKeydown = (e: KeyboardEvent) => {
+        function handleKeydown(e: KeyboardEvent) {
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openModal(); }
             if (e.key === 'Escape') { closeModal(); }
-        };
+        }
 
-        document.removeEventListener('keydown', (window as any)._searchKeyHandler);
-        document.addEventListener('keydown', handleKeydown);
+        if ((window as any)._searchKeyHandler) {
+            document.removeEventListener('keydown', (window as any)._searchKeyHandler);
+        }
         (window as any)._searchKeyHandler = handleKeydown;
+        document.addEventListener('keydown', handleKeydown);
 
         modal.onclick = (e) => { if (e.target === modal) closeModal(); };
         input.oninput = (e) => { performSearch((e.target as HTMLInputElement).value); };

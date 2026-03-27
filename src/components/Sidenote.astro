@@ -4,12 +4,13 @@
 <span class="sidenote-wrapper group inline" data-state="closed">
     <button
         type="button"
-        class="sidenote-trigger cursor-help text-accent text-[10px] align-super hover:underline decoration-accent/50 underline-offset-2 transition-all mx-0.5 outline-none"
+        class="sidenote-trigger cursor-help text-accent text-[10px] align-super hover:underline decoration-accent/50 underline-offset-2 transition-all mx-0.5 outline-none relative"
         style="line-height: 0;"
         aria-label="Toggle note"
     >
-        <span class="inline-flex items-center justify-center w-3.5 h-3.5 text-[9px] font-mono font-bold text-accent border border-accent/30 rounded-full
+        <span class="inline-flex items-center justify-center w-5 h-5 md:w-3.5 md:h-3.5 text-[10px] md:text-[9px] font-mono font-bold text-accent border border-accent/30 rounded-full
         group-data-[state=open]:bg-accent group-data-[state=open]:text-paper group-data-[state=open]:border-accent transition-all">*</span>
+        <span class="absolute -inset-2 md:hidden" aria-hidden="true"></span>
     </button>
 
     <span class="hidden xl:block absolute right-[-280px] top-0 w-[240px] z-20 pointer-events-none group-data-[state=open]:pointer-events-auto">

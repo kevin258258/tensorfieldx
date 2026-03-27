@@ -51,7 +51,7 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
             {post.data.tags && (
                 <div class="flex flex-wrap gap-2">
                     {post.data.tags.map((tag: string) => (
-                        <a href={`/tags/${tag}`} class="text-[11px] font-sans text-muted border border-edge px-2 py-0.5 rounded hover:text-accent hover:border-accent/30 transition-colors">
+                        <a href={`/tags/${tag}`} class="text-xs font-sans text-muted border border-edge px-2.5 py-1.5 md:px-2 md:py-0.5 rounded hover:text-accent hover:border-accent/30 transition-colors">
                             {tag}
                         </a>
                     ))}

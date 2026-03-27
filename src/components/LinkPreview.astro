@@ -10,44 +10,48 @@
 </div>
 
 <script>
-    let linkData: Record<string, any> = {};
-    fetch('/link-preview.json')
-        .then(res => res.json())
-        .then(data => { linkData = data; });
+    const isTouchDevice = window.matchMedia('(hover: none)').matches;
 
-    const tooltip = document.getElementById('preview-tooltip');
-    const els = {
-        title: document.getElementById('preview-title'),
-        desc: document.getElementById('preview-desc'),
-        date: document.getElementById('preview-date'),
-        tag: document.getElementById('preview-tag')
-    };
+    if (!isTouchDevice) {
+        let linkData: Record<string, any> = {};
+        fetch('/link-preview.json')
+            .then(res => res.json())
+            .then(data => { linkData = data; });
 
-    document.addEventListener('astro:page-load', () => {
-        const links = document.querySelectorAll('a[href^="/notes/"]');
-        links.forEach(link => {
-            link.addEventListener('mouseenter', () => {
-                const url = link.getAttribute('href');
-                const data = linkData[url!];
-                if (data && tooltip && els.title && els.desc && els.date && els.tag) {
-                    els.title.innerText = data.title;
-                    els.desc.innerText = data.description;
-                    els.date.innerText = data.date;
-                    els.tag.innerText = data.tags[0] || '';
-                    tooltip.classList.remove('hidden');
-                }
-            });
-            link.addEventListener('mousemove', (e: Event) => {
-                const me = e as MouseEvent;
-                if (!tooltip) return;
-                const x = me.clientX + 16;
-                const y = me.clientY + 16;
-                tooltip.style.left = (x + 288 > window.innerWidth ? me.clientX - 304 : x) + 'px';
-                tooltip.style.top = (y + 160 > window.innerHeight ? me.clientY - 160 : y) + 'px';
-            });
-            link.addEventListener('mouseleave', () => {
-                tooltip?.classList.add('hidden');
+        const tooltip = document.getElementById('preview-tooltip');
+        const els = {
+            title: document.getElementById('preview-title'),
+            desc: document.getElementById('preview-desc'),
+            date: document.getElementById('preview-date'),
+            tag: document.getElementById('preview-tag')
+        };
+
+        document.addEventListener('astro:page-load', () => {
+            const links = document.querySelectorAll('a[href^="/notes/"]');
+            links.forEach(link => {
+                link.addEventListener('mouseenter', () => {
+                    const url = link.getAttribute('href');
+                    const data = linkData[url!];
+                    if (data && tooltip && els.title && els.desc && els.date && els.tag) {
+                        els.title.innerText = data.title;
+                        els.desc.innerText = data.description;
+                        els.date.innerText = data.date;
+                        els.tag.innerText = data.tags[0] || '';
+                        tooltip.classList.remove('hidden');
+                    }
+                });
+                link.addEventListener('mousemove', (e: Event) => {
+                    const me = e as MouseEvent;
+                    if (!tooltip) return;
+                    const x = me.clientX + 16;
+                    const y = me.clientY + 16;
+                    tooltip.style.left = (x + 288 > window.innerWidth ? me.clientX - 304 : x) + 'px';
+                    tooltip.style.top = (y + 160 > window.innerHeight ? me.clientY - 160 : y) + 'px';
+                });
+                link.addEventListener('mouseleave', () => {
+                    tooltip?.classList.add('hidden');
+                });
             });
         });
-    });
+    }
 </script>

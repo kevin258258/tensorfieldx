@@ -91,6 +91,9 @@ const navLinks = [
         --color-border: 55 53 50;
       }
 
+      html { touch-action: manipulation; }
+      a, button, input, [role="button"] { touch-action: manipulation; }
+
       ::-webkit-scrollbar { width: 5px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: rgb(var(--color-muted) / 0.3); border-radius: 3px; }
@@ -106,7 +109,7 @@ const navLinks = [
         mix-blend-mode: normal;
       }
       ::view-transition-new(root) {
-        animation: fade-in 200ms ease-out;
+        animation: fade-in 100ms ease-out;
         mix-blend-mode: normal;
       }
       @keyframes fade-in {
@@ -114,7 +117,14 @@ const navLinks = [
       }
 
       body {
-        background: rgb(var(--color-paper)) url("/images/paper-texture.webp") center / cover fixed;
+        background: rgb(var(--color-paper)) url("/images/paper-texture.webp") center / cover;
+        background-attachment: scroll;
+      }
+      @supports (-webkit-touch-callout: none) {
+        body { background-attachment: scroll; }
+      }
+      @media (hover: hover) and (min-width: 768px) {
+        body { background-attachment: fixed; }
       }
       .dark body {
         background: rgb(var(--color-paper));
@@ -196,9 +206,9 @@ const navLinks = [
           <div class="flex items-center gap-3">
             <button
               id="search-trigger"
-              class="flex items-center gap-2 px-3 py-1.5 border border-edge rounded-md hover:border-accent/40 hover:bg-accent/5 transition-all group"
+              class="flex items-center gap-2 px-3 py-2 md:py-1.5 border border-edge rounded-md hover:border-accent/40 hover:bg-accent/5 transition-all group min-h-[44px] md:min-h-0"
             >
-              <svg class="w-3.5 h-3.5 text-muted group-hover:text-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-4 h-4 md:w-3.5 md:h-3.5 text-muted group-hover:text-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
               </svg>
               <kbd class="hidden md:inline text-[10px] text-muted font-mono">⌘K</kbd>
@@ -206,36 +216,36 @@ const navLinks = [
 
             <button
               id="theme-toggle"
-              class="p-2 rounded-md hover:bg-primary/5 transition-colors text-secondary hover:text-primary"
+              class="p-2.5 md:p-2 rounded-md hover:bg-primary/5 transition-colors text-secondary hover:text-primary min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
               aria-label="Toggle theme"
             >
-              <svg class="w-4 h-4 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <svg class="w-5 h-5 md:w-4 md:h-4 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
               </svg>
-              <svg class="w-4 h-4 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <svg class="w-5 h-5 md:w-4 md:h-4 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
               </svg>
             </button>
 
             <button
               id="mobile-menu-toggle"
-              class="md:hidden p-2 rounded-md hover:bg-primary/5 text-secondary"
+              class="md:hidden p-2.5 rounded-md hover:bg-primary/5 text-secondary min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Menu"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path d="M3.75 9h16.5m-16.5 6.75h16.5" />
               </svg>
             </button>
           </div>
         </div>
 
-        <div id="mobile-menu" class="hidden md:hidden border-t border-edge bg-paper px-6 py-4">
-          <div class="flex flex-col gap-3 text-sm font-sans text-secondary">
+        <div id="mobile-menu" class="hidden md:hidden border-t border-edge bg-paper px-6 py-3">
+          <div class="flex flex-col text-sm font-sans text-secondary">
             {navLinks.map(link => (
               <a
                 href={link.href}
                 class:list={[
-                  "hover:text-primary transition-colors py-1",
+                  "hover:text-primary transition-colors py-3 border-b border-edge/50 last:border-0",
                   { "text-primary font-medium": currentPath.startsWith(link.href) }
                 ]}
               >
@@ -252,10 +262,10 @@ const navLinks = [
 
       <button
         id="back-to-top"
-        class="fixed bottom-6 right-6 z-40 p-2.5 rounded-full bg-surface border border-edge shadow-lg text-muted hover:text-accent hover:border-accent/40 transition-all opacity-0 translate-y-4 pointer-events-none"
+        class="fixed bottom-6 left-6 z-40 p-3 md:p-2.5 rounded-full bg-surface border border-edge shadow-lg text-muted hover:text-accent hover:border-accent/40 transition-all opacity-0 translate-y-4 pointer-events-none"
         aria-label="Back to top"
       >
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path d="M5 15l7-7 7 7"/>
         </svg>
       </button>
@@ -316,7 +326,7 @@ const navLinks = [
           wrapper.appendChild(pre);
 
           const btn = document.createElement('button');
-          btn.className = 'copy-btn absolute top-2 right-2 p-1.5 rounded bg-primary/5 border border-edge text-muted hover:text-accent hover:border-accent/30 opacity-0 group-hover/code:opacity-100 transition-all text-xs font-mono';
+          btn.className = 'copy-btn absolute top-2 right-2 p-2 md:p-1.5 rounded bg-primary/5 border border-edge text-muted hover:text-accent hover:border-accent/30 opacity-100 md:opacity-0 md:group-hover/code:opacity-100 transition-all text-xs font-mono';
           btn.textContent = 'Copy';
           btn.onclick = async () => {
             const code = pre.querySelector('code')?.textContent || pre.textContent || '';

@@ -35,11 +35,11 @@ const maxCount = Math.max(...tags.map(t => t[1]), 1);
 
         <div class="flex flex-wrap gap-3">
             {tags.map(([tag, count]) => {
-                const scale = 0.75 + (count / maxCount) * 0.5;
+                const scale = 0.875 + (count / maxCount) * 0.375;
                 return (
                     <a
                         href={`/tags/${tag}`}
-                        class="group inline-flex items-center gap-1.5 px-3 py-1.5 border border-edge rounded-md hover:border-accent/40 hover:bg-accent/5 transition-all"
+                        class="group inline-flex items-center gap-1.5 px-3 py-2.5 md:py-1.5 border border-edge rounded-md hover:border-accent/40 hover:bg-accent/5 transition-all min-h-[44px] md:min-h-0"
                         style={`font-size: ${scale}rem;`}
                     >
                         <span class="text-accent opacity-60 group-hover:opacity-100 transition-opacity">#</span>
