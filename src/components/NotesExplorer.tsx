@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import KnowledgeGraph from './KnowledgeGraph';
+
+const KnowledgeGraph = lazy(() => import('./KnowledgeGraph'));
 
 interface Note {
   slug: string;
@@ -82,7 +83,13 @@ export default function NotesExplorer({ notes }: Props) {
           </div>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <KnowledgeGraph notes={notes} />
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64" style={{ color: 'rgb(var(--color-muted))' }}>
+                <span className="font-mono text-xs">Loading graph...</span>
+              </div>
+            }>
+              <KnowledgeGraph notes={notes} />
+            </Suspense>
           </motion.div>
         )}
       </div>
