@@ -6,10 +6,22 @@
 </section>
 
 <script>
+    let giscusObserver: MutationObserver | null = null;
+
     function loadGiscus() {
         const container = document.querySelector('.giscus');
         if (!container || container.querySelector('iframe') || container.querySelector('script')) return;
 
+        const io = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                io.disconnect();
+                injectGiscus(container);
+            }
+        }, { rootMargin: '200px' });
+        io.observe(container);
+    }
+
+    function injectGiscus(container: Element) {
         const isDark = document.documentElement.classList.contains('dark');
 
         const script = document.createElement('script');
@@ -29,26 +41,25 @@
         script.crossOrigin = 'anonymous';
         script.async = true;
         container.appendChild(script);
-    }
 
-    function updateGiscusTheme() {
-        const iframe = document.querySelector('iframe.giscus-frame') as HTMLIFrameElement;
-        if (!iframe) return;
-        const theme = document.documentElement.classList.contains('dark')
-            ? 'noborder_dark'
-            : 'noborder_light';
-        iframe.contentWindow?.postMessage(
-            { giscus: { setConfig: { theme } } },
-            'https://giscus.app'
-        );
-    }
-
-    const observer = new MutationObserver((mutations) => {
-        for (const m of mutations) {
-            if (m.attributeName === 'class') updateGiscusTheme();
+        if (!giscusObserver) {
+            giscusObserver = new MutationObserver((mutations) => {
+                for (const m of mutations) {
+                    if (m.attributeName === 'class') {
+                        const iframe = document.querySelector('iframe.giscus-frame') as HTMLIFrameElement;
+                        if (!iframe) return;
+                        const theme = document.documentElement.classList.contains('dark')
+                            ? 'noborder_dark' : 'noborder_light';
+                        iframe.contentWindow?.postMessage(
+                            { giscus: { setConfig: { theme } } },
+                            'https://giscus.app'
+                        );
+                    }
+                }
+            });
+            giscusObserver.observe(document.documentElement, { attributes: true });
         }
-    });
-    observer.observe(document.documentElement, { attributes: true });
+    }
 
     document.addEventListener('astro:page-load', loadGiscus);
 </script>

@@ -209,31 +209,33 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
 </BaseLayout>
 
 <script>
+    let rafId = 0;
+
     function initProgress() {
         const bar = document.getElementById("progress-bar");
         if (!bar) return;
 
         function update() {
-            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const scrollTop = window.scrollY;
             const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
             if (scrollHeight > 0) {
                 bar!.style.width = Math.min(100, (scrollTop / scrollHeight) * 100) + "%";
             }
         }
 
-        window.addEventListener('scroll', update, { passive: true });
-        update();
+        return update;
     }
 
     function initTocTracking() {
         const tocLinks = document.querySelectorAll('.toc-link');
         const tocItems = document.querySelectorAll('.toc-item');
-        if (!tocLinks.length) return;
+        if (!tocLinks.length) return null;
 
         const slugs = Array.from(tocLinks).map(l => (l as HTMLElement).dataset.slug!);
         const headingEls = slugs.map(s => document.getElementById(s)).filter(Boolean) as HTMLElement[];
-        if (!headingEls.length) return;
+        if (!headingEls.length) return null;
 
+        let lastActive = -1;
         function updateActive() {
             const scrollY = window.scrollY + 120;
             let activeIdx = 0;
@@ -245,9 +247,11 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
                 }
             }
 
+            if (activeIdx === lastActive) return;
+            lastActive = activeIdx;
+
             tocItems.forEach((item, i) => {
                 const link = item.querySelector('.toc-link') as HTMLElement;
-                const depth = item.getAttribute('data-depth');
                 if (i === activeIdx) {
                     link.style.color = 'rgb(var(--color-accent))';
                     item.classList.add('font-semibold');
@@ -258,8 +262,7 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
             });
         }
 
-        window.addEventListener('scroll', updateActive, { passive: true });
-        updateActive();
+        return updateActive;
     }
 
     function initMobileToc() {
@@ -282,8 +285,25 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
     }
 
     document.addEventListener('astro:page-load', () => {
-        initProgress();
-        initTocTracking();
+        const progressFn = initProgress();
+        const tocFn = initTocTracking();
+
+        if (progressFn || tocFn) {
+            let ticking = false;
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    ticking = true;
+                    rafId = requestAnimationFrame(() => {
+                        progressFn?.();
+                        tocFn?.();
+                        ticking = false;
+                    });
+                }
+            }, { passive: true });
+            progressFn?.();
+            tocFn?.();
+        }
+
         initMobileToc();
     });
 </script>

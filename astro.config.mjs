@@ -15,6 +15,10 @@ export default defineConfig({
 		tailwind(),
 		react(),
 	],
+	prefetch: {
+		defaultStrategy: 'viewport',
+		prefetchAll: true,
+	},
 	markdown: {
 		remarkPlugins: [remarkMath],
 		rehypePlugins: [rehypeKatex],

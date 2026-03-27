@@ -68,6 +68,43 @@ const navLinks = [
       document.addEventListener('astro:after-swap', applyTheme);
     </script>
 
+    <script is:inline>
+      (function() {
+        var bar = null;
+        var timer = null;
+        var width = 0;
+
+        document.addEventListener('astro:before-preparation', function() {
+          bar = document.getElementById('nav-progress');
+          if (!bar) return;
+          width = 15;
+          bar.style.transition = 'none';
+          bar.style.width = '0%';
+          bar.style.opacity = '1';
+          void bar.offsetWidth;
+          bar.style.transition = 'width 300ms ease-out';
+          bar.style.width = '15%';
+
+          clearInterval(timer);
+          timer = setInterval(function() {
+            if (width < 85) {
+              width += (85 - width) * 0.1;
+              bar.style.width = width + '%';
+            }
+          }, 200);
+        });
+
+        document.addEventListener('astro:after-swap', function() {
+          clearInterval(timer);
+          if (bar) {
+            bar.style.transition = 'width 150ms ease-out, opacity 300ms ease-out 100ms';
+            bar.style.width = '100%';
+            bar.style.opacity = '0';
+          }
+        });
+      })();
+    </script>
+
     <style is:global>
       :root {
         --color-paper: 244 241 236;
@@ -109,8 +146,13 @@ const navLinks = [
         mix-blend-mode: normal;
       }
       ::view-transition-new(root) {
-        animation: fade-in 100ms ease-out;
+        animation: fade-in 80ms ease-out;
         mix-blend-mode: normal;
+      }
+      @media (hover: none) {
+        ::view-transition-new(root) {
+          animation: none;
+        }
       }
       @keyframes fade-in {
         from { opacity: 0; }
@@ -173,12 +215,14 @@ const navLinks = [
 
   <body class="text-primary min-h-screen font-body relative">
 
+    <div id="nav-progress" class="fixed top-0 left-0 h-[2px] bg-accent z-[9999] transition-none" style="width:0;opacity:0"></div>
+
     <Search />
     <LinkPreview />
 
     <div class="relative z-10 min-h-screen flex flex-col">
       <nav
-        class="sticky top-0 z-40 border-b border-edge bg-paper/95 backdrop-blur-md"
+        class="sticky top-0 z-40 border-b border-edge bg-paper md:bg-paper/95 md:backdrop-blur-md"
         transition:persist
       >
         <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
@@ -193,6 +237,7 @@ const navLinks = [
             {navLinks.map(link => (
               <a
                 href={link.href}
+                data-astro-prefetch="hover"
                 class:list={[
                   "hover:text-primary transition-colors",
                   { "text-primary": currentPath.startsWith(link.href) }
@@ -244,6 +289,7 @@ const navLinks = [
             {navLinks.map(link => (
               <a
                 href={link.href}
+                data-astro-prefetch="tap"
                 class:list={[
                   "hover:text-primary transition-colors py-3 border-b border-edge/50 last:border-0",
                   { "text-primary font-medium": currentPath.startsWith(link.href) }
@@ -342,8 +388,12 @@ const navLinks = [
       document.addEventListener('astro:page-load', () => {
         initThemeToggle();
         initMobileMenu();
-        initBackToTop();
-        initCopyCode();
+
+        const defer = window.requestIdleCallback || ((cb: Function) => setTimeout(cb, 16));
+        defer(() => {
+          initBackToTop();
+          initCopyCode();
+        });
       });
     </script>
   </body>
