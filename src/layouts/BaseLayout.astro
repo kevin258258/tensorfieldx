@@ -110,9 +110,11 @@ const navLinks = [
         background: rgb(var(--color-paper));
       }
 
-      .prose > :nth-child(n+8) {
-        content-visibility: auto;
-        contain-intrinsic-size: auto 80px;
+      @media (min-width: 768px) and (hover: hover) {
+        .prose > :nth-child(n+8) {
+          content-visibility: auto;
+          contain-intrinsic-size: auto 80px;
+        }
       }
 
       :root pre[class*="astro-code"],
