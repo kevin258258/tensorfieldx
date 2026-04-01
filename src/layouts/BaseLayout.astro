@@ -117,6 +117,13 @@ const navLinks = [
         }
       }
 
+      .theme-switching *,
+      .theme-switching *::before,
+      .theme-switching *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+
       :root pre[class*="astro-code"],
       :root .astro-code {
         background: rgb(252 250 245) !important;
@@ -270,9 +277,20 @@ const navLinks = [
     <script>
       const toggle = document.getElementById('theme-toggle');
       if (toggle) {
+        const root = document.documentElement;
+        const finishThemeSwitch = () => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              root.classList.remove('theme-switching');
+            });
+          });
+        };
+
         toggle.onclick = () => {
-          const isDark = document.documentElement.classList.toggle('dark');
+          root.classList.add('theme-switching');
+          const isDark = root.classList.toggle('dark');
           localStorage.setItem('theme', isDark ? 'dark' : 'light');
+          finishThemeSwitch();
         };
       }
 
