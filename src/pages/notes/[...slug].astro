@@ -30,7 +30,7 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
 const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug);
 ---
 
-<BaseLayout title={post.data.title}>
+<BaseLayout title={post.data.title} needsKatex>
 
     <div class="fixed top-0 left-0 w-full h-[2px] z-50 pointer-events-none">
         <div class="h-full bg-accent/60 w-[0%] transition-[width] duration-100" id="progress-bar"></div>

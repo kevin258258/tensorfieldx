@@ -5,9 +5,10 @@ import Analytics from "@vercel/analytics/astro";
 
 interface Props {
   title: string;
+  needsKatex?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, needsKatex = false } = Astro.props;
 const currentPath = Astro.url.pathname;
 
 const navLinks = [
@@ -30,12 +31,14 @@ const navLinks = [
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} | Feixiang Tao</title>
 
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-      media="print"
-      onload="this.media='all'"
-    />
+    {needsKatex && (
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        media="print"
+        onload="this.media='all'"
+      />
+    )}
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -342,30 +345,6 @@ const navLinks = [
           wrapper.appendChild(btn);
         });
       });
-    </script>
-
-    <script is:inline>
-      (function(){
-        var c=new Set;
-        function p(a){
-          if(!a||!a.href||a.target==="_blank"||a.origin!==location.origin)return;
-          if(a.pathname===location.pathname)return;
-          if(c.has(a.href))return;
-          c.add(a.href);
-          var l=document.createElement("link");
-          l.rel="prefetch";
-          l.href=a.href;
-          document.head.appendChild(l);
-        }
-        document.addEventListener("touchstart",function(e){
-          var a=e.target.closest&&e.target.closest("a");
-          if(a)p(a);
-        },{capture:true,passive:true});
-        document.addEventListener("mouseover",function(e){
-          var a=e.target.closest&&e.target.closest("a");
-          if(a)p(a);
-        },{capture:true,passive:true});
-      })();
     </script>
   </body>
 </html>

@@ -16,8 +16,8 @@ export default defineConfig({
 		react(),
 	],
 	prefetch: {
-		defaultStrategy: 'viewport',
-		prefetchAll: true,
+		defaultStrategy: 'hover',
+		prefetchAll: false,
 	},
 	markdown: {
 		remarkPlugins: [remarkMath],
