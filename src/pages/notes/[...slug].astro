@@ -209,8 +209,6 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
 </BaseLayout>
 
 <script>
-    let rafId = 0;
-
     function initProgress() {
         const bar = document.getElementById("progress-bar");
         if (!bar) return;
@@ -284,26 +282,24 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
         });
     }
 
-    document.addEventListener('astro:page-load', () => {
-        const progressFn = initProgress();
-        const tocFn = initTocTracking();
+    const progressFn = initProgress();
+    const tocFn = initTocTracking();
 
-        if (progressFn || tocFn) {
-            let ticking = false;
-            window.addEventListener('scroll', () => {
-                if (!ticking) {
-                    ticking = true;
-                    rafId = requestAnimationFrame(() => {
-                        progressFn?.();
-                        tocFn?.();
-                        ticking = false;
-                    });
-                }
-            }, { passive: true });
-            progressFn?.();
-            tocFn?.();
-        }
+    if (progressFn || tocFn) {
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                ticking = true;
+                requestAnimationFrame(() => {
+                    progressFn?.();
+                    tocFn?.();
+                    ticking = false;
+                });
+            }
+        }, { passive: true });
+        progressFn?.();
+        tocFn?.();
+    }
 
-        initMobileToc();
-    });
+    initMobileToc();
 </script>

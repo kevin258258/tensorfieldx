@@ -26,7 +26,7 @@
             tag: document.getElementById('preview-tag')
         };
 
-        document.addEventListener('astro:page-load', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const links = document.querySelectorAll('a[href^="/notes/"]');
             links.forEach(link => {
                 link.addEventListener('mouseenter', () => {

@@ -1,7 +1,6 @@
 ---
 import Search from "../components/Search.astro";
 import LinkPreview from "../components/LinkPreview.astro";
-import { ViewTransitions } from "astro:transitions";
 import Analytics from "@vercel/analytics/astro";
 
 interface Props {
@@ -31,8 +30,6 @@ const navLinks = [
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} | Feixiang Tao</title>
 
-    <ViewTransitions />
-
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -45,63 +42,24 @@ const navLinks = [
     <link
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap"
       onload="this.rel='stylesheet'"
     />
     <noscript>
       <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap"
         rel="stylesheet"
       />
     </noscript>
 
     <script is:inline>
-      function applyTheme() {
+      (function() {
         var theme = localStorage.getItem('theme');
         if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');
         }
-      }
-      applyTheme();
-      document.addEventListener('astro:after-swap', applyTheme);
-    </script>
-
-    <script is:inline>
-      (function() {
-        var bar = null;
-        var timer = null;
-        var width = 0;
-
-        document.addEventListener('astro:before-preparation', function() {
-          bar = document.getElementById('nav-progress');
-          if (!bar) return;
-          width = 15;
-          bar.style.transition = 'none';
-          bar.style.width = '0%';
-          bar.style.opacity = '1';
-          void bar.offsetWidth;
-          bar.style.transition = 'width 300ms ease-out';
-          bar.style.width = '15%';
-
-          clearInterval(timer);
-          timer = setInterval(function() {
-            if (width < 85) {
-              width += (85 - width) * 0.1;
-              bar.style.width = width + '%';
-            }
-          }, 200);
-        });
-
-        document.addEventListener('astro:after-swap', function() {
-          clearInterval(timer);
-          if (bar) {
-            bar.style.transition = 'width 150ms ease-out, opacity 300ms ease-out 100ms';
-            bar.style.width = '100%';
-            bar.style.opacity = '0';
-          }
-        });
       })();
     </script>
 
@@ -141,35 +99,20 @@ const navLinks = [
         color: rgb(var(--color-primary));
       }
 
-      ::view-transition-old(root) {
-        animation: none;
-        mix-blend-mode: normal;
-      }
-      ::view-transition-new(root) {
-        animation: fade-in 80ms ease-out;
-        mix-blend-mode: normal;
-      }
-      @media (hover: none) {
-        ::view-transition-new(root) {
-          animation: none;
-        }
-      }
-      @keyframes fade-in {
-        from { opacity: 0; }
-      }
-
       body {
         background: rgb(var(--color-paper)) url("/images/paper-texture.webp") center / cover;
         background-attachment: scroll;
-      }
-      @supports (-webkit-touch-callout: none) {
-        body { background-attachment: scroll; }
       }
       @media (hover: hover) and (min-width: 768px) {
         body { background-attachment: fixed; }
       }
       .dark body {
         background: rgb(var(--color-paper));
+      }
+
+      .prose > :nth-child(n+8) {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 80px;
       }
 
       :root pre[class*="astro-code"],
@@ -215,15 +158,12 @@ const navLinks = [
 
   <body class="text-primary min-h-screen font-body relative">
 
-    <div id="nav-progress" class="fixed top-0 left-0 h-[2px] bg-accent z-[9999] transition-none" style="width:0;opacity:0"></div>
-
     <Search />
     <LinkPreview />
 
     <div class="relative z-10 min-h-screen flex flex-col">
       <nav
         class="sticky top-0 z-40 border-b border-edge bg-paper md:bg-paper/95 md:backdrop-blur-md"
-        transition:persist
       >
         <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <a
@@ -237,7 +177,6 @@ const navLinks = [
             {navLinks.map(link => (
               <a
                 href={link.href}
-                data-astro-prefetch="hover"
                 class:list={[
                   "hover:text-primary transition-colors",
                   { "text-primary": currentPath.startsWith(link.href) }
@@ -289,7 +228,6 @@ const navLinks = [
             {navLinks.map(link => (
               <a
                 href={link.href}
-                data-astro-prefetch="tap"
                 class:list={[
                   "hover:text-primary transition-colors py-3 border-b border-edge/50 last:border-0",
                   { "text-primary font-medium": currentPath.startsWith(link.href) }
@@ -328,42 +266,42 @@ const navLinks = [
     </div>
 
     <script>
-      function initThemeToggle() {
-        const toggle = document.getElementById('theme-toggle');
-        if (!toggle) return;
+      const toggle = document.getElementById('theme-toggle');
+      if (toggle) {
         toggle.onclick = () => {
           const isDark = document.documentElement.classList.toggle('dark');
           localStorage.setItem('theme', isDark ? 'dark' : 'light');
         };
       }
 
-      function initMobileMenu() {
-        const toggle = document.getElementById('mobile-menu-toggle');
-        const menu = document.getElementById('mobile-menu');
-        if (!toggle || !menu) return;
-        toggle.onclick = () => menu.classList.toggle('hidden');
+      const menuToggle = document.getElementById('mobile-menu-toggle');
+      const menu = document.getElementById('mobile-menu');
+      if (menuToggle && menu) {
+        menuToggle.onclick = () => menu.classList.toggle('hidden');
       }
 
-      function initBackToTop() {
-        const btn = document.getElementById('back-to-top');
-        if (!btn) return;
-
-        function toggle() {
-          if (window.scrollY > 400) {
-            btn!.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
-            btn!.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
-          } else {
-            btn!.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
-            btn!.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+      const topBtn = document.getElementById('back-to-top');
+      if (topBtn) {
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(() => {
+              if (window.scrollY > 400) {
+                topBtn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+                topBtn.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+              } else {
+                topBtn.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                topBtn.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+              }
+              ticking = false;
+            });
           }
-        }
-
-        window.addEventListener('scroll', toggle, { passive: true });
-        btn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-        toggle();
+        }, { passive: true });
+        topBtn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      function initCopyCode() {
+      requestAnimationFrame(() => {
         document.querySelectorAll('pre').forEach(pre => {
           if (pre.querySelector('.copy-btn')) return;
           const wrapper = document.createElement('div');
@@ -383,18 +321,31 @@ const navLinks = [
           };
           wrapper.appendChild(btn);
         });
-      }
-
-      document.addEventListener('astro:page-load', () => {
-        initThemeToggle();
-        initMobileMenu();
-
-        const defer = window.requestIdleCallback || ((cb: Function) => setTimeout(cb, 16));
-        defer(() => {
-          initBackToTop();
-          initCopyCode();
-        });
       });
+    </script>
+
+    <script is:inline>
+      (function(){
+        var c=new Set;
+        function p(a){
+          if(!a||!a.href||a.target==="_blank"||a.origin!==location.origin)return;
+          if(a.pathname===location.pathname)return;
+          if(c.has(a.href))return;
+          c.add(a.href);
+          var l=document.createElement("link");
+          l.rel="prefetch";
+          l.href=a.href;
+          document.head.appendChild(l);
+        }
+        document.addEventListener("touchstart",function(e){
+          var a=e.target.closest&&e.target.closest("a");
+          if(a)p(a);
+        },{capture:true,passive:true});
+        document.addEventListener("mouseover",function(e){
+          var a=e.target.closest&&e.target.closest("a");
+          if(a)p(a);
+        },{capture:true,passive:true});
+      })();
     </script>
   </body>
 </html>

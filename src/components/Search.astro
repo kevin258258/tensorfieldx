@@ -129,20 +129,14 @@
             t.onclick = (e) => { e.preventDefault(); openModal(); };
         });
 
-        function handleKeydown(e: KeyboardEvent) {
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openModal(); }
             if (e.key === 'Escape') { closeModal(); }
-        }
-
-        if ((window as any)._searchKeyHandler) {
-            document.removeEventListener('keydown', (window as any)._searchKeyHandler);
-        }
-        (window as any)._searchKeyHandler = handleKeydown;
-        document.addEventListener('keydown', handleKeydown);
+        });
 
         modal.onclick = (e) => { if (e.target === modal) closeModal(); };
         input.oninput = (e) => { performSearch((e.target as HTMLInputElement).value); };
     }
 
-    document.addEventListener('astro:page-load', initSearchSystem);
+    initSearchSystem();
 </script>
