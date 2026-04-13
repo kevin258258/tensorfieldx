@@ -1,0 +1,416 @@
+---
+title: "RL 数学 Note 4：随机近似、TD 与 Q-learning"
+description: "从随机近似出发，统一理解增量学习、TD(0)、SARSA 与 Q-learning 的收敛骨架。"
+pubDate: 2026-04-13
+tags: ["RL", "Mathematics", "Temporal Difference", "Stochastic Approximation"]
+series: "RL Mathematics"
+seriesOrder: 4
+---
+
+承接 [Note 1](/notes/rl-math01) 与 [Note 2](/notes/rl-math02)，这一篇开始进入真正的“从样本中学习”问题。前两篇更多在讨论贝尔曼方程和最优方程本身，而本篇要回答的是：**当环境模型不在手里时，为什么 TD、SARSA、Q-learning 这种只看单步样本的算法仍然有理论支撑？**
+
+核心答案是：它们本质上都属于**随机近似**。
+
+## 1. 随机近似：强化学习里的统一母式
+
+设想我们想求解某个方程
+
+$$
+g(x)=0.
+$$
+
+如果 $g$ 可以精确计算，这只是普通数值分析问题。但在强化学习与统计学习里，我们通常拿不到 $g(x)$，只能看到它的样本近似：
+
+$$
+\tilde g(x,\xi)=g(x)+\eta.
+$$
+
+这里 $\xi$ 表示样本，$\eta$ 表示噪声。于是最自然的迭代就是
+
+$$
+x_{k+1}=x_k-a_k\tilde g(x_k,\xi_k)
+=x_k-a_k\big(g(x_k)+\eta_k\big).
+$$
+
+这个式子就是经典的 Robbins-Monro 随机近似。
+
+它拆开以后非常清楚：
+
+- $a_k$ 是步长；
+- $g(x_k)$ 是平均意义下真正想走的方向；
+- $\eta_k$ 是随机样本带来的摆动。
+
+所以“随机近似”这四个字其实一点也不玄：
+
+- “近似”在于我们用样本替代真函数；
+- “随机”在于样本里有噪声。
+
+统一写法就是
+
+$$
+\text{sample}=\text{mean field}+\text{noise}.
+$$
+
+后面你看到的 TD 误差、Bellman sample、Q-learning target，本质上都能拆成这个结构。
+
+## 2. 为什么这种带噪更新还能收敛
+
+随机近似之所以成立，依赖三类条件：
+
+1. 平均动力学本身是稳定的；
+2. 噪声没有系统性偏差，而且二阶矩可控；
+3. 步长既不能太快衰减，也不能一直太大。
+
+经典条件通常写成
+
+$$
+\mathbb E[\eta_k\mid \mathcal F_k]=0,\qquad
+\mathbb E[\|\eta_k\|^2\mid \mathcal F_k]<\infty,
+$$
+
+以及
+
+$$
+\sum_{k=0}^{\infty} a_k=\infty,\qquad
+\sum_{k=0}^{\infty} a_k^2<\infty.
+$$
+
+后两条步长条件非常有直觉：
+
+- $\sum a_k=\infty$ 说明总学习能力不能太快耗尽；
+- $\sum a_k^2<\infty$ 说明累计噪声能量必须可控。
+
+这就是一句很经典的工程直觉：
+
+> 前期步子要足够大，后期步子要足够小。
+
+## 3. Robbins-Monro 证明骨架在说什么
+
+设 $x^*$ 满足 $g(x^*)=0$，定义误差
+
+$$
+e_k=x_k-x^*.
+$$
+
+则有
+
+$$
+e_{k+1}=e_k-a_k\big(g(x_k)-g(x^*)+\eta_k\big).
+$$
+
+通常会考察平方误差 $\|e_k\|^2$。展开并对条件期望取平均后，可以得到一类典型不等式：
+
+$$
+\mathbb E[\|e_{k+1}\|^2\mid \mathcal F_k]
+\le (1-c a_k)\|e_k\|^2 + C a_k^2.
+$$
+
+这个形式已经把机制说透了：
+
+- $(1-c a_k)\|e_k\|^2$ 是平均漂移带来的收缩；
+- $C a_k^2$ 是噪声小项；
+- 由于 $\sum a_k^2<\infty$，噪声的长期能量不会压过主收缩项。
+
+所以随机近似的真正精神是：
+
+> 每一步都很吵，但长期方向由平均漂移决定。
+
+## 4. 它和 ODE / 不动点 / 压缩映射的关系
+
+如果先忽略噪声，迭代就变成
+
+$$
+x_{k+1}=x_k-a_k g(x_k).
+$$
+
+当步长足够小时，它近似于 ODE
+
+$$
+\dot x=-g(x).
+$$
+
+于是随机近似可以理解成：**在一条稳定 ODE 上叠加了逐渐衰减的小噪声。**
+
+这会把三套看似不同的语言统一起来：
+
+- Banach 不动点定理：强调压缩映射；
+- Lyapunov / ODE 理论：强调稳定平衡点；
+- 随机近似：强调稳定系统上的带噪离散迭代。
+
+它们的骨架其实是同一句话：
+
+> 误差动力学必须在平均意义下向内收。
+
+## 5. 最简单的例子：样本均值本身就是随机近似
+
+如果 $x_1,x_2,\dots$ 是样本，目标是估计均值 $\mu=\mathbb E[x]$，那么样本均值
+
+$$
+\bar x_k=\frac{1}{k}\sum_{i=1}^k x_i
+$$
+
+可以改写成递推形式
+
+$$
+\bar x_{k+1}
+=\bar x_k+\frac{1}{k+1}(x_{k+1}-\bar x_k).
+$$
+
+这已经是标准模板了：
+
+$$
+\text{new}=\text{old}+\alpha_k(\text{target}-\text{old}).
+$$
+
+这个 trivial 例子非常重要，因为后面的 MC、TD、Q-learning、甚至 SGD，本质上都长成这副样子。
+
+## 6. TD 为什么会出现
+
+在 Monte Carlo 方法里，我们用完整 return
+
+$$
+G_t=\sum_{k=0}^\infty \gamma^k r_{t+k}
+$$
+
+去估计
+
+$$
+V^\pi(s)=\mathbb E_\pi[G_t\mid S_t=s].
+$$
+
+但 MC 有三个明显问题：
+
+- 必须等整条轨迹结束；
+- 方差大；
+- 不适合 continuing task。
+
+而 Bellman 方程告诉我们，对固定策略 $\pi$，
+
+$$
+V^\pi(s)=\mathbb E[r_{t+1}+\gamma V^\pi(S_{t+1})\mid S_t=s].
+$$
+
+这意味着我们可以不等完整 return，而直接使用一步样本 target
+
+$$
+r_{t+1}+\gamma V(S_{t+1}).
+$$
+
+这就是 TD 的根本动机：**用 Bellman 的局部递推结构，换掉 MC 那个高方差的全局 target。**
+
+## 7. TD(0) 的更新式
+
+定义 TD 误差
+
+$$
+\delta_t=r_{t+1}+\gamma V_t(S_{t+1})-V_t(S_t).
+$$
+
+那么表格型 TD(0) 更新就是
+
+$$
+V_{t+1}(S_t)=V_t(S_t)+\alpha_t\,\delta_t,
+$$
+
+其他状态保持不变。
+
+这个式子和样本均值递推完全同构：
+
+$$
+\text{new}=\text{old}+\alpha(\text{target}-\text{old}).
+$$
+
+只不过 target 已经从“完整 future”变成了“一步奖励 + 当前对未来的估计”。
+
+## 8. TD 和 Monte Carlo 的真正区别
+
+严格说，MC 也能写成增量更新，所以两者的本质差别并不是“一个能在线，一个不能在线”。更深的区别在于：
+
+- MC 的 target 是完整 return $G_t$；
+- TD 的 target 是 bootstrap return $r_{t+1}+\gamma V_t(S_{t+1})$。
+
+因此二者对应一条经典的偏差-方差权衡：
+
+- MC：低偏差，高方差；
+- TD：有 bootstrap bias，但方差更低。
+
+后来的 $n$-step return、TD($\lambda$) 等方法，本质上都在这条谱线上取不同折中。
+
+## 9. TD 的随机近似视角
+
+记真实值函数为 $V^\pi$，定义误差
+
+$$
+\Delta_t(s)=V_t(s)-V^\pi(s).
+$$
+
+又因为
+
+$$
+V^\pi=T^\pi V^\pi,
+$$
+
+所以 TD 实际上是在试图求解不动点方程
+
+$$
+T^\pi V-V=0.
+$$
+
+若时刻 $t$ 访问到状态 $s=S_t$，则
+
+$$
+V_{t+1}(s)=V_t(s)+\alpha_t(s)\big(r_{t+1}+\gamma V_t(S_{t+1})-V_t(s)\big).
+$$
+
+把它写成“平均漂移 + 噪声”的形式后，漂移项就是
+
+$$
+(T^\pi V_t)(s)-V_t(s),
+$$
+
+而噪声项来自单步 Bellman sample 相对其条件期望的偏差。
+
+这正是随机近似模板。
+
+## 10. TD(0) 收敛证明真正验证了什么
+
+在表格型、固定策略、所有状态被充分访问、步长满足 Robbins-Monro 条件的情况下，有经典收敛结论
+
+$$
+V_t(s)\to V^\pi(s)\qquad \text{a.s.}
+$$
+
+证明里本质上是在验证三件事：
+
+1. 步长满足
+   $$
+   \sum_t \alpha_t(s)=\infty,\qquad
+   \sum_t \alpha_t^2(s)<\infty;
+   $$
+2. 平均更新方向对应 Bellman 算子 $T^\pi$；
+3. $T^\pi$ 在无穷范数下是 $\gamma$-压缩映射。
+
+因此可以把 TD(0) 概括成一句非常重要的话：
+
+> TD(0) 本质上是带噪声的 Bellman contraction iteration。
+
+## 11. 为什么控制问题更喜欢学动作值
+
+固定策略评估时，学状态值 $V^\pi$ 已经够用；但到了 control 场景，仅仅知道“状态好不好”还不够，你还要知道“当前该做哪个动作”。
+
+于是定义动作值函数
+
+$$
+Q^\pi(s,a)=\mathbb E_\pi[G_t\mid S_t=s,A_t=a].
+$$
+
+有了它，策略改进立刻可以写成
+
+$$
+\pi_{\text{new}}(s)=\arg\max_a Q^\pi(s,a).
+$$
+
+因此很多控制算法更愿意直接学 $Q$。
+
+## 12. SARSA：on-policy 的 TD control
+
+SARSA 名字来自五元组
+
+$$
+(S_t,A_t,R_{t+1},S_{t+1},A_{t+1}).
+$$
+
+其更新式为
+
+$$
+Q(S_t,A_t)\leftarrow Q(S_t,A_t)
++\alpha\Big(r_{t+1}+\gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t)\Big).
+$$
+
+它之所以是 on-policy，是因为 target 里的下一步动作 $A_{t+1}$ 就是行为策略真实采出来的动作。也就是说：
+
+- 你怎么行为；
+- 你就评估那条策略本身。
+
+如果行为策略是 $\epsilon$-greedy，SARSA 学到的就是这条带探索策略的动作值函数，因此通常会更保守一些。
+
+## 13. Q-learning：off-policy 的随机近似
+
+Q-learning 不再评估行为策略，而是直接瞄准最优动作值函数 $Q^*$。其理论起点是最优贝尔曼方程
+
+$$
+Q^*(s,a)=\mathbb E\big[r+\gamma\max_{a'}Q^*(s',a')\mid s,a\big].
+$$
+
+于是更新写成
+
+$$
+Q(S_t,A_t)\leftarrow Q(S_t,A_t)
++\alpha\Big(r_{t+1}+\gamma\max_{a'}Q(S_{t+1},a')-Q(S_t,A_t)\Big).
+$$
+
+它之所以是 off-policy，是因为：
+
+- 采样时你可以用 $\epsilon$-greedy 等 exploratory 行为策略；
+- 但 target 对应的是 greedy policy 隐含的最优算子。
+
+从随机近似角度看，它在做的是
+
+$$
+T^*Q-Q=0
+$$
+
+的随机近似，其中 $T^*$ 是最优贝尔曼算子。
+
+由于 $T^*$ 同样是 $\gamma$-压缩映射，在有限状态动作空间、所有 $(s,a)$ 被访问无穷多次、步长满足 Robbins-Monro 条件下，可以得到经典收敛结论
+
+$$
+Q_t(s,a)\to Q^*(s,a)\qquad \text{a.s.}
+$$
+
+因此从理论骨架上说，Q-learning 与 TD(0) 的差别并不在于有没有神秘技巧，而在于：
+
+- TD(0) 解的是 $T^\pi V=V$；
+- Q-learning 解的是 $T^*Q=Q$。
+
+## 14. On-policy 与 off-policy 的本质区别
+
+更本质地说：
+
+- on-policy：采样分布与目标对象一致；
+- off-policy：采样分布与目标对象分离。
+
+于是优缺点也非常自然：
+
+- on-policy 更新干净、分析更直接，但样本利用率低；
+- off-policy 更能复用经验，但 distribution mismatch 会让稳定性更脆弱。
+
+经验回放、离线 RL、重要性采样修正，都是围绕这个分离问题展开的。
+
+## 15. 总结：为什么随机近似是 RL 的基础语法
+
+从样本均值到 TD，再到 SARSA 和 Q-learning，一整串算法其实都共享同一个句法：
+
+$$
+\text{estimate}\leftarrow \text{estimate}
++\alpha(\text{sample target}-\text{estimate}).
+$$
+
+区别只在于 target 的构造方式不同：
+
+- 样本均值：target 是原始样本；
+- Monte Carlo：target 是完整 return；
+- TD：target 是一步 bootstrap return；
+- SARSA：target 是 on-policy 的动作值 bootstrap；
+- Q-learning：target 是最优 Bellman bootstrap。
+
+理论上，它们也共享同一套收敛骨架：
+
+1. 找到平均漂移对应的 deterministic operator；
+2. 证明该 operator 具有收缩或稳定结构；
+3. 控制噪声的均值与二阶矩；
+4. 用合适步长把“能学到”和“噪声可控”同时满足。
+
+所以 TD 学习最迷人的地方在于：它表面上像是在“对着单个样本瞎改表”，但更深层上，它是在追随一个稳定的不动点动力学。
+
+下一篇 [Note 5](/notes/rl-math05) 会进入策略梯度路线。看起来那会是另一套完全不同的思想，但如果你仔细看，会发现它同样绕不开随机近似：因为每一次 policy update，本质上仍然是在用 noisy sample 去逼近一个期望梯度。

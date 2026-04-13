@@ -1,0 +1,412 @@
+---
+title: "RL 数学 Note 5：策略梯度、Baseline 与 Off-Policy"
+description: "从轨迹分布出发推导策略梯度，并统一理解 baseline、reward-to-go 与 off-policy 校正。"
+pubDate: 2026-04-13
+tags: ["RL", "Mathematics", "Policy Gradient"]
+series: "RL Mathematics"
+seriesOrder: 5
+---
+
+前面几篇笔记主要沿着“先写贝尔曼方程，再做不动点求解”的路线前进。不论是值函数、最优方程、TD 还是 Q-learning，本质上都还是在围着 value function 转。
+
+策略梯度则代表另一条路线：
+
+> 不先求值函数，而是直接把策略本身参数化，然后对策略参数做优化。
+
+它的数学骨架其实非常干净，几乎只靠两件工具就能立起来：
+
+1. 轨迹分布的因子分解；
+2. log-derivative trick。
+
+而 baseline、reward-to-go、importance sampling 这些看起来像工程技巧的东西，本质上都围绕着两件事：**降低方差**与**修正分布错位**。
+
+## 1. 我们到底在优化什么
+
+设策略由参数 $\theta$ 控制，写成
+
+$$
+\pi_\theta(a\mid s).
+$$
+
+在这条策略下，环境会生成随机轨迹
+
+$$
+\tau=(s_0,a_0,s_1,a_1,\dots,s_T).
+$$
+
+记一条轨迹的总回报为 $R(\tau)$，则目标函数定义为
+
+$$
+J(\theta)=\mathbb E_{\tau\sim p_\theta(\tau)}[R(\tau)].
+$$
+
+这里与值函数路线的区别很大：
+
+- 值函数方法先求 $V^\pi$ 或 $Q^\pi$；
+- 策略梯度方法直接问：**整个轨迹期望回报对参数 $\theta$ 的梯度是什么？**
+
+## 2. 轨迹分布的分解是整个推导的支点
+
+轨迹概率满足
+
+$$
+p_\theta(\tau)
+=p(s_0)\prod_{t=0}^{T-1}\pi_\theta(a_t\mid s_t)\,p(s_{t+1}\mid s_t,a_t).
+$$
+
+这个分解极其关键，因为它告诉我们：
+
+- 初始状态分布 $p(s_0)$ 与 $\theta$ 无关；
+- 环境转移 $p(s_{t+1}\mid s_t,a_t)$ 与 $\theta$ 无关；
+- 真正带参数的，只有策略项 $\pi_\theta(a_t\mid s_t)$。
+
+所以看似是在对整条轨迹分布求导，实际上只有 policy 部分需要负责。
+
+## 3. 最基本的策略梯度推导
+
+从目标函数出发，
+
+$$
+\nabla_\theta J(\theta)
+=\nabla_\theta \int p_\theta(\tau)R(\tau)\,d\tau.
+$$
+
+交换积分与梯度后，
+
+$$
+\nabla_\theta J(\theta)
+=\int \nabla_\theta p_\theta(\tau)\,R(\tau)\,d\tau.
+$$
+
+此时使用关键恒等式
+
+$$
+\nabla_\theta p_\theta(\tau)
+=p_\theta(\tau)\nabla_\theta\log p_\theta(\tau),
+$$
+
+得到
+
+$$
+\nabla_\theta J(\theta)
+=\mathbb E_{\tau\sim p_\theta}
+\big[\nabla_\theta\log p_\theta(\tau)\,R(\tau)\big].
+$$
+
+再利用轨迹分解，
+
+$$
+\log p_\theta(\tau)
+=\log p(s_0)+\sum_{t=0}^{T-1}\log\pi_\theta(a_t\mid s_t)
++\sum_{t=0}^{T-1}\log p(s_{t+1}\mid s_t,a_t),
+$$
+
+因此
+
+$$
+\nabla_\theta\log p_\theta(\tau)
+=\sum_{t=0}^{T-1}\nabla_\theta\log\pi_\theta(a_t\mid s_t).
+$$
+
+最终得到最原始的策略梯度形式
+
+$$
+\nabla_\theta J(\theta)
+=\mathbb E_{\tau\sim p_\theta}\left[
+\left(\sum_{t=0}^{T-1}\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right)R(\tau)
+\right].
+$$
+
+这就是 REINFORCE 的理论起点。
+
+## 4. 它为什么看起来像最大似然
+
+如果在做行为克隆，目标通常是
+
+$$
+\max_\theta \sum_{i,t}\log\pi_\theta(a_t^{(i)}\mid s_t^{(i)}),
+$$
+
+它的梯度就是
+
+$$
+\sum_{i,t}\nabla_\theta\log\pi_\theta(a_t^{(i)}\mid s_t^{(i)}).
+$$
+
+而策略梯度的样本形式则是
+
+$$
+\sum_{i,t}\nabla_\theta\log\pi_\theta(a_t^{(i)}\mid s_t^{(i)})\,R(\tau^{(i)}).
+$$
+
+所以从形式上看，policy gradient 很像一类**加权最大似然**：
+
+- MLE：每个动作样本权重都是 $1$；
+- PG：每个动作样本权重由回报决定。
+
+这也说明了两者的哲学差别：
+
+- MLE 是模仿“数据里发生过什么”；
+- PG 是放大“最终带来高回报的 sampled 行为”。
+
+## 5. 为什么最原始的策略梯度高方差
+
+记
+
+$$
+Z(\tau)=\sum_t \nabla_\theta\log\pi_\theta(a_t\mid s_t),
+\qquad
+g(\tau)=Z(\tau)R(\tau).
+$$
+
+则单条轨迹估计器的方差来自一个典型的乘积结构：本来就波动很大的 score function，再乘上本来就波动很大的总回报。
+
+把总回报展开成逐时刻奖励，
+
+$$
+R(\tau)=\sum_{u=0}^{T-1} r_u,
+$$
+
+于是得到双重求和
+
+$$
+\sum_t\sum_u \nabla_\theta\log\pi_\theta(a_t\mid s_t)\,r_u.
+$$
+
+这暴露出 credit assignment 的粗糙性：时刻 $t$ 的动作梯度，被整条轨迹上所有奖励都加权了，包括它根本不该负责的部分。
+
+尤其对过去奖励 $u<t$，有
+
+$$
+\mathbb E\big[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,r_u\big]=0,
+$$
+
+它们对期望没有贡献，但会显著增加方差。
+
+## 6. Baseline：减去一个不会改变期望的量
+
+为了降低方差，可以把回报换成
+
+$$
+G_t-b,
+$$
+
+得到
+
+$$
+\nabla_\theta J(\theta)
+=\mathbb E\left[
+\sum_t \nabla_\theta\log\pi_\theta(a_t\mid s_t)\,(G_t-b)
+\right].
+$$
+
+这里最关键的是：减去 baseline 并不会改变期望。
+
+因为在任意状态 $s$ 下，
+
+$$
+\mathbb E_{a\sim\pi_\theta(\cdot\mid s)}
+\big[\nabla_\theta\log\pi_\theta(a\mid s)\big]=0.
+$$
+
+从而
+
+$$
+\mathbb E\big[\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,b\big]=0.
+$$
+
+所以 baseline 的作用纯粹是降方差，不引入偏差。
+
+从统计视角看，它其实是在做一种中心化：把回报里“公共的平均部分”减掉，只保留相对基线的超额表现。
+
+## 7. 为什么 baseline 自然会走向 advantage
+
+如果 baseline 只是常数，那么它只能消除全局均值带来的波动；更强的做法是让 baseline 依赖状态：
+
+$$
+b_t=b(s_t)\approx V^\pi(s_t).
+$$
+
+这时
+
+$$
+G_t-b(s_t)
+$$
+
+衡量的就是：
+
+> 从状态 $s_t$ 出发，这次 rollout 比平均水平好多少。
+
+这就是 advantage 的自然来源。真正值得放大学习信号的，不是“绝对回报高”，而是“相对于当前状态的常规水平更好”。
+
+## 8. 因果性：当前动作不该为过去负责
+
+前面已经看到，最原始双重求和里有很多无关项。因为当前动作只会影响未来，不会反过来影响过去，所以应当删掉过去奖励部分，保留 reward-to-go：
+
+$$
+G_t=\sum_{u=t}^{T-1} r_u.
+$$
+
+于是策略梯度可以重写成
+
+$$
+\nabla_\theta J(\theta)
+=\mathbb E\left[
+\sum_t \nabla_\theta\log\pi_\theta(a_t\mid s_t)\,G_t
+\right].
+$$
+
+这一步通常被称为 causality 或 reward-to-go trick。它背后的直觉非常简单：
+
+> 时刻 $t$ 的动作，只该对它之后能影响到的奖励负责。
+
+这一步往往能带来非常可观的方差下降。
+
+## 9. Off-policy：能不能用别的策略采来的样本
+
+on-policy 的一个痛点是：当前策略一变，旧数据很快就失配了。于是自然会问：
+
+> 如果样本是由行为策略 $\mu$ 采来的，我还能不能估计目标策略 $\pi_\theta$ 的梯度？
+
+答案是可以，但需要重要性采样。
+
+一般形式是
+
+$$
+\mathbb E_{x\sim p}[f(x)]
+=\mathbb E_{x\sim q}\left[\frac{p(x)}{q(x)}f(x)\right].
+$$
+
+在轨迹层面，importance ratio 为
+
+$$
+\frac{p_\pi(\tau)}{p_\mu(\tau)}
+=\prod_{t=0}^{T-1}\frac{\pi(a_t\mid s_t)}{\mu(a_t\mid s_t)},
+$$
+
+因为环境转移项相除后会消掉。
+
+于是最直接的 off-policy policy gradient 写成
+
+$$
+\nabla_\theta J(\theta)
+=\mathbb E_{\tau\sim p_\mu}
+\left[
+\frac{p_{\pi_\theta}(\tau)}{p_\mu(\tau)}
+\nabla_\theta\log p_{\pi_\theta}(\tau)\,R(\tau)
+\right].
+$$
+
+它是无偏的，但方差可能非常大，因为 ratio 是一串乘积。
+
+## 10. Off-policy 下的 causality 与前缀比重
+
+和 on-policy 一样，off-policy 也不该让时刻 $t$ 的梯度背负整条轨迹的无关历史。于是可以把轨迹级比重局部化为前缀比重
+
+$$
+\rho_{0:t}
+=\prod_{k=0}^{t}\frac{\pi(a_k\mid s_k)}{\mu(a_k\mid s_k)}.
+$$
+
+得到更局部的形式
+
+$$
+\nabla_\theta J(\theta)
+=\mathbb E_\mu\left[
+\sum_t \rho_{0:t}\,\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,G_t
+\right].
+$$
+
+这和 reward-to-go 的精神完全一致：只保留和当前梯度真正相关的未来影响。
+
+## 11. 最终统一形式
+
+把前面几件事都合起来：
+
+1. reward-to-go；
+2. baseline；
+3. off-policy importance weight。
+
+就得到统一表达
+
+$$
+\nabla_\theta J(\theta)
+=\mathbb E\left[
+\sum_t w_t\,\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,(G_t-b_t)
+\right],
+$$
+
+其中
+
+$$
+w_t=
+\begin{cases}
+1, & \text{on-policy},\\[4pt]
+\rho_{0:t}, & \text{off-policy}.
+\end{cases}
+$$
+
+若记
+
+$$
+\hat A_t=G_t-b_t,
+$$
+
+则得到最常见的 advantage 形式
+
+$$
+\nabla_\theta J(\theta)
+=\mathbb E\left[
+\sum_t w_t\,\nabla_\theta\log\pi_\theta(a_t\mid s_t)\,\hat A_t
+\right].
+$$
+
+这时候策略梯度就从一个高方差的轨迹公式，变成了一个可训练的局部加权更新。
+
+## 12. 自动微分实现：surrogate objective 从哪里来
+
+实践里，我们通常不手写梯度，而是构造一个 surrogate objective：
+
+$$
+L(\theta)=\sum_t w_t\,\log\pi_\theta(a_t\mid s_t)\,\hat A_t.
+$$
+
+于是 actor loss 可以写成
+
+$$
+\mathcal L_{\text{actor}}
+=-\sum_t \mathrm{stopgrad}(w_t\hat A_t)\,\log\pi_\theta(a_t\mid s_t).
+$$
+
+这里 `stopgrad` 的作用是让梯度只通过 $\log\pi_\theta$ 传播，而不把 advantage estimator 本身也卷进优化路径。
+
+从工程视角看，这几乎就是一个带权重的 log-likelihood 目标：
+
+- 普通最大似然：权重恒为 $1$；
+- policy gradient：权重变成了 $w_t\hat A_t$。
+
+## 13. 总结：策略梯度到底提供了什么
+
+整条链条可以概括成：
+
+1. 从轨迹目标
+   $$
+   J(\theta)=\mathbb E_{\tau\sim p_\theta}[R(\tau)]
+   $$
+   出发；
+2. 用 log-derivative trick 得到最基本的 score-function 形式；
+3. 发现原始估计器高方差；
+4. 用 causality 把总回报换成 reward-to-go；
+5. 用 baseline 做中心化降方差；
+6. 在 off-policy 场景下用 importance sampling 修正分布错位；
+7. 最终写成 advantage-weighted 的统一更新式。
+
+如果只用一句话概括 policy gradient，我会写成：
+
+> 它是在轨迹分布上做一种最大似然式的更新，但每个动作的学习强度由它对未来回报的贡献来决定。
+
+这既抓住了它的数学结构，也抓住了它的算法直觉。
+
+而当你继续走向 actor-critic、natural policy gradient、TRPO、PPO 时，会发现前面的值函数、TD、随机近似又会重新出现。因为最成功的策略优化方法，几乎从来不是纯粹抛弃值函数，而是让值函数负责降方差，让策略负责改变行为分布。
+
+回看上一篇 [Note 4](/notes/rl-math04)，你会发现两条路线其实并没有那么远。一个在策略空间里做 noisy gradient ascent，一个在值函数空间里做 noisy fixed-point iteration；它们共享的深层语言，仍然是“期望目标 + 样本近似 + 噪声控制”。
