@@ -35,108 +35,134 @@
     let searchIndex: SearchItem[] = [];
     let isDataLoaded = false;
 
-    function initSearchSystem() {
-        const modal = document.getElementById('search-modal');
-        const panel = document.getElementById('search-panel');
-        const input = document.getElementById('search-input') as HTMLInputElement;
-        const resultsContainer = document.getElementById('search-results');
-        const emptyState = document.getElementById('empty-state');
-        const resultCount = document.getElementById('result-count');
-        const triggers = document.querySelectorAll('#search-trigger');
+    function getSearchElements() {
+        return {
+            modal: document.getElementById('search-modal'),
+            panel: document.getElementById('search-panel'),
+            input: document.getElementById('search-input') as HTMLInputElement | null,
+            resultsContainer: document.getElementById('search-results'),
+            emptyState: document.getElementById('empty-state'),
+            resultCount: document.getElementById('result-count'),
+            triggers: document.querySelectorAll('#search-trigger'),
+        };
+    }
 
-        if (!modal || !panel || !input || !resultsContainer) return;
+    async function loadIndex() {
+        if (isDataLoaded) return;
+        try {
+            const res = await fetch('/link-preview.json');
+            const data = await res.json();
+            searchIndex = Object.entries(data).map(([url, meta]: [string, any]) => ({
+                url,
+                ...meta
+            }));
+            isDataLoaded = true;
+        } catch (e) {
+            console.error("Index Load Failed", e);
+        }
+    }
 
-        async function loadIndex() {
-            if (isDataLoaded) return;
-            try {
-                const res = await fetch('/link-preview.json');
-                const data = await res.json();
-                searchIndex = Object.entries(data).map(([url, meta]: [string, any]) => ({
-                    url,
-                    ...meta
-                }));
-                isDataLoaded = true;
-            } catch (e) {
-                console.error("Index Load Failed", e);
-            }
+    function renderResults(hits: SearchItem[]) {
+        const { resultsContainer, resultCount } = getSearchElements();
+        if (!resultsContainer) return;
+
+        resultsContainer.innerHTML = '';
+        if(resultCount) resultCount.innerText = `${hits.length} result${hits.length !== 1 ? 's' : ''}`;
+
+        if (hits.length === 0) {
+            resultsContainer.innerHTML = '<div class="p-6 text-center text-muted font-sans text-sm">No results found</div>';
+            return;
         }
 
-        function performSearch(query: string) {
-            if (!resultsContainer) return;
-            if (!query) {
-                resultsContainer.innerHTML = '';
-                if(emptyState) resultsContainer.appendChild(emptyState);
-                if(resultCount) resultCount.innerText = '0 results';
-                return;
-            }
+        hits.forEach(item => {
+            const el = document.createElement('a');
+            el.href = item.url;
+            el.className = 'block px-3 py-2.5 rounded-md hover:bg-accent/8 group transition-all';
+            el.innerHTML = `
+                <div class="flex justify-between items-baseline mb-0.5">
+                    <span class="font-body text-base text-primary group-hover:text-accent transition-colors">${item.title}</span>
+                    <span class="font-mono text-[10px] text-muted ml-4 shrink-0">${item.date}</span>
+                </div>
+                <div class="font-mono text-[10px] text-muted flex gap-2 mt-1">
+                    ${item.tags.slice(0, 3).map((t: string) => `<span>#${t}</span>`).join('')}
+                </div>
+            `;
+            resultsContainer.appendChild(el);
+        });
+    }
 
-            const lowerQuery = query.toLowerCase();
-            const hits = searchIndex.filter(item =>
-                item.title.toLowerCase().includes(lowerQuery) ||
-                item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
-            );
+    function performSearch(query: string) {
+        const { resultsContainer, emptyState, resultCount } = getSearchElements();
+        if (!resultsContainer) return;
 
-            renderResults(hits);
-        }
-
-        function renderResults(hits: SearchItem[]) {
-            if (!resultsContainer) return;
+        if (!query) {
             resultsContainer.innerHTML = '';
-            if(resultCount) resultCount.innerText = `${hits.length} result${hits.length !== 1 ? 's' : ''}`;
-
-            if (hits.length === 0) {
-                resultsContainer.innerHTML = '<div class="p-6 text-center text-muted font-sans text-sm">No results found</div>';
-                return;
-            }
-
-            hits.forEach(item => {
-                const el = document.createElement('a');
-                el.href = item.url;
-                el.className = 'block px-3 py-2.5 rounded-md hover:bg-accent/8 group transition-all';
-                el.innerHTML = `
-                    <div class="flex justify-between items-baseline mb-0.5">
-                        <span class="font-body text-base text-primary group-hover:text-accent transition-colors">${item.title}</span>
-                        <span class="font-mono text-[10px] text-muted ml-4 shrink-0">${item.date}</span>
-                    </div>
-                    <div class="font-mono text-[10px] text-muted flex gap-2 mt-1">
-                        ${item.tags.slice(0, 3).map((t: string) => `<span>#${t}</span>`).join('')}
-                    </div>
-                `;
-                resultsContainer.appendChild(el);
-            });
+            if(emptyState) resultsContainer.appendChild(emptyState);
+            if(resultCount) resultCount.innerText = '0 results';
+            return;
         }
 
-        function openModal() {
-            loadIndex();
-            modal?.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                modal?.classList.remove('opacity-0');
-                panel?.classList.remove('scale-95');
-            });
-            setTimeout(() => input?.focus(), 50);
+        const lowerQuery = query.toLowerCase();
+        const hits = searchIndex.filter(item =>
+            item.title.toLowerCase().includes(lowerQuery) ||
+            item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
+        );
+
+        renderResults(hits);
+    }
+
+    function openModal() {
+        const { modal, panel, input } = getSearchElements();
+        if (!modal || !panel || !input) return;
+
+        loadIndex();
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            modal.classList.remove('opacity-0');
+            panel.classList.remove('scale-95');
+        });
+        setTimeout(() => input.focus(), 50);
+    }
+
+    function closeModal() {
+        const { modal, panel, input } = getSearchElements();
+        if (!modal || !panel) return;
+
+        modal.classList.add('opacity-0');
+        panel.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+        if(input) input.value = '';
+        performSearch('');
+    }
+
+    function handleSearchHotkeys(e: KeyboardEvent) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            openModal();
         }
 
-        function closeModal() {
-            modal?.classList.add('opacity-0');
-            panel?.classList.add('scale-95');
-            setTimeout(() => modal?.classList.add('hidden'), 200);
-            if(input) input.value = '';
-            performSearch('');
+        if (e.key === 'Escape') {
+            closeModal();
         }
+    }
+
+    function initSearchSystem() {
+        const { modal, input, triggers } = getSearchElements();
+
+        if (!modal || !input) return;
 
         triggers.forEach((t) => {
             // @ts-ignore
             t.onclick = (e) => { e.preventDefault(); openModal(); };
         });
 
-        document.addEventListener('keydown', (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openModal(); }
-            if (e.key === 'Escape') { closeModal(); }
-        });
+        document.removeEventListener('keydown', handleSearchHotkeys);
+        document.addEventListener('keydown', handleSearchHotkeys);
 
         modal.onclick = (e) => { if (e.target === modal) closeModal(); };
         input.oninput = (e) => { performSearch((e.target as HTMLInputElement).value); };
     }
 
+    document.addEventListener('astro:page-load', initSearchSystem);
     initSearchSystem();
 </script>

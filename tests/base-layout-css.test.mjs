@@ -83,3 +83,61 @@ test("base layout no longer injects a redundant custom link prefetch script", as
     "same-origin link prefetch should be handled conservatively by Astro config rather than a global custom script",
   );
 });
+
+test("base layout enables lightweight Astro route transitions only for the page body", async () => {
+  const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+
+  assert.match(
+    source,
+    /import\s+\{\s*ClientRouter\s*\}\s+from\s+["']astro:transitions["'];/,
+    "base layout should use Astro's built-in client router for route transitions",
+  );
+
+  assert.match(
+    source,
+    /<ClientRouter\s+fallback=["']swap["']\s*\/>/,
+    "route transitions should fall back to swap to keep unsupported browsers cheap",
+  );
+
+  assert.match(
+    source,
+    /<html[^>]*transition:animate=["']none["']/,
+    "default full-page transition animation should be disabled",
+  );
+
+  assert.match(
+    source,
+    /<main[^>]*transition:name=["']page-main["'][^>]*transition:animate=["']fade["']/,
+    "only the main content region should receive a lightweight fade transition",
+  );
+});
+
+test("global interactive scripts reinitialize after Astro route transitions", async () => {
+  const layoutSource = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+  const searchSource = await readFile(new URL("../src/components/Search.astro", import.meta.url), "utf8");
+  const previewSource = await readFile(new URL("../src/components/LinkPreview.astro", import.meta.url), "utf8");
+
+  assert.match(
+    layoutSource,
+    /document\.addEventListener\(['"]astro:page-load['"],\s*setupPageUi\)/,
+    "layout controls should re-bind after client-side navigation",
+  );
+
+  assert.match(
+    searchSource,
+    /document\.addEventListener\(['"]astro:page-load['"],\s*initSearchSystem\)/,
+    "search modal should re-bind after client-side navigation",
+  );
+
+  assert.match(
+    previewSource,
+    /document\.addEventListener\(['"]astro:page-load['"],\s*initLinkPreviews\)/,
+    "link previews should re-bind after client-side navigation",
+  );
+
+  assert.doesNotMatch(
+    previewSource,
+    /DOMContentLoaded/,
+    "link previews should not depend on full document reloads once route transitions are enabled",
+  );
+});
