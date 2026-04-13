@@ -117,6 +117,20 @@ const notesForGraph = JSON.stringify(notes.map(n => ({
 </BaseLayout>
 
 <script>
+    async function loadNotesGraph(graphEl: HTMLElement) {
+        if (graphEl.dataset.graphLoaded === 'true') return;
+
+        graphEl.dataset.graphLoaded = 'true';
+        graphEl.innerHTML = '<div class="flex items-center justify-center h-64 text-muted"><span class="font-mono text-xs">Loading graph...</span></div>';
+
+        const { default: KnowledgeGraph } = await import('../../components/KnowledgeGraph') as any;
+        const { createElement } = await import('react') as any;
+        const { createRoot } = await import('react-dom/client') as any;
+        const notesData = JSON.parse(graphEl.dataset.notes || '[]');
+        const root = createRoot(graphEl);
+        root.render(createElement(KnowledgeGraph, { notes: notesData }));
+    }
+
     function initNotesPage() {
         const listBtn = document.getElementById('view-list');
         const graphBtn = document.getElementById('view-graph');
@@ -125,7 +139,7 @@ const notesForGraph = JSON.stringify(notes.map(n => ({
         if (!listBtn || !graphBtn || !listEl || !graphEl) return;
 
         document.querySelectorAll('.series-toggle').forEach(btn => {
-            btn.addEventListener('click', () => {
+            (btn as HTMLButtonElement).onclick = () => {
                 const content = btn.nextElementSibling as HTMLElement;
                 const arrow = btn.querySelector('.series-arrow') as SVGElement;
                 const isOpen = !content.classList.contains('hidden');
@@ -136,10 +150,8 @@ const notesForGraph = JSON.stringify(notes.map(n => ({
                 btn.querySelector('.font-display')!.classList.toggle('text-secondary', isOpen);
                 if (!isOpen) arrow.style.color = 'rgb(var(--color-accent))';
                 else arrow.style.color = '';
-            });
+            };
         });
-
-        let graphLoaded = false;
 
         listBtn.onclick = () => {
             listEl.classList.remove('hidden');
@@ -158,18 +170,10 @@ const notesForGraph = JSON.stringify(notes.map(n => ({
             listBtn.classList.add('text-muted');
             listBtn.classList.remove('text-accent', 'bg-accent/8');
 
-            if (!graphLoaded) {
-                graphLoaded = true;
-                graphEl.innerHTML = '<div class="flex items-center justify-center h-64 text-muted"><span class="font-mono text-xs">Loading graph...</span></div>';
-                const { default: KnowledgeGraph } = await import('../../components/KnowledgeGraph') as any;
-                const { createElement } = await import('react') as any;
-                const { createRoot } = await import('react-dom/client') as any;
-                const notesData = JSON.parse(graphEl.dataset.notes || '[]');
-                const root = createRoot(graphEl);
-                root.render(createElement(KnowledgeGraph, { notes: notesData }));
-            }
+            loadNotesGraph(graphEl);
         };
     }
 
+    document.addEventListener('astro:page-load', initNotesPage);
     initNotesPage();
 </script>

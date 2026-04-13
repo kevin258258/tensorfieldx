@@ -84,31 +84,25 @@ test("base layout no longer injects a redundant custom link prefetch script", as
   );
 });
 
-test("base layout enables lightweight Astro route transitions only for the page body", async () => {
+test("base layout avoids client-router page snapshots and uses load-time page reveal instead", async () => {
   const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
 
-  assert.match(
+  assert.doesNotMatch(
     source,
-    /import\s+\{\s*ClientRouter\s*\}\s+from\s+["']astro:transitions["'];/,
-    "base layout should use Astro's built-in client router for route transitions",
+    /astro:transitions|ClientRouter|transition:animate|transition:name|::view-transition-/,
+    "layout should not use client-router snapshot transitions once they are shown to cause ghosting",
   );
 
   assert.match(
     source,
-    /<ClientRouter\s+fallback=["']swap["']\s*\/>/,
-    "route transitions should fall back to swap to keep unsupported browsers cheap",
+    /@keyframes\s+page-enter/,
+    "layout should define a lightweight page enter animation instead",
   );
 
   assert.match(
     source,
-    /<html[^>]*transition:animate=["']none["']/,
-    "default full-page transition animation should be disabled",
-  );
-
-  assert.match(
-    source,
-    /<main[^>]*transition:name=["']page-main["'][^>]*transition:animate=["']fade["']/,
-    "only the main content region should receive a lightweight fade transition",
+    /\.page-shell\s*\{\s*animation:\s*page-enter\s+180ms\s+cubic-bezier\(0\.22,\s*1,\s*0\.36,\s*1\)/,
+    "main page shell should use a short eased reveal animation",
   );
 });
 
@@ -116,6 +110,8 @@ test("global interactive scripts reinitialize after Astro route transitions", as
   const layoutSource = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
   const searchSource = await readFile(new URL("../src/components/Search.astro", import.meta.url), "utf8");
   const previewSource = await readFile(new URL("../src/components/LinkPreview.astro", import.meta.url), "utf8");
+  const notesIndexSource = await readFile(new URL("../src/pages/notes/index.astro", import.meta.url), "utf8");
+  const notesDetailSource = await readFile(new URL("../src/pages/notes/[...slug].astro", import.meta.url), "utf8");
 
   assert.match(
     layoutSource,
@@ -135,9 +131,31 @@ test("global interactive scripts reinitialize after Astro route transitions", as
     "link previews should re-bind after client-side navigation",
   );
 
+  assert.match(
+    notesIndexSource,
+    /document\.addEventListener\(['"]astro:page-load['"],\s*initNotesPage\)/,
+    "notes index controls should re-bind after client-side navigation",
+  );
+
+  assert.match(
+    notesDetailSource,
+    /document\.addEventListener\(['"]astro:page-load['"],\s*setupNotesDetailPage\)/,
+    "notes detail interactions should re-bind after client-side navigation",
+  );
+
   assert.doesNotMatch(
     previewSource,
     /DOMContentLoaded/,
     "link previews should not depend on full document reloads once route transitions are enabled",
+  );
+});
+
+test("page reveal animation still respects reduced motion without route snapshots", async () => {
+  const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+
+  assert.match(
+    source,
+    /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{[\s\S]*?\.page-shell\s*\{\s*animation:\s*none\s*!important;/,
+    "page reveal animation should still disable motion for reduced-motion users",
   );
 });

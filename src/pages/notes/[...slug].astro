@@ -209,6 +209,8 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
 </BaseLayout>
 
 <script>
+    let cleanupNotesDetailPage: (() => void) | null = null;
+
     function initProgress() {
         const bar = document.getElementById("progress-bar");
         if (!bar) return;
@@ -266,40 +268,64 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
     function initMobileToc() {
         const toggle = document.getElementById('mobile-toc-toggle');
         const panel = document.getElementById('mobile-toc-panel');
-        if (!toggle || !panel) return;
+        if (!toggle || !panel) return null;
 
         toggle.onclick = (e) => {
             e.stopPropagation();
             panel.classList.toggle('hidden');
         };
-        document.addEventListener('click', (e) => {
+        const handleDocumentClick = (e: Event) => {
             if (!panel.contains(e.target as Node) && e.target !== toggle) {
                 panel.classList.add('hidden');
             }
-        });
+        };
+        document.addEventListener('click', handleDocumentClick);
         panel.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => panel.classList.add('hidden'));
+            (link as HTMLAnchorElement).onclick = () => panel.classList.add('hidden');
         });
+
+        return () => {
+            document.removeEventListener('click', handleDocumentClick);
+        };
     }
 
-    const progressFn = initProgress();
-    const tocFn = initTocTracking();
+    function initNotesDetailPage() {
+        const progressFn = initProgress();
+        const tocFn = initTocTracking();
+        const cleanupMobileToc = initMobileToc();
 
-    if (progressFn || tocFn) {
         let ticking = false;
-        window.addEventListener('scroll', () => {
-            if (!ticking) {
-                ticking = true;
-                requestAnimationFrame(() => {
-                    progressFn?.();
-                    tocFn?.();
-                    ticking = false;
-                });
-            }
-        }, { passive: true });
+        const handleScroll = () => {
+            if (ticking) return;
+
+            ticking = true;
+            requestAnimationFrame(() => {
+                progressFn?.();
+                tocFn?.();
+                ticking = false;
+            });
+        };
+
+        if (progressFn || tocFn) {
+            window.addEventListener('scroll', handleScroll, { passive: true });
+        }
+
         progressFn?.();
         tocFn?.();
+
+        return () => {
+            if (progressFn || tocFn) {
+                window.removeEventListener('scroll', handleScroll);
+            }
+            cleanupMobileToc?.();
+        };
     }
 
-    initMobileToc();
+    function setupNotesDetailPage() {
+        cleanupNotesDetailPage?.();
+        cleanupNotesDetailPage = initNotesDetailPage();
+    }
+
+    document.addEventListener('astro:page-load', setupNotesDetailPage);
+    setupNotesDetailPage();
 </script>
