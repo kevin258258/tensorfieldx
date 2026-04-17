@@ -17,7 +17,7 @@ export default {
 			fontFamily: {
 				display: ['"Playfair Display"', 'Georgia', 'serif'],
 				body: ['"Source Serif 4"', 'Georgia', 'serif'],
-				sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+				sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
 				mono: ['"JetBrains Mono"', 'monospace'],
 			},
 			typography: {

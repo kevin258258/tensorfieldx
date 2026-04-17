@@ -96,6 +96,35 @@ test("theme toggle disables transitions while switching themes", async () => {
   );
 });
 
+test("mobile reading paths fall back to system fonts to avoid downloading heavy webfont binaries", async () => {
+  const layoutSource = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+  const tailwindSource = await readFile(new URL("../tailwind.config.mjs", import.meta.url), "utf8");
+
+  assert.match(
+    layoutSource,
+    /@media\s*\(max-width:\s*767px\)\s*\{[\s\S]*?\.font-display,\s*\.font-body\s*\{[\s\S]*?font-family:\s*Georgia,\s*"Times New Roman",\s*serif\s*!important;/,
+    "mobile layouts should override decorative serif stacks with local system serif fonts",
+  );
+
+  assert.match(
+    layoutSource,
+    /\.font-sans\s*\{[\s\S]*?font-family:\s*system-ui,\s*-apple-system,\s*BlinkMacSystemFont,\s*"Segoe UI",\s*sans-serif\s*!important;/,
+    "mobile layouts should use the system sans stack instead of downloading Inter",
+  );
+
+  assert.match(
+    layoutSource,
+    /\.font-mono\s*\{[\s\S]*?font-family:\s*ui-monospace,\s*"SFMono-Regular",\s*Menlo,\s*monospace\s*!important;/,
+    "mobile layouts should use the local monospace stack instead of downloading JetBrains Mono",
+  );
+
+  assert.match(
+    tailwindSource,
+    /sans:\s*\[\s*'system-ui',\s*'-apple-system',\s*'BlinkMacSystemFont',\s*'"Segoe UI"',\s*'sans-serif'\s*\]/,
+    "desktop and mobile sans text should default to the system sans stack so Inter is no longer required",
+  );
+});
+
 test("base layout only loads katex when a page opts in", async () => {
   const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
 
@@ -223,5 +252,27 @@ test("note navigation links opt into mobile-friendly prefetching", async () => {
     notesDetailSource,
     /data-astro-prefetch="tap"/,
     "prev\/next note links should prefetch on tap to shorten navigation between heavy note pages",
+  );
+});
+
+test("mobile note table of contents renders on demand instead of duplicating heading markup on first paint", async () => {
+  const notesDetailSource = await readFile(new URL("../src/pages/notes/[...slug].astro", import.meta.url), "utf8");
+
+  assert.match(
+    notesDetailSource,
+    /data-headings={mobileHeadingsJson}/,
+    "mobile TOC panel should carry serialized heading data for lazy rendering",
+  );
+
+  assert.match(
+    notesDetailSource,
+    /if\s*\(panel\.dataset\.tocRendered\s*===\s*'true'\)\s*return;/,
+    "mobile TOC renderer should only materialize the link list once",
+  );
+
+  assert.match(
+    notesDetailSource,
+    /const headings = JSON\.parse\(panel\.dataset\.headings \|\| '\[\]'\)/,
+    "mobile TOC links should be created from serialized heading data on demand",
   );
 });

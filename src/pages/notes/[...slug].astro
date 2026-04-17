@@ -28,6 +28,11 @@ const { Content, headings } = await post.render();
 
 const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
 const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug);
+const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
+    slug: heading.slug,
+    text: heading.text,
+    depth: heading.depth,
+})));
 ---
 
 <BaseLayout title={post.data.title} needsKatex>
@@ -188,21 +193,13 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
                     <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
                 </svg>
             </button>
-            <div id="mobile-toc-panel" class="hidden absolute bottom-14 right-0 w-64 max-h-80 overflow-y-auto bg-paper border border-edge rounded-lg shadow-xl p-4">
+            <div
+                id="mobile-toc-panel"
+                data-headings={mobileHeadingsJson}
+                class="hidden absolute bottom-14 right-0 w-64 max-h-80 overflow-y-auto bg-paper border border-edge rounded-lg shadow-xl p-4"
+            >
                 <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-3">Contents</h3>
-                <ul class="space-y-2">
-                    {headings.map((heading) => (
-                        <li class:list={[heading.depth === 2 ? '' : 'pl-3']}>
-                            <a
-                                href={`#${heading.slug}`}
-                                class="mobile-toc-link block text-xs font-sans text-secondary hover:text-accent transition-colors truncate"
-                                data-slug={heading.slug}
-                            >
-                                {heading.text}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
+                <ul class="space-y-2" id="mobile-toc-list"></ul>
             </div>
         </div>
     )}
@@ -290,8 +287,34 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
         const panel = document.getElementById('mobile-toc-panel');
         if (!toggle || !panel) return null;
 
+        const renderMobileToc = () => {
+            if (panel.dataset.tocRendered === 'true') return;
+
+            const list = panel.querySelector('#mobile-toc-list');
+            if (!list) return;
+
+            const headings = JSON.parse(panel.dataset.headings || '[]');
+            for (const heading of headings) {
+                const item = document.createElement('li');
+                if (heading.depth !== 2) item.classList.add('pl-3');
+
+                const link = document.createElement('a');
+                link.href = `#${heading.slug}`;
+                link.className = 'mobile-toc-link block text-xs font-sans text-secondary hover:text-accent transition-colors truncate';
+                link.dataset.slug = heading.slug;
+                link.textContent = heading.text;
+                link.onclick = () => panel.classList.add('hidden');
+
+                item.appendChild(link);
+                list.appendChild(item);
+            }
+
+            panel.dataset.tocRendered = 'true';
+        };
+
         toggle.onclick = (e) => {
             e.stopPropagation();
+            renderMobileToc();
             panel.classList.toggle('hidden');
         };
         const handleDocumentClick = (e: Event) => {
@@ -300,9 +323,6 @@ const currentSeriesIdx = seriesPosts.findIndex((p: any) => p.slug === post.slug)
             }
         };
         document.addEventListener('click', handleDocumentClick);
-        panel.querySelectorAll('a').forEach(link => {
-            (link as HTMLAnchorElement).onclick = () => panel.classList.add('hidden');
-        });
 
         return () => {
             document.removeEventListener('click', handleDocumentClick);
