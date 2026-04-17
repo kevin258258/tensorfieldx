@@ -55,6 +55,18 @@ test("paper texture is rendered by a fixed background layer instead of scrolling
     "layout should render the fixed background layer outside the reading flow",
   );
 
+  assert.match(
+    source,
+    /url\("\/images\/paper-texture\.webp"\)/,
+    "background layer should use the site paper texture asset",
+  );
+
+  assert.match(
+    source,
+    /\.page-background::before\s*\{/,
+    "paper texture should be rendered on a dedicated pseudo-element so dark mode can tune it independently",
+  );
+
   assert.doesNotMatch(
     source,
     /background-attachment\s*:\s*scroll/,

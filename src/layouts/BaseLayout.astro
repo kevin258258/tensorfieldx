@@ -114,19 +114,32 @@ const navLinks = [
         z-index: 0;
         pointer-events: none;
         background:
-          radial-gradient(circle at top, rgb(255 255 255 / 0.28), transparent 42%),
-          linear-gradient(rgb(var(--color-paper) / 0.78), rgb(var(--color-paper) / 0.88)),
-          url("/images/paper-texture.webp") center top / 1280px auto repeat;
-        opacity: 0.96;
+          radial-gradient(circle at top, rgb(255 255 255 / 0.2), transparent 42%),
+          linear-gradient(rgb(var(--color-paper)), rgb(239 235 228));
         transform: translateZ(0);
+        overflow: hidden;
+      }
+
+      .page-background::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: url("/images/paper-texture.webp") center top / 1280px auto repeat;
+        opacity: 0.3;
+        mix-blend-mode: multiply;
       }
 
       .dark .page-background {
         background:
-          radial-gradient(circle at top, rgb(255 255 255 / 0.04), transparent 38%),
-          linear-gradient(rgb(var(--color-paper) / 0.9), rgb(var(--color-paper) / 0.96)),
-          url("/images/paper-texture.webp") center top / 1280px auto repeat;
-        opacity: 0.82;
+          radial-gradient(circle at top, rgb(255 255 255 / 0.03), transparent 38%),
+          linear-gradient(rgb(20 21 24), rgb(var(--color-paper)));
+      }
+
+      .dark .page-background::before {
+        background: url("/images/paper-texture.webp") center top / 1280px auto repeat;
+        opacity: 0.12;
+        filter: grayscale(1) invert(1) brightness(0.22) contrast(0.9);
+        mix-blend-mode: soft-light;
       }
 
       .theme-switching *,
