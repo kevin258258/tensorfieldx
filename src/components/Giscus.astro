@@ -7,18 +7,20 @@
 
 <script>
     let giscusObserver: MutationObserver | null = null;
+    let giscusIntersectionObserver: IntersectionObserver | null = null;
 
     function loadGiscus() {
         const container = document.querySelector('.giscus');
         if (!container || container.querySelector('iframe') || container.querySelector('script')) return;
 
-        const io = new IntersectionObserver((entries) => {
+        giscusIntersectionObserver?.disconnect();
+        giscusIntersectionObserver = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting) {
-                io.disconnect();
+                giscusIntersectionObserver?.disconnect();
                 injectGiscus(container);
             }
         }, { rootMargin: '200px' });
-        io.observe(container);
+        giscusIntersectionObserver.observe(container);
     }
 
     function injectGiscus(container: Element) {
@@ -61,5 +63,10 @@
         }
     }
 
-    loadGiscus();
+    function setupGiscus() {
+        loadGiscus();
+    }
+
+    document.addEventListener('astro:page-load', setupGiscus);
+    setupGiscus();
 </script>

@@ -118,25 +118,31 @@ test("base layout no longer injects a redundant custom link prefetch script", as
   );
 });
 
-test("base layout avoids client-router page snapshots and uses load-time page reveal instead", async () => {
+test("base layout enables client-side navigation without visible page transition animations", async () => {
   const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+
+  assert.match(
+    source,
+    /import\s*\{\s*ClientRouter\s*\}\s*from\s*["']astro:transitions["']/,
+    "layout should enable Astro client-side navigation so note entries do not trigger full document reloads",
+  );
+
+  assert.match(
+    source,
+    /<ClientRouter\s+fallback="swap"\s*\/>/,
+    "client router should use swap fallback to keep navigation predictable on unsupported browsers",
+  );
+
+  assert.match(
+    source,
+    /<html[^>]*transition:animate="none"[^>]*>/,
+    "layout should disable visible page transition animations while keeping client-side navigation",
+  );
 
   assert.doesNotMatch(
     source,
-    /astro:transitions|ClientRouter|transition:animate|transition:name|::view-transition-/,
-    "layout should not use client-router snapshot transitions once they are shown to cause ghosting",
-  );
-
-  assert.match(
-    source,
-    /@keyframes\s+page-enter/,
-    "layout should define a lightweight page enter animation instead",
-  );
-
-  assert.match(
-    source,
-    /\.page-shell\s*\{\s*animation:\s*page-enter\s+180ms\s+cubic-bezier\(0\.22,\s*1,\s*0\.36,\s*1\)/,
-    "main page shell should use a short eased reveal animation",
+    /transition:name|::view-transition-/,
+    "layout should not reintroduce named snapshot transitions that can ghost long-form reading pages",
   );
 });
 
@@ -144,6 +150,7 @@ test("global interactive scripts reinitialize after Astro route transitions", as
   const layoutSource = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
   const searchSource = await readFile(new URL("../src/components/Search.astro", import.meta.url), "utf8");
   const previewSource = await readFile(new URL("../src/components/LinkPreview.astro", import.meta.url), "utf8");
+  const giscusSource = await readFile(new URL("../src/components/Giscus.astro", import.meta.url), "utf8");
   const notesIndexSource = await readFile(new URL("../src/pages/notes/index.astro", import.meta.url), "utf8");
   const notesDetailSource = await readFile(new URL("../src/pages/notes/[...slug].astro", import.meta.url), "utf8");
 
@@ -177,6 +184,12 @@ test("global interactive scripts reinitialize after Astro route transitions", as
     "notes detail interactions should re-bind after client-side navigation",
   );
 
+  assert.match(
+    giscusSource,
+    /document\.addEventListener\(['"]astro:page-load['"],\s*setupGiscus\)/,
+    "comments should initialize again after client-side navigation reaches a note page",
+  );
+
   assert.doesNotMatch(
     previewSource,
     /DOMContentLoaded/,
@@ -184,12 +197,19 @@ test("global interactive scripts reinitialize after Astro route transitions", as
   );
 });
 
-test("page reveal animation still respects reduced motion without route snapshots", async () => {
-  const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+test("note navigation links opt into mobile-friendly prefetching", async () => {
+  const notesIndexSource = await readFile(new URL("../src/pages/notes/index.astro", import.meta.url), "utf8");
+  const notesDetailSource = await readFile(new URL("../src/pages/notes/[...slug].astro", import.meta.url), "utf8");
 
   assert.match(
-    source,
-    /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{[\s\S]*?\.page-shell\s*\{\s*animation:\s*none\s*!important;/,
-    "page reveal animation should still disable motion for reduced-motion users",
+    notesIndexSource,
+    /data-astro-prefetch="viewport"/,
+    "note list entries should prefetch when links enter the viewport to reduce tap-to-open latency on mobile",
+  );
+
+  assert.match(
+    notesDetailSource,
+    /data-astro-prefetch="tap"/,
+    "prev\/next note links should prefetch on tap to shorten navigation between heavy note pages",
   );
 });
