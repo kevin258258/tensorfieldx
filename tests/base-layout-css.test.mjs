@@ -18,13 +18,47 @@ test("astro prefetch config is conservative for reading-first navigation", async
   );
 });
 
-test("article virtualization styles are scoped away from mobile", async () => {
+test("long-form content avoids viewport virtualization that can unload note sections mid-scroll", async () => {
+  const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+
+  assert.doesNotMatch(
+    source,
+    /content-visibility\s*:\s*auto/,
+    "reading pages should not use content-visibility virtualization because it causes sections to disappear and repaint during long mobile scrolls",
+  );
+
+  assert.doesNotMatch(
+    source,
+    /contain-intrinsic-size\s*:/,
+    "reading pages should not reserve virtualized placeholder sizes once viewport virtualization is removed",
+  );
+});
+
+test("paper texture is rendered by a fixed background layer instead of scrolling with body content", async () => {
   const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
 
   assert.match(
     source,
-    /@media\s*\(min-width:\s*768px\)\s*and\s*\(hover:\s*hover\)\s*\{\s*\.prose\s*>\s*:nth-child\(n\+8\)\s*\{\s*content-visibility:\s*auto;/,
-    "content-visibility should be scoped behind a desktop-only media query",
+    /\.page-background\s*\{/,
+    "layout should define a dedicated background layer so the texture does not repaint with article content",
+  );
+
+  assert.match(
+    source,
+    /position:\s*fixed;/,
+    "background layer should be fixed to the viewport",
+  );
+
+  assert.match(
+    source,
+    /<div class="page-background" aria-hidden="true"><\/div>/,
+    "layout should render the fixed background layer outside the reading flow",
+  );
+
+  assert.doesNotMatch(
+    source,
+    /background-attachment\s*:\s*scroll/,
+    "body background should no longer scroll with the page on mobile",
   );
 });
 

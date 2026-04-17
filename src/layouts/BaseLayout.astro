@@ -103,21 +103,26 @@ const navLinks = [
       }
 
       body {
-        background: rgb(var(--color-paper)) url("/images/paper-texture.webp") center / cover;
-        background-attachment: scroll;
-      }
-      @media (hover: hover) and (min-width: 768px) {
-        body { background-attachment: fixed; }
+        background: rgb(var(--color-paper));
       }
       .dark body {
         background: rgb(var(--color-paper));
       }
 
-      @media (min-width: 768px) and (hover: hover) {
-        .prose > :nth-child(n+8) {
-          content-visibility: auto;
-          contain-intrinsic-size: auto 80px;
-        }
+      .page-background {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(rgb(var(--color-paper) / 0.92), rgb(var(--color-paper) / 0.92)),
+          url("/images/paper-texture.webp") center / cover no-repeat;
+        transform: translateZ(0);
+        will-change: transform;
+      }
+
+      .dark .page-background {
+        background: rgb(var(--color-paper));
       }
 
       .theme-switching *,
@@ -190,6 +195,7 @@ const navLinks = [
   </head>
 
   <body class="text-primary min-h-screen font-body relative">
+    <div class="page-background" aria-hidden="true"></div>
 
     <Search />
     <LinkPreview />
