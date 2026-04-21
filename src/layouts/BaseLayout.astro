@@ -157,6 +157,62 @@ const navLinks = [
         }
       }
 
+      /* ── Page transition overlay ── */
+      .page-transition-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        pointer-events: none;
+        background:
+          radial-gradient(ellipse 80% 60% at 50% 40%, rgba(43, 91, 220, 0.08), transparent 60%),
+          radial-gradient(ellipse 60% 80% at 30% 70%, rgba(43, 91, 220, 0.06), transparent 55%),
+          radial-gradient(ellipse 70% 70% at 70% 30%, rgba(43, 91, 220, 0.05), transparent 50%);
+        opacity: 0;
+        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .dark .page-transition-overlay {
+        background:
+          radial-gradient(ellipse 80% 60% at 50% 40%, rgba(120, 165, 245, 0.06), transparent 60%),
+          radial-gradient(ellipse 60% 80% at 30% 70%, rgba(120, 165, 245, 0.04), transparent 55%),
+          radial-gradient(ellipse 70% 70% at 70% 30%, rgba(120, 165, 245, 0.03), transparent 50%);
+      }
+      .page-transition-overlay.is-active {
+        opacity: 1;
+      }
+
+      /* ── Page transition (navigation) ── */
+      ::view-transition-old(root) {
+        animation: pageFadeOut 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      ::view-transition-new(root) {
+        animation: pageFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+      }
+
+      @keyframes pageFadeOut {
+        from { opacity: 1; filter: blur(0); transform: scale(1); }
+        to   { opacity: 0; filter: blur(6px); transform: scale(1.01); }
+      }
+      @keyframes pageFadeIn {
+        from { opacity: 0; filter: blur(8px); transform: scale(0.99); }
+        to   { opacity: 1; filter: blur(0); transform: scale(1); }
+      }
+
+      /* Reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+        }
+      }
+
+      /* View Transition theme switch */
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation-duration: 0.35s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
       .theme-switching *,
       .theme-switching *::before,
       .theme-switching *::after {
@@ -207,6 +263,7 @@ const navLinks = [
   </head>
 
   <body class="text-primary min-h-screen font-body relative">
+    <div class="page-transition-overlay" aria-hidden="true"></div>
     <div class="page-background" aria-hidden="true"></div>
 
     <Search />
@@ -362,10 +419,17 @@ const navLinks = [
         const toggle = document.getElementById('theme-toggle');
         if (toggle) {
           toggle.onclick = () => {
-            root.classList.add('theme-switching');
-            const isDark = root.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            finishThemeSwitch();
+            const switchTheme = () => {
+              const isDark = root.classList.toggle('dark');
+              localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            };
+            if ('startViewTransition' in document) {
+              document.startViewTransition(switchTheme);
+            } else {
+              root.classList.add('theme-switching');
+              switchTheme();
+              finishThemeSwitch();
+            }
           };
         }
 
@@ -411,6 +475,18 @@ const navLinks = [
 
       document.addEventListener('astro:page-load', setupPageUi);
       setupPageUi();
+
+      const overlay = document.querySelector('.page-transition-overlay');
+      document.addEventListener('astro:before-preparation', () => {
+        if (overlay) overlay.classList.add('is-active');
+      });
+      document.addEventListener('astro:after-swap', () => {
+        if (overlay) {
+          requestAnimationFrame(() => {
+            setTimeout(() => overlay.classList.remove('is-active'), 200);
+          });
+        }
+      });
     </script>
   </body>
 </html>
