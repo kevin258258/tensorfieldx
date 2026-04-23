@@ -1,6 +1,8 @@
-<div id="search-modal" class="fixed inset-0 z-[999] bg-primary/20 backdrop-blur-sm hidden flex items-start justify-center pt-[20vh] opacity-0 transition-opacity duration-200">
+<div id="search-modal" class="fixed inset-0 z-[999] bg-primary/20 backdrop-blur-md hidden flex items-start justify-center pt-[18vh] opacity-0 transition-all duration-300">
 
-    <div class="w-full max-w-xl bg-paper border border-edge shadow-xl rounded-lg transform scale-95 transition-transform duration-200 mx-4" id="search-panel">
+    <div class="w-full max-w-xl bg-paper border border-edge shadow-xl rounded-lg transform scale-95 translate-y-4 transition-all duration-300 mx-4 overflow-hidden" id="search-panel">
+
+        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/45 to-transparent"></div>
 
         <div class="flex items-center gap-3 border-b border-edge p-4">
             <svg class="w-4 h-4 text-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -119,7 +121,7 @@
         modal.classList.remove('hidden');
         requestAnimationFrame(() => {
             modal.classList.remove('opacity-0');
-            panel.classList.remove('scale-95');
+            panel.classList.remove('scale-95', 'translate-y-4');
         });
         setTimeout(() => input.focus(), 50);
     }
@@ -129,7 +131,7 @@
         if (!modal || !panel) return;
 
         modal.classList.add('opacity-0');
-        panel.classList.add('scale-95');
+        panel.classList.add('scale-95', 'translate-y-4');
         setTimeout(() => modal.classList.add('hidden'), 200);
         if(input) input.value = '';
         performSearch('');

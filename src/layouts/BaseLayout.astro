@@ -59,12 +59,12 @@ const navLinks = [
 
     <script is:inline>
       (function() {
-        var theme = localStorage.getItem('theme');
-        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
+        var storedTheme = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var isDark = storedTheme === 'dark' || (!storedTheme && prefersDark);
+        document.documentElement.classList.toggle('dark', isDark);
+        document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+        document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
       })();
     </script>
 
@@ -114,8 +114,9 @@ const navLinks = [
         z-index: 0;
         pointer-events: none;
         background:
-          radial-gradient(circle at top, rgb(255 255 255 / 0.2), transparent 42%),
-          linear-gradient(rgb(var(--color-paper)), rgb(239 235 228));
+          radial-gradient(circle at 14% 10%, rgb(var(--color-accent) / 0.08), transparent 24%),
+          radial-gradient(circle at 85% 0%, rgb(255 255 255 / 0.22), transparent 28%),
+          linear-gradient(180deg, rgb(var(--color-paper)), rgb(239 235 228));
         transform: translateZ(0);
         overflow: hidden;
       }
@@ -131,6 +132,7 @@ const navLinks = [
 
       .dark .page-background {
         background:
+          radial-gradient(circle at 20% 10%, rgb(var(--color-accent) / 0.08), transparent 30%),
           radial-gradient(circle at top, rgb(255 255 255 / 0.03), transparent 38%),
           linear-gradient(rgb(20 21 24), rgb(var(--color-paper)));
       }
@@ -163,21 +165,48 @@ const navLinks = [
         inset: 0;
         z-index: 9999;
         pointer-events: none;
-        background:
-          radial-gradient(ellipse 80% 60% at 50% 40%, rgba(43, 91, 220, 0.08), transparent 60%),
-          radial-gradient(ellipse 60% 80% at 30% 70%, rgba(43, 91, 220, 0.06), transparent 55%),
-          radial-gradient(ellipse 70% 70% at 70% 30%, rgba(43, 91, 220, 0.05), transparent 50%);
+        overflow: hidden;
         opacity: 0;
-        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .page-transition-overlay::before,
+      .page-transition-overlay::after {
+        content: "";
+        position: absolute;
+        inset: -18%;
+        background:
+          radial-gradient(circle at 20% 50%, rgba(43, 91, 220, 0.18), transparent 20%),
+          radial-gradient(circle at 48% 34%, rgba(43, 91, 220, 0.14), transparent 24%),
+          radial-gradient(circle at 72% 62%, rgba(43, 91, 220, 0.12), transparent 19%);
+        filter: blur(48px);
+        transform: scale(0.88);
+        opacity: 0;
+      }
+      .page-transition-overlay::after {
+        background:
+          radial-gradient(circle at 65% 28%, rgba(200, 90, 58, 0.08), transparent 14%),
+          radial-gradient(circle at 34% 72%, rgba(43, 91, 220, 0.12), transparent 18%),
+          radial-gradient(circle at 82% 56%, rgba(43, 91, 220, 0.1), transparent 14%);
+        filter: blur(72px);
       }
       .dark .page-transition-overlay {
+        background: rgba(4, 7, 12, 0.04);
+      }
+      .dark .page-transition-overlay::before,
+      .dark .page-transition-overlay::after {
         background:
-          radial-gradient(ellipse 80% 60% at 50% 40%, rgba(120, 165, 245, 0.06), transparent 60%),
-          radial-gradient(ellipse 60% 80% at 30% 70%, rgba(120, 165, 245, 0.04), transparent 55%),
-          radial-gradient(ellipse 70% 70% at 70% 30%, rgba(120, 165, 245, 0.03), transparent 50%);
+          radial-gradient(circle at 20% 50%, rgba(120, 165, 245, 0.16), transparent 20%),
+          radial-gradient(circle at 48% 34%, rgba(120, 165, 245, 0.12), transparent 24%),
+          radial-gradient(circle at 72% 62%, rgba(120, 165, 245, 0.1), transparent 19%);
       }
       .page-transition-overlay.is-active {
         opacity: 1;
+      }
+      .page-transition-overlay.is-active::before {
+        animation: transitionMistPrimary 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      .page-transition-overlay.is-active::after {
+        animation: transitionMistSecondary 0.84s cubic-bezier(0.16, 1, 0.3, 1) both;
       }
 
       /* ── Page transition (navigation) ── */
@@ -196,6 +225,86 @@ const navLinks = [
         from { opacity: 0; filter: blur(8px); transform: scale(0.99); }
         to   { opacity: 1; filter: blur(0); transform: scale(1); }
       }
+      @keyframes transitionMistPrimary {
+        0% { opacity: 0; transform: scale(0.82) translate3d(-3%, 6%, 0); }
+        35% { opacity: 1; transform: scale(1.02) translate3d(2%, -2%, 0); }
+        100% { opacity: 0; transform: scale(1.24) translate3d(6%, -6%, 0); }
+      }
+      @keyframes transitionMistSecondary {
+        0% { opacity: 0; transform: scale(0.9) translate3d(4%, -4%, 0); }
+        40% { opacity: 0.85; transform: scale(1.06) translate3d(-2%, 3%, 0); }
+        100% { opacity: 0; transform: scale(1.28) translate3d(-5%, 5%, 0); }
+      }
+
+      .ui-brand-link,
+      .ui-nav-link,
+      .ui-text-link,
+      .ui-icon-btn,
+      .ui-fab {
+        position: relative;
+        transition:
+          color 180ms ease,
+          border-color 180ms ease,
+          background-color 180ms ease,
+          transform 180ms ease,
+          box-shadow 220ms ease;
+      }
+
+      .ui-brand-link:hover,
+      .ui-nav-link:hover,
+      .ui-text-link:hover,
+      .ui-icon-btn:hover,
+      .ui-fab:hover {
+        transform: translateY(-1px);
+      }
+
+      .ui-nav-link::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -0.65rem;
+        height: 1px;
+        background: rgb(var(--color-accent));
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 180ms ease;
+      }
+
+      .ui-nav-link:hover::after,
+      .ui-nav-link.is-active::after {
+        transform: scaleX(1);
+      }
+
+      .ui-icon-btn::before,
+      .ui-fab::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(135deg, rgb(var(--color-accent) / 0.1), transparent 65%);
+        opacity: 0;
+        transition: opacity 180ms ease;
+      }
+
+      .ui-icon-btn:hover::before,
+      .ui-fab:hover::before {
+        opacity: 1;
+      }
+
+      .ui-icon-btn:active,
+      .ui-fab:active {
+        transform: scale(0.97);
+      }
+
+      .page-shell {
+        animation: shellRiseIn 360ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @keyframes shellRiseIn {
+        from { opacity: 0; transform: translate3d(0, 10px, 0); }
+        to { opacity: 1; transform: translate3d(0, 0, 0); }
+      }
 
       /* Reduced motion */
       @media (prefers-reduced-motion: reduce) {
@@ -203,6 +312,18 @@ const navLinks = [
         ::view-transition-new(root) {
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
+        }
+        .page-shell,
+        .page-transition-overlay::before,
+        .page-transition-overlay::after,
+        .ui-brand-link,
+        .ui-nav-link,
+        .ui-text-link,
+        .ui-icon-btn,
+        .ui-fab {
+          animation: none !important;
+          transition: none !important;
+          transform: none !important;
         }
       }
 
@@ -276,7 +397,7 @@ const navLinks = [
         <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <a
             href={import.meta.env.BASE_URL}
-            class="text-xl font-display italic font-bold text-primary hover:text-accent transition-colors"
+            class="ui-brand-link text-xl font-display italic font-bold text-primary hover:text-accent"
           >
             TFX
           </a>
@@ -286,8 +407,8 @@ const navLinks = [
               <a
                 href={link.href}
                 class:list={[
-                  "hover:text-primary transition-colors",
-                  { "text-primary": currentPath.startsWith(link.href) }
+                  "ui-nav-link hover:text-primary",
+                  { "text-primary is-active": currentPath.startsWith(link.href) }
                 ]}
               >
                 {link.label}
@@ -298,7 +419,7 @@ const navLinks = [
           <div class="flex items-center gap-3">
             <button
               id="search-trigger"
-              class="flex items-center gap-2 px-3 py-2 md:py-1.5 border border-edge rounded-md hover:border-accent/40 hover:bg-accent/5 transition-all group min-h-[44px] md:min-h-0"
+              class="ui-icon-btn flex items-center gap-2 px-3 py-2 md:py-1.5 border border-edge rounded-md hover:border-accent/40 hover:bg-accent/5 group min-h-[44px] md:min-h-0"
             >
               <svg class="w-4 h-4 md:w-3.5 md:h-3.5 text-muted group-hover:text-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
@@ -308,7 +429,7 @@ const navLinks = [
 
             <button
               id="theme-toggle"
-              class="p-2.5 md:p-2 rounded-md hover:bg-primary/5 transition-colors text-secondary hover:text-primary min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
+              class="ui-icon-btn p-2.5 md:p-2 rounded-md hover:bg-primary/5 text-secondary hover:text-primary min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
               aria-label="Toggle theme"
             >
               <svg class="w-5 h-5 md:w-4 md:h-4 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -321,7 +442,7 @@ const navLinks = [
 
             <button
               id="mobile-menu-toggle"
-              class="md:hidden p-2.5 rounded-md hover:bg-primary/5 text-secondary min-w-[44px] min-h-[44px] flex items-center justify-center"
+              class="ui-icon-btn md:hidden p-2.5 rounded-md hover:bg-primary/5 text-secondary min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Menu"
             >
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -337,7 +458,7 @@ const navLinks = [
               <a
                 href={link.href}
                 class:list={[
-                  "hover:text-primary transition-colors py-3 border-b border-edge/50 last:border-0",
+                  "ui-text-link hover:text-primary py-3 border-b border-edge/50 last:border-0",
                   { "text-primary font-medium": currentPath.startsWith(link.href) }
                 ]}
               >
@@ -354,7 +475,7 @@ const navLinks = [
 
       <button
         id="back-to-top"
-        class="fixed bottom-6 left-6 z-40 p-3 md:p-2.5 rounded-full bg-surface border border-edge shadow-lg text-muted hover:text-accent hover:border-accent/40 transition-all opacity-0 translate-y-4 pointer-events-none"
+        class="ui-fab fixed bottom-6 left-6 z-40 p-3 md:p-2.5 rounded-full bg-surface border border-edge shadow-lg text-muted hover:text-accent hover:border-accent/40 opacity-0 translate-y-4 pointer-events-none"
         aria-label="Back to top"
       >
         <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -366,22 +487,41 @@ const navLinks = [
         <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-sans text-muted">
           <span>Feixiang Tao · 2026 · Shenzhen</span>
           <div class="flex items-center gap-4">
-            <a href="/rss.xml" class="hover:text-primary transition-colors">RSS</a>
-            <a href="https://github.com/kevin258258" target="_blank" class="hover:text-primary transition-colors">GitHub</a>
+            <a href="/rss.xml" class="ui-text-link hover:text-primary">RSS</a>
+            <a href="https://github.com/kevin258258" target="_blank" class="ui-text-link hover:text-primary">GitHub</a>
           </div>
         </div>
       </footer>
     </div>
 
     <script>
-      const root = document.documentElement;
       let backToTopTicking = false;
       let backToTopScrollBound = false;
+
+      const getThemePreference = () => {
+        const stored = localStorage.getItem('theme');
+        if (stored === 'dark' || stored === 'light') return stored;
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      };
+
+      const applyTheme = (theme, persist = false) => {
+        const root = document.documentElement;
+        const isDark = theme === 'dark';
+        root.classList.toggle('dark', isDark);
+        root.dataset.theme = isDark ? 'dark' : 'light';
+        root.style.colorScheme = isDark ? 'dark' : 'light';
+        if (persist) localStorage.setItem('theme', theme);
+        window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme } }));
+      };
+
+      const syncThemeFromStorage = () => {
+        applyTheme(getThemePreference(), false);
+      };
 
       const finishThemeSwitch = () => {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            root.classList.remove('theme-switching');
+            document.documentElement.classList.remove('theme-switching');
           });
         });
       };
@@ -416,17 +556,17 @@ const navLinks = [
       };
 
       function setupPageUi() {
+        syncThemeFromStorage();
+
         const toggle = document.getElementById('theme-toggle');
         if (toggle) {
           toggle.onclick = () => {
-            const switchTheme = () => {
-              const isDark = root.classList.toggle('dark');
-              localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            };
+            const nextTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            const switchTheme = () => applyTheme(nextTheme, true);
             if ('startViewTransition' in document) {
               document.startViewTransition(switchTheme);
             } else {
-              root.classList.add('theme-switching');
+              document.documentElement.classList.add('theme-switching');
               switchTheme();
               finishThemeSwitch();
             }
@@ -473,7 +613,17 @@ const navLinks = [
         });
       }
 
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      if (!(window).__themeMediaBound) {
+        mediaQuery.addEventListener('change', () => {
+          if (!localStorage.getItem('theme')) syncThemeFromStorage();
+        });
+        window.__themeMediaBound = true;
+      }
+
+      document.addEventListener('astro:after-swap', syncThemeFromStorage);
       document.addEventListener('astro:page-load', setupPageUi);
+      syncThemeFromStorage();
       setupPageUi();
 
       const overlay = document.querySelector('.page-transition-overlay');
