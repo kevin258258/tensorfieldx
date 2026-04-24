@@ -117,7 +117,6 @@ const navLinks = [
           radial-gradient(circle at 14% 10%, rgb(var(--color-accent) / 0.08), transparent 24%),
           radial-gradient(circle at 85% 0%, rgb(255 255 255 / 0.22), transparent 28%),
           linear-gradient(180deg, rgb(var(--color-paper)), rgb(239 235 228));
-        transform: translateZ(0);
         overflow: hidden;
       }
 
@@ -242,8 +241,8 @@ const navLinks = [
       }
 
       @keyframes shellRiseIn {
-        from { opacity: 0; transform: translate3d(0, 10px, 0); }
-        to { opacity: 1; transform: translate3d(0, 0, 0); }
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       /* Reduced motion */
@@ -459,7 +458,7 @@ const navLinks = [
         </div>
       </nav>
 
-      <main class="page-shell flex-1">
+      <main class="page-shell flex-1 w-full max-w-full">
         <slot />
       </main>
 
