@@ -20,7 +20,7 @@ const interests = [
 <BaseLayout title="About">
 
     <!-- Hero banner with photo -->
-    <div class="relative h-48 md:h-72 overflow-hidden">
+    <div class="relative h-48 md:h-72 overflow-hidden" data-animate="fade-in">
         <img
             src="/images/IMG_0511.webp"
             alt=""
@@ -39,7 +39,7 @@ const interests = [
     <div class="max-w-4xl mx-auto px-6 py-16">
         <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-16 items-start">
 
-            <aside>
+            <aside data-animate="slide-right">
                 <div class="w-20 h-20 bg-accent text-white flex items-center justify-center text-4xl font-display italic font-bold rounded-xl mb-6">
                     T
                 </div>
@@ -63,7 +63,7 @@ const interests = [
                 </div>
             </aside>
 
-            <main>
+            <main data-animate="slide-left">
                 <div class="mb-12">
                     <p class="font-body text-xl text-primary leading-relaxed mb-6">
                         Hi, I'm Feixiang. A freshman undergraduate student at
@@ -86,7 +86,7 @@ const interests = [
                     </div>
                 </div>
 
-                <div class="mb-12">
+                <div class="mb-12" data-animate="stagger-fade-up">
                     <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-4">Interests</h3>
                     <div class="flex flex-wrap gap-2">
                         {interests.map(interest => (
@@ -99,9 +99,9 @@ const interests = [
 
                 <div>
                     <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-4">Connect</h3>
-                    <div class="space-y-2">
+                    <div data-animate="stagger-fade-up">
                         {contacts.map(contact => (
-                            <a href={contact.url} target="_blank" class="flex items-center justify-between group py-2.5 px-3 -mx-3 hover:bg-accent/5 transition-colors rounded-md">
+                            <a href={contact.url} target="_blank" class="flex items-center justify-between group py-2.5 px-3 -mx-3 hover:bg-accent/5 transition-colors rounded-md" data-tilt="4">
                                 <span class="font-body text-base text-primary group-hover:text-accent transition-colors">
                                     {contact.label}
                                 </span>

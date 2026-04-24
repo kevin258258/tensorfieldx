@@ -88,7 +88,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                 <span class="text-primary truncate max-w-[200px]">{post.data.title}</span>
             </nav>
 
-            <header class="mb-10">
+            <header class="mb-10" data-animate="fade-up">
                 <div class="flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted mb-5">
                     {post.data.series && (
                         <span class="text-accent bg-accent/8 px-2 py-0.5 rounded font-sans font-medium text-[11px]">
@@ -158,7 +158,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                 </div>
             )}
 
-            <nav class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <nav class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4" data-animate="fade-up">
                 {prev ? (
                     <a href={`/notes/${prev.slug}`} data-astro-prefetch="tap" class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
                         <span class="font-mono text-[10px] text-muted mb-1">&larr; Previous</span>

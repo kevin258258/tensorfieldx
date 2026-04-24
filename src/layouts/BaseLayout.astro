@@ -159,81 +159,21 @@ const navLinks = [
         }
       }
 
-      /* ── Page transition overlay ── */
-      .page-transition-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        pointer-events: none;
-        overflow: hidden;
-        opacity: 0;
-        transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .page-transition-overlay::before,
-      .page-transition-overlay::after {
-        content: "";
-        position: absolute;
-        inset: -18%;
-        background:
-          radial-gradient(circle at 20% 50%, rgba(43, 91, 220, 0.18), transparent 20%),
-          radial-gradient(circle at 48% 34%, rgba(43, 91, 220, 0.14), transparent 24%),
-          radial-gradient(circle at 72% 62%, rgba(43, 91, 220, 0.12), transparent 19%);
-        filter: blur(48px);
-        transform: scale(0.88);
-        opacity: 0;
-      }
-      .page-transition-overlay::after {
-        background:
-          radial-gradient(circle at 65% 28%, rgba(200, 90, 58, 0.08), transparent 14%),
-          radial-gradient(circle at 34% 72%, rgba(43, 91, 220, 0.12), transparent 18%),
-          radial-gradient(circle at 82% 56%, rgba(43, 91, 220, 0.1), transparent 14%);
-        filter: blur(72px);
-      }
-      .dark .page-transition-overlay {
-        background: rgba(4, 7, 12, 0.04);
-      }
-      .dark .page-transition-overlay::before,
-      .dark .page-transition-overlay::after {
-        background:
-          radial-gradient(circle at 20% 50%, rgba(120, 165, 245, 0.16), transparent 20%),
-          radial-gradient(circle at 48% 34%, rgba(120, 165, 245, 0.12), transparent 24%),
-          radial-gradient(circle at 72% 62%, rgba(120, 165, 245, 0.1), transparent 19%);
-      }
-      .page-transition-overlay.is-active {
-        opacity: 1;
-      }
-      .page-transition-overlay.is-active::before {
-        animation: transitionMistPrimary 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-      }
-      .page-transition-overlay.is-active::after {
-        animation: transitionMistSecondary 0.84s cubic-bezier(0.16, 1, 0.3, 1) both;
-      }
-
       /* ── Page transition (navigation) ── */
       ::view-transition-old(root) {
-        animation: pageFadeOut 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: pageFadeOut 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
       }
       ::view-transition-new(root) {
-        animation: pageFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+        animation: pageFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
       }
 
       @keyframes pageFadeOut {
-        from { opacity: 1; filter: blur(0); transform: scale(1); }
-        to   { opacity: 0; filter: blur(6px); transform: scale(1.01); }
+        from { opacity: 1; transform: scale(1); }
+        to   { opacity: 0; transform: scale(1.01); }
       }
       @keyframes pageFadeIn {
-        from { opacity: 0; filter: blur(8px); transform: scale(0.99); }
-        to   { opacity: 1; filter: blur(0); transform: scale(1); }
-      }
-      @keyframes transitionMistPrimary {
-        0% { opacity: 0; transform: scale(0.82) translate3d(-3%, 6%, 0); }
-        35% { opacity: 1; transform: scale(1.02) translate3d(2%, -2%, 0); }
-        100% { opacity: 0; transform: scale(1.24) translate3d(6%, -6%, 0); }
-      }
-      @keyframes transitionMistSecondary {
-        0% { opacity: 0; transform: scale(0.9) translate3d(4%, -4%, 0); }
-        40% { opacity: 0.85; transform: scale(1.06) translate3d(-2%, 3%, 0); }
-        100% { opacity: 0; transform: scale(1.28) translate3d(-5%, 5%, 0); }
+        from { opacity: 0; transform: scale(0.99); }
+        to   { opacity: 1; transform: scale(1); }
       }
 
       .ui-brand-link,
@@ -314,8 +254,6 @@ const navLinks = [
           animation-iteration-count: 1 !important;
         }
         .page-shell,
-        .page-transition-overlay::before,
-        .page-transition-overlay::after,
         .ui-brand-link,
         .ui-nav-link,
         .ui-text-link,
@@ -380,19 +318,71 @@ const navLinks = [
         .katex-display .katex { font-size: 0.9em; }
       }
 
+      /* ── Custom cursor canvas ── */
+      .custom-cursor-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        pointer-events: none;
+      }
+      @media (pointer: coarse) {
+        .custom-cursor-canvas { display: none; }
+      }
+
+      /* ── Ambient gradient orbs ── */
+      .ambient-orb {
+        position: fixed;
+        border-radius: 50%;
+        opacity: 0.15;
+        pointer-events: none;
+        z-index: 0;
+        will-change: transform, opacity;
+      }
+      .ambient-orb--1 {
+        width: 600px; height: 600px;
+        background: radial-gradient(circle, rgb(var(--color-accent) / 0.22), transparent 70%);
+        top: -15%; left: -10%;
+      }
+      .ambient-orb--2 {
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, rgb(var(--color-accent-warm) / 0.18), transparent 70%);
+        top: 50%; right: -12%;
+      }
+      .ambient-orb--3 {
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgb(var(--color-accent) / 0.16), transparent 70%);
+        bottom: -10%; left: 30%;
+      }
+
+      /* ── Hero particles canvas ── */
+      .hero-particles-canvas {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      /* ── Progress bar glow ── */
+      #progress-bar {
+        box-shadow: 0 0 8px rgb(var(--color-accent) / 0.5), 0 0 2px rgb(var(--color-accent) / 0.3);
+      }
+
     </style>
   </head>
 
   <body class="text-primary min-h-screen font-body relative">
-    <div class="page-transition-overlay" aria-hidden="true"></div>
     <div class="page-background" aria-hidden="true"></div>
+    <canvas id="custom-cursor" class="custom-cursor-canvas" aria-hidden="true"></canvas>
+    <div class="ambient-orb ambient-orb--1" aria-hidden="true"></div>
+    <div class="ambient-orb ambient-orb--2" aria-hidden="true"></div>
+    <div class="ambient-orb ambient-orb--3" aria-hidden="true"></div>
 
     <Search />
     <LinkPreview />
 
     <div class="relative z-10 min-h-screen flex flex-col">
       <nav
-        class="sticky top-0 z-40 border-b border-edge bg-paper md:bg-paper/95 md:backdrop-blur-md"
+        class="sticky top-0 z-40 border-b border-edge bg-paper md:bg-paper/95"
       >
         <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <a
@@ -495,6 +485,19 @@ const navLinks = [
     </div>
 
     <script>
+      import gsap from 'gsap';
+      import { ScrollTrigger } from 'gsap/ScrollTrigger';
+      gsap.registerPlugin(ScrollTrigger);
+
+      // ── Device / capability detection ──
+      const isTouchDevice = ('ontouchstart' in window) ||
+        (navigator.maxTouchPoints > 0) ||
+        window.matchMedia('(pointer: coarse)').matches;
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const enableRichEffects = !isTouchDevice && !prefersReducedMotion;
+      const isMobile = window.matchMedia('(max-width: 767px)').matches;
+
+      // ── Theme helpers ──
       let backToTopTicking = false;
       let backToTopScrollBound = false;
 
@@ -555,6 +558,265 @@ const navLinks = [
         backToTopScrollBound = true;
       };
 
+      // ── Custom cursor ──
+      let cursorCleanup = null;
+
+      function initCustomCursor() {
+        if (cursorCleanup) cursorCleanup();
+        if (!enableRichEffects) return;
+
+        const canvas = document.getElementById('custom-cursor');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let w = canvas.width = window.innerWidth;
+        let h = canvas.height = window.innerHeight;
+
+        const trailCount = 18;
+        const trail = [];
+        let mouseX = -100, mouseY = -100;
+        let targetX = -100, targetY = -100;
+        let ringScale = 1;
+        let targetRingScale = 1;
+        let visible = false;
+
+        for (let i = 0; i < trailCount; i++) {
+          trail.push({ x: -100, y: -100 });
+        }
+
+        function resize() {
+          w = canvas.width = window.innerWidth;
+          h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+
+        function onMove(e) {
+          targetX = e.clientX;
+          targetY = e.clientY;
+          if (!visible) {
+            visible = true;
+            mouseX = targetX;
+            mouseY = targetY;
+            trail.forEach(p => { p.x = targetX; p.y = targetY; });
+          }
+        }
+        document.addEventListener('mousemove', onMove, { passive: true });
+
+        function onLeave() { visible = false; }
+        document.addEventListener('mouseleave', onLeave);
+
+        function onOver(e) {
+          const el = e.target.closest('a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]');
+          if (el) targetRingScale = 2.5;
+        }
+        function onOut(e) {
+          const el = e.target.closest('a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]');
+          if (el) targetRingScale = 1;
+        }
+        document.addEventListener('mouseover', onOver, { passive: true });
+        document.addEventListener('mouseout', onOut, { passive: true });
+
+        document.documentElement.style.cursor = 'none';
+        const interactiveSelector = 'a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]';
+        document.querySelectorAll(interactiveSelector).forEach(el => { (el).style.cursor = 'none'; });
+
+        function draw() {
+          ctx.clearRect(0, 0, w, h);
+
+          mouseX += (targetX - mouseX) * 0.3;
+          mouseY += (targetY - mouseY) * 0.3;
+          ringScale += (targetRingScale - ringScale) * 0.2;
+
+          if (!visible) {
+            requestAnimationFrame(draw);
+            return;
+          }
+
+          trail[0].x += (mouseX - trail[0].x) * 0.4;
+          trail[0].y += (mouseY - trail[0].y) * 0.4;
+          for (let i = 1; i < trailCount; i++) {
+            trail[i].x += (trail[i-1].x - trail[i].x) * 0.35;
+            trail[i].y += (trail[i-1].y - trail[i].y) * 0.35;
+          }
+
+          const isDark = document.documentElement.classList.contains('dark');
+          const accentRgb = isDark ? '120, 165, 245' : '43, 91, 220';
+
+          for (let i = trailCount - 1; i >= 0; i--) {
+            const p = trail[i];
+            const alpha = (1 - i / trailCount) * 0.45;
+            const size = (1 - i / trailCount) * 4.5;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${accentRgb}, ${alpha})`;
+            ctx.fill();
+          }
+
+          const ringSize = 6 * ringScale;
+          ctx.beginPath();
+          ctx.arc(mouseX, mouseY, ringSize, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${accentRgb}, ${0.7 + (ringScale - 1) * 0.2})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          if (ringScale > 1.6) {
+            ctx.beginPath();
+            ctx.arc(mouseX, mouseY, 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${accentRgb}, 0.9)`;
+            ctx.fill();
+          }
+
+          requestAnimationFrame(draw);
+        }
+
+        draw();
+
+        cursorCleanup = () => {
+          window.removeEventListener('resize', resize);
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseleave', onLeave);
+          document.removeEventListener('mouseover', onOver);
+          document.removeEventListener('mouseout', onOut);
+          document.documentElement.style.cursor = '';
+          document.querySelectorAll(interactiveSelector).forEach(el => { (el).style.cursor = ''; });
+        };
+      }
+
+      // ── Ambient orbs ──
+      function initAmbientOrbs() {
+        if (prefersReducedMotion) return;
+
+        const orb1 = document.querySelector('.ambient-orb--1');
+        const orb2 = document.querySelector('.ambient-orb--2');
+        const orb3 = document.querySelector('.ambient-orb--3');
+        if (!orb1 || !orb2 || !orb3) return;
+
+        gsap.to(orb1, {
+          x: '8%', y: '6%',
+          duration: 22, ease: 'sine.inOut', repeat: -1, yoyo: true,
+        });
+        gsap.to(orb1, {
+          opacity: 0.5,
+          duration: 9, ease: 'sine.inOut', repeat: -1, yoyo: true,
+        });
+
+        gsap.to(orb2, {
+          x: '-6%', y: '-10%',
+          duration: 26, ease: 'sine.inOut', repeat: -1, yoyo: true,
+        });
+        gsap.to(orb2, {
+          opacity: 0.35,
+          duration: 11, ease: 'sine.inOut', repeat: -1, yoyo: true,
+        });
+
+        gsap.to(orb3, {
+          x: '10%', y: '-8%',
+          duration: 19, ease: 'sine.inOut', repeat: -1, yoyo: true,
+        });
+        gsap.to(orb3, {
+          opacity: 0.48,
+          duration: 8, ease: 'sine.inOut', repeat: -1, yoyo: true,
+        });
+      }
+
+      // ── Scroll-triggered reveals ──
+      function initScrollTriggers() {
+        ScrollTrigger.getAll().forEach(st => st.kill(false));
+
+        document.querySelectorAll('[data-animate]').forEach(el => {
+          const type = el.dataset.animate;
+
+          if (type === 'stagger-fade-up') {
+            const children = Array.from(el.children);
+            if (children.length === 0) return;
+
+            gsap.set(children, { opacity: 0, y: 30 });
+
+            ScrollTrigger.create({
+              trigger: el,
+              start: 'top 88%',
+              once: true,
+              onEnter: () => {
+                gsap.to(children, {
+                  opacity: 1, y: 0,
+                  duration: 0.5, stagger: 0.06, ease: 'power3.out',
+                });
+              },
+            });
+          } else {
+            let fromVars: Record<string, number> = {};
+            switch (type) {
+              case 'fade-up': fromVars = { opacity: 0, y: 40 }; break;
+              case 'fade-in': fromVars = { opacity: 0 }; break;
+              case 'slide-left': fromVars = { opacity: 0, x: -40 }; break;
+              case 'slide-right': fromVars = { opacity: 0, x: 40 }; break;
+              case 'scale-in': fromVars = { opacity: 0, scale: 0.92 }; break;
+            }
+
+            if (Object.keys(fromVars).length > 0) {
+              gsap.set(el, fromVars);
+
+              ScrollTrigger.create({
+                trigger: el,
+                start: 'top 88%',
+                once: true,
+                onEnter: () => {
+                  gsap.to(el, {
+                    opacity: 1, y: 0, x: 0, scale: 1,
+                    duration: 0.7, ease: 'power3.out',
+                  });
+                },
+              });
+            }
+          }
+        });
+
+        requestAnimationFrame(() => {
+          ScrollTrigger.refresh();
+        });
+      }
+
+      // ── 3D tilt ──
+      function init3DTilt() {
+        if (!enableRichEffects) return;
+
+        document.querySelectorAll('[data-tilt]').forEach(card => {
+          const el = card;
+          el.style.transformStyle = 'preserve-3d';
+          el.style.perspective = '1200px';
+
+          function onMove(e) {
+            const rect = el.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            const intensity = parseFloat(el.dataset.tilt || '8');
+            el.style.transition = 'transform 0.1s ease-out';
+            el.style.transform = `perspective(1200px) rotateY(${x * intensity}deg) rotateX(${-y * intensity}deg) scale3d(1.02, 1.02, 1.02)`;
+          }
+
+          function onLeave() {
+            el.style.transition = 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
+            el.style.transform = 'perspective(1200px) rotateY(0deg) rotateX(0deg) scale3d(1, 1, 1)';
+          }
+
+          el.addEventListener('mousemove', onMove, { passive: true });
+          el.addEventListener('mouseleave', onLeave);
+        });
+      }
+
+      // ── Page transitions ──
+      function initPageTransitions() {
+        document.addEventListener('astro:before-preparation', () => {
+          ScrollTrigger.getAll().forEach(st => st.kill());
+        });
+
+        document.addEventListener('astro:after-swap', () => {
+          // Scroll triggers re-initialized in setupPageUi
+        });
+      }
+
+      // ── Page UI (existing + new inits) ──
       function setupPageUi() {
         syncThemeFromStorage();
 
@@ -611,32 +873,41 @@ const navLinks = [
             wrapper.appendChild(btn);
           });
         });
+
+        // ── Per-page inits ──
+        initCustomCursor();
+        initScrollTriggers();
+        init3DTilt();
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            ScrollTrigger.refresh();
+          });
+        });
       }
 
+      // ── Media query listener ──
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      if (!(window).__themeMediaBound) {
+      if (!window.__themeMediaBound) {
         mediaQuery.addEventListener('change', () => {
           if (!localStorage.getItem('theme')) syncThemeFromStorage();
         });
         window.__themeMediaBound = true;
       }
 
+      // ── Bootstrap ──
       document.addEventListener('astro:after-swap', syncThemeFromStorage);
-      document.addEventListener('astro:page-load', setupPageUi);
+      document.addEventListener('astro:page-load', () => {
+        setupPageUi();
+        setTimeout(() => {
+          ScrollTrigger.refresh();
+        }, 50);
+      });
       syncThemeFromStorage();
       setupPageUi();
 
-      const overlay = document.querySelector('.page-transition-overlay');
-      document.addEventListener('astro:before-preparation', () => {
-        if (overlay) overlay.classList.add('is-active');
-      });
-      document.addEventListener('astro:after-swap', () => {
-        if (overlay) {
-          requestAnimationFrame(() => {
-            setTimeout(() => overlay.classList.remove('is-active'), 200);
-          });
-        }
-      });
+      initAmbientOrbs();
+      initPageTransitions();
     </script>
   </body>
 </html>

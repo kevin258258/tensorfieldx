@@ -17,6 +17,7 @@
     "@vercel/analytics": "^1.6.1",
     "astro": "^5.16.6",
     "framer-motion": "^12.23.26",
+    "gsap": "^3.12.7",
     "fuse.js": "^7.1.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",

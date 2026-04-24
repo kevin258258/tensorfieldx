@@ -35,7 +35,7 @@ const notesForGraph = JSON.stringify(notes.map(n => ({
 <BaseLayout title="Research Notes">
     <div class="max-w-4xl mx-auto px-6 py-16 min-h-screen">
 
-        <header class="mb-14">
+        <header class="mb-14" data-animate="fade-up">
             <h1 class="text-4xl md:text-5xl font-display font-bold text-primary tracking-tight mb-4">
                 Notes
             </h1>
@@ -56,9 +56,9 @@ const notesForGraph = JSON.stringify(notes.map(n => ({
                 </div>
             </div>
 
-            <div id="notes-list" class="space-y-1">
+            <div id="notes-list" class="space-y-1" data-animate="stagger-fade-up">
                 {Object.entries(seriesGroups).map(([seriesName, seriesNotes]) => (
-                    <div class="rounded-lg overflow-hidden border border-edge">
+                    <div class="rounded-lg overflow-hidden border border-edge" data-tilt="5">
                         <button
                             class="series-toggle w-full flex items-center gap-3 px-4 py-3.5 transition-colors text-left group hover:bg-primary/[0.02]"
                             data-series={seriesName}

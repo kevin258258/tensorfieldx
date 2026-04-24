@@ -11,7 +11,7 @@ const posts = allPosts
 <BaseLayout title="Blog">
     <div class="max-w-3xl mx-auto px-6 py-16 min-h-screen">
 
-        <header class="mb-14">
+        <header class="mb-14" data-animate="fade-up">
             <h1 class="text-4xl md:text-5xl font-display font-bold text-primary tracking-tight mb-4">
                 Blog
             </h1>
@@ -21,7 +21,7 @@ const posts = allPosts
         </header>
 
         {posts.length > 0 ? (
-            <div class="divide-y divide-edge">
+            <div class="divide-y divide-edge" data-animate="stagger-fade-up">
                 {posts.map((post) => (
                     <a href={`/blog/${post.slug}`} class="group block py-6 hover:bg-accent/3 -mx-3 px-3 rounded transition-colors">
                         <div class="flex items-baseline gap-3 mb-2">

@@ -20,7 +20,7 @@ const skills = {
 <BaseLayout title="CV">
     <div class="max-w-3xl mx-auto px-6 py-16 min-h-screen">
 
-        <header class="mb-14">
+        <header class="mb-14" data-animate="fade-up">
             <h1 class="text-4xl md:text-5xl font-display font-bold text-primary tracking-tight mb-2">
                 Curriculum Vitae
             </h1>
@@ -30,7 +30,7 @@ const skills = {
         <div class="space-y-12">
 
             <!-- Name -->
-            <section>
+            <section data-animate="fade-up">
                 <h2 class="font-display text-2xl font-bold text-primary mb-1">Feixiang Tao</h2>
                 <p class="font-sans text-sm text-secondary">
                     Undergraduate Student · SUSTech · Shenzhen, China
@@ -43,7 +43,7 @@ const skills = {
             </section>
 
             <!-- Education -->
-            <section>
+            <section data-animate="fade-up">
                 <h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-4 pb-2 border-b border-edge">Education</h2>
                 {education.map(edu => (
                     <div class="mb-4">
@@ -58,7 +58,7 @@ const skills = {
             </section>
 
             <!-- Skills -->
-            <section>
+            <section data-animate="fade-up">
                 <h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-4 pb-2 border-b border-edge">Skills & Interests</h2>
                 <div class="space-y-4">
                     {Object.entries(skills).map(([category, items]) => (
@@ -77,7 +77,7 @@ const skills = {
             </section>
 
             <!-- Publications placeholder -->
-            <section>
+            <section data-animate="fade-up">
                 <h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-4 pb-2 border-b border-edge">Publications</h2>
                 <p class="font-body text-sm text-muted italic">Coming soon.</p>
             </section>

@@ -37,7 +37,7 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
             <span class="text-primary truncate max-w-[200px]">{post.data.title}</span>
         </nav>
 
-        <header class="mb-10">
+        <header class="mb-10" data-animate="fade-up">
             <div class="flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted mb-5">
                 <span>{post.data.pubDate.toLocaleDateString('en-CA')}</span>
                 <span>·</span>
@@ -74,7 +74,7 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
 
         </div>
 
-        <nav class="mt-16 pt-8 border-t border-edge grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <nav class="mt-16 pt-8 border-t border-edge grid grid-cols-1 sm:grid-cols-2 gap-4" data-animate="fade-up">
             {prev ? (
                 <a href={`/blog/${prev.slug}`} class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
                     <span class="font-mono text-[10px] text-muted mb-1">&larr; Previous</span>
