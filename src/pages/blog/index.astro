@@ -23,7 +23,7 @@ const posts = allPosts
         {posts.length > 0 ? (
             <div class="divide-y divide-edge" data-animate="stagger-fade-up">
                 {posts.map((post) => (
-                    <a href={`/blog/${post.slug}`} class="group block py-6 hover:bg-accent/3 -mx-3 px-3 rounded transition-colors">
+                    <a href={`/blog/${post.slug}`} class="group block py-6 hover:bg-accent/3 px-3 rounded transition-colors">
                         <div class="flex items-baseline gap-3 mb-2">
                             <span class="font-mono text-[11px] text-muted shrink-0">
                                 {post.data.pubDate.toISOString().split('T')[0]}
