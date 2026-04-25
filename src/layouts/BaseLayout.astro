@@ -24,7 +24,7 @@ const navLinks = [
 ---
 
 <!doctype html>
-<html lang="en" class="h-full overflow-x-hidden" transition:animate="none">
+<html lang="en" class="h-full w-full max-w-full" transition:animate="none">
   <head>
     <meta charset="UTF-8" />
     <Analytics />
@@ -369,7 +369,7 @@ const navLinks = [
     </style>
   </head>
 
-  <body class="text-primary min-h-screen font-body relative">
+  <body class="text-primary min-h-screen font-body relative w-full max-w-full overflow-x-hidden">
     <div class="page-background" aria-hidden="true"></div>
     <canvas id="custom-cursor" class="custom-cursor-canvas" aria-hidden="true"></canvas>
     <div class="ambient-orb ambient-orb--1" aria-hidden="true"></div>
@@ -379,9 +379,9 @@ const navLinks = [
     <Search />
     <LinkPreview />
 
-    <div class="relative z-10 min-h-screen flex flex-col">
+    <div class="relative z-10 min-h-screen flex flex-col w-full max-w-full">
       <nav
-        class="sticky top-0 z-40 border-b border-edge bg-paper md:bg-paper/95"
+        class="sticky top-0 z-40 border-b border-edge bg-paper md:bg-paper/95 w-full max-w-full"
       >
         <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <a
