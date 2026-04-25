@@ -28,7 +28,7 @@ const navLinks = [
   <head>
     <meta charset="UTF-8" />
     <Analytics />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} | Feixiang Tao</title>
     <ClientRouter fallback="swap" />
@@ -114,7 +114,6 @@ const navLinks = [
         z-index: 0;
         pointer-events: none;
         background:
-          radial-gradient(circle at 14% 10%, rgb(var(--color-accent) / 0.08), transparent 24%),
           radial-gradient(circle at 85% 0%, rgb(255 255 255 / 0.22), transparent 28%),
           linear-gradient(180deg, rgb(var(--color-paper)), rgb(239 235 228));
         overflow: hidden;
@@ -131,7 +130,6 @@ const navLinks = [
 
       .dark .page-background {
         background:
-          radial-gradient(circle at 20% 10%, rgb(var(--color-accent) / 0.08), transparent 30%),
           radial-gradient(circle at top, rgb(255 255 255 / 0.03), transparent 38%),
           linear-gradient(rgb(20 21 24), rgb(var(--color-paper)));
       }
@@ -335,7 +333,6 @@ const navLinks = [
         opacity: 0.15;
         pointer-events: none;
         z-index: 0;
-        will-change: transform, opacity;
       }
       .ambient-orb--1 {
         width: 600px; height: 600px;
@@ -351,6 +348,9 @@ const navLinks = [
         width: 400px; height: 400px;
         background: radial-gradient(circle, rgb(var(--color-accent) / 0.16), transparent 70%);
         bottom: -10%; left: 30%;
+      }
+      @media (max-width: 767px) {
+        .ambient-orb { display: none; }
       }
 
       /* ── Hero particles canvas ── */
@@ -572,12 +572,12 @@ const navLinks = [
         let w = canvas.width = window.innerWidth;
         let h = canvas.height = window.innerHeight;
 
-        const trailCount = 18;
-        const trail = [];
-        let mouseX = -100, mouseY = -100;
+        const trailCount = 8;
+        const trail: {x:number;y:number}[] = [];
+        let cursorX = -100, cursorY = -100;
+        let ringX = -100, ringY = -100;
         let targetX = -100, targetY = -100;
-        let ringScale = 1;
-        let targetRingScale = 1;
+        let hovered = false;
         let visible = false;
 
         for (let i = 0; i < trailCount; i++) {
@@ -590,13 +590,15 @@ const navLinks = [
         }
         window.addEventListener('resize', resize);
 
-        function onMove(e) {
+        function onMove(e: MouseEvent) {
           targetX = e.clientX;
           targetY = e.clientY;
           if (!visible) {
             visible = true;
-            mouseX = targetX;
-            mouseY = targetY;
+            cursorX = targetX;
+            cursorY = targetY;
+            ringX = targetX;
+            ringY = targetY;
             trail.forEach(p => { p.x = targetX; p.y = targetY; });
           }
         }
@@ -605,66 +607,76 @@ const navLinks = [
         function onLeave() { visible = false; }
         document.addEventListener('mouseleave', onLeave);
 
-        function onOver(e) {
-          const el = e.target.closest('a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]');
-          if (el) targetRingScale = 2.5;
+        function onOver(e: MouseEvent) {
+          const el = (e.target as Element).closest('a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]');
+          if (el) hovered = true;
         }
-        function onOut(e) {
-          const el = e.target.closest('a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]');
-          if (el) targetRingScale = 1;
+        function onOut(e: MouseEvent) {
+          const el = (e.target as Element).closest('a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]');
+          if (el) hovered = false;
         }
         document.addEventListener('mouseover', onOver, { passive: true });
         document.addEventListener('mouseout', onOut, { passive: true });
 
         document.documentElement.style.cursor = 'none';
         const interactiveSelector = 'a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]';
-        document.querySelectorAll(interactiveSelector).forEach(el => { (el).style.cursor = 'none'; });
+        document.querySelectorAll(interactiveSelector).forEach(el => { (el as HTMLElement).style.cursor = 'none'; });
 
         function draw() {
           ctx.clearRect(0, 0, w, h);
 
-          mouseX += (targetX - mouseX) * 0.3;
-          mouseY += (targetY - mouseY) * 0.3;
-          ringScale += (targetRingScale - ringScale) * 0.2;
+          // Smooth follow: dot snaps fast, ring drifts slower
+          cursorX += (targetX - cursorX) * 0.55;
+          cursorY += (targetY - cursorY) * 0.55;
+          ringX += (targetX - ringX) * 0.18;
+          ringY += (targetY - ringY) * 0.18;
 
           if (!visible) {
             requestAnimationFrame(draw);
             return;
           }
 
-          trail[0].x += (mouseX - trail[0].x) * 0.4;
-          trail[0].y += (mouseY - trail[0].y) * 0.4;
-          for (let i = 1; i < trailCount; i++) {
-            trail[i].x += (trail[i-1].x - trail[i].x) * 0.35;
-            trail[i].y += (trail[i-1].y - trail[i].y) * 0.35;
-          }
-
           const isDark = document.documentElement.classList.contains('dark');
           const accentRgb = isDark ? '120, 165, 245' : '43, 91, 220';
 
+          // Trail: 8 small particles trailing the ring
+          trail[0].x += (ringX - trail[0].x) * 0.5;
+          trail[0].y += (ringY - trail[0].y) * 0.5;
+          for (let i = 1; i < trailCount; i++) {
+            trail[i].x += (trail[i-1].x - trail[i].x) * 0.45;
+            trail[i].y += (trail[i-1].y - trail[i].y) * 0.45;
+          }
+
           for (let i = trailCount - 1; i >= 0; i--) {
             const p = trail[i];
-            const alpha = (1 - i / trailCount) * 0.45;
-            const size = (1 - i / trailCount) * 4.5;
+            const t = 1 - i / trailCount;
+            const alpha = t * t * 0.35;
+            const size = t * 3.5;
             ctx.beginPath();
             ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
             ctx.fillStyle = `rgba(${accentRgb}, ${alpha})`;
             ctx.fill();
           }
 
-          const ringSize = 6 * ringScale;
+          // Outer ring — scales up on hover
+          const ringBase = 7;
+          const ringTarget = hovered ? 18 : ringBase;
+          const ringR = ringBase + (ringTarget - ringBase) * (hovered ? 1 : 0);
+          // Animate ring size via lerp in draw loop
+          const ringAlpha = 0.55 + (hovered ? 0.3 : 0);
+
           ctx.beginPath();
-          ctx.arc(mouseX, mouseY, ringSize, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${accentRgb}, ${0.7 + (ringScale - 1) * 0.2})`;
-          ctx.lineWidth = 1.5;
+          ctx.arc(ringX, ringY, ringR, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${accentRgb}, ${ringAlpha})`;
+          ctx.lineWidth = hovered ? 1.8 : 1.2;
           ctx.stroke();
 
-          if (ringScale > 1.6) {
-            ctx.beginPath();
-            ctx.arc(mouseX, mouseY, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${accentRgb}, 0.9)`;
-            ctx.fill();
-          }
+          // Inner dot — precise, always visible
+          const dotR = hovered ? 2 : 3.5;
+          ctx.beginPath();
+          ctx.arc(cursorX, cursorY, dotR, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${accentRgb}, 0.95)`;
+          ctx.fill();
 
           requestAnimationFrame(draw);
         }
@@ -678,7 +690,7 @@ const navLinks = [
           document.removeEventListener('mouseover', onOver);
           document.removeEventListener('mouseout', onOut);
           document.documentElement.style.cursor = '';
-          document.querySelectorAll(interactiveSelector).forEach(el => { (el).style.cursor = ''; });
+          document.querySelectorAll(interactiveSelector).forEach(el => { (el as HTMLElement).style.cursor = ''; });
         };
       }
 
