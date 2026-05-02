@@ -1,0 +1,737 @@
+---
+title: "Intro to TCS Note 1：表示"
+description: "从对象与表示的区分出发，构造二进制、prefix-free、有理数与组合数据结构的编码方式。"
+pubDate: 2026-05-02
+tags: ["TCS", "Mathematics", "Encoding"]
+series: "Intro to TCS"
+seriesOrder: 1
+---
+
+
+## 0. 引子：同一对象的多种表示
+
+同一个数学对象，往往可以有许多等价的表示。在线性代数里，一个抽象向量 $v\in V$ 可以在不同基底下写成不同坐标：
+
+$$  
+[v]_B=(a_1,\dots,a_n),\qquad [v]_{B'}=(a'_1,\dots,a'_n).  
+$$
+
+坐标不同，但它们表示的是同一个向量。换基矩阵只是把一种表示翻译成另一种表示。
+
+在几何里，一个流形既可以通过局部坐标图册表示，也可以通过嵌入到某个欧氏空间中表示。比如球面 $S^2$ 可以看成
+
+$$  
+S^2={(x,y,z)\in \mathbb R^3:x^2+y^2+z^2=1},  
+$$
+
+也可以通过多个局部坐标图拼接而成。前者强调外部约束，后者强调内在坐标。
+
+在代数里，同一个有限群可以通过乘法表表示，也可以通过生成元与关系表示：
+
+$$  
+G=\langle a,b\mid a^2=b^3=(ab)^5=e\rangle.  
+$$
+
+乘法表是完全展开的表示，生成元-关系是压缩的结构表示。
+
+在逻辑和程序语言里，同一个函数也可以由不同程序表示。两个程序文本可能完全不同，但计算出同一个函数：
+
+$$  
+P\not=Q,\qquad \llbracket P\rrbracket=\llbracket Q\rrbracket.  
+$$
+
+所以，“对象”和“表示”之间应当区分开来。对象是语义层的东西；表示是语法层的东西。表示本质上是一种映射：
+
+$$  
+\mathrm{enc}:\mathrm{Object}\to \mathrm{Representation}.  
+$$
+
+TCS 的基本习惯是：先把抽象对象变成有限字符串，然后再让机器处理这些字符串。
+
+---
+
+## 1. 为什么采用 (01) 字符串？
+
+我们通常把表示空间选择为
+
+$$  
+{0,1}^*.  
+$$
+
+这不是因为二进制最“高级”，而是因为它足够干净、稳定、通用。
+
+### 1.1 离散：可操作
+
+机器能直接操作的对象应当是有限、离散、可逐步读取的。有限二进制串满足这些要求：
+
+$$  
+s=s_1s_2\cdots s_n,  
+\qquad s_i\in{0,1}.  
+$$
+
+它有明确长度，可以逐位访问，可以拼接，可以比较，可以输入给算法。
+
+### 1.2 等同于任何有限字母表的表示能力
+
+设 $\Sigma$ 是任意有限字母表。若 $|\Sigma|=k$，那么每个符号都可以用
+
+$$  
+\lceil \log_2 k\rceil  
+$$
+
+个 bit 编码。因此：
+
+$$  
+\Sigma^* \quad\text{可以有效编码进}\quad {0,1}^*.  
+$$
+
+所以使用 ASCII、Unicode、十进制、三进制、有限状态标签，本质上都没有超出二进制串的表达能力。
+
+### 1.3 最小的非平凡有限表示
+
+一元字母表 $\{1\}^*$ 太弱：它只能用长度表示信息。比如自然数 $n$ 只能表示成
+
+$$  
+111\cdots 1  
+$$
+
+长度为 $n$。而二进制可以用 $O(\log n)$ 位表示 $n$。
+
+二进制是最小的非平凡有限字母表。更大的有限字母表只是在信息密度上带来常数因子提升，不改变主流复杂度类的本质。
+
+因此，二进制串是一个很自然的标准表示空间：
+
+$$  
+\boxed{\text{finite discrete object}\rightsquigarrow {0,1}^*.}  
+$$
+
+---
+
+## 2. 自然数的二进制表示
+
+第一步是把自然数编码成二进制字符串。
+
+定义函数
+
+$$  
+\mathrm{bin}:\mathbb N\to {0,1}^*.  
+$$
+
+对 $n\ge 1$，递归定义：
+
+$$  
+\mathrm{bin}(n)=\mathrm{bin}\left(\left\lfloor \frac n2\right\rfloor\right)p(n),  
+$$
+
+其中
+
+$$  
+p(n)=  
+\begin{cases}  
+0, & n\equiv 0\pmod 2,\  
+1, & n\equiv 1\pmod 2.  
+\end{cases}  
+$$
+
+并取基本情形：
+
+$$  
+\mathrm{bin}(0)=\epsilon.  
+$$
+
+这里 $\epsilon$ 是空串。于是：
+
+$$  
+\mathrm{bin}(1)=1,  
+\qquad  
+\mathrm{bin}(2)=10,  
+\qquad  
+\mathrm{bin}(3)=11,  
+\qquad  
+\mathrm{bin}(4)=100.  
+$$
+
+这就是通常的二进制展开，只是把 $0$ 表示为空串。若不喜欢空串，也可以另行规定 $0\mapsto 0$，然后让正整数使用无前导零的表示。
+
+递归算法的意义是：每一步通过除以 $2$ 去掉最低位，直到到达基本情形。余数给出当前最低位。最后由于递归返回时从高位到低位拼接，所以得到 MSB-first 的二进制串。
+
+---
+
+## 3. 集合论存在性与 TCS 构造性的区别
+
+我们知道：
+
+$$  
+\mathbb N\sim \mathbb Q.  
+$$
+
+因此从集合论角度看，因为
+
+$$  
+\mathbb N\leftrightarrow {0,1}^*,  
+\qquad  
+\mathbb N\leftrightarrow \mathbb Q,  
+$$
+
+所以当然存在某种编码：
+
+$$  
+\mathbb Q\to {0,1}^*.  
+$$
+
+但是这对 TCS 来说还不够。TCS 不仅想知道“存在一个映射”，还要知道：
+
+1. 这个映射如何构造？
+    
+2. 编码如何解码？
+    
+3. 是否唯一？
+    
+4. 拼接多个编码对象时，如何知道边界？
+    
+5. 编码和解码的算法复杂度是多少？
+    
+
+因此，我们不能只满足于一句“存在双射”。我们要构造出一个明确的编码过程。
+
+在开始编码有理数之前，先引入一个处理边界的工具：prefix-free encoding。
+
+---
+
+## 4. Prefix-free encoding
+
+### 4.1 定义
+
+设 $C\subseteq \{0,1\}^*$ 是一组码字。称 $C$ 是 prefix-free 的，如果不存在两个不同字符串 $u, v\in C$，使得 $u$ 是 $v$ 的前缀。
+
+形式地，定义前缀关系：
+
+$$  
+u\preceq v  
+\iff  
+\exists w\in{0,1}^*,\ v=uw.  
+$$
+
+如果 $u\preceq v$ 且 $u\ne v$，则称 $u$ 是 $v$ 的真前缀。
+
+于是 prefix-free 的定义是：
+
+$$  
+\forall u,v\in C,  
+\quad  
+u\preceq v\Rightarrow u=v.  
+$$
+
+直观上，把 $\{0,1\}^*$ 看成一棵无限二叉树。每个字符串是一个节点，前缀关系就是祖先关系。Prefix-free 的意思是：没有一个码字节点是另一个码字节点的祖先。换句话说，码字都像叶子一样。
+
+### 4.2 为什么需要 prefix-free？
+
+单射只保证单个对象能被区分：
+
+$$  
+x\ne y\Rightarrow \mathrm{enc}(x)\ne \mathrm{enc}(y).  
+$$
+
+但如果要编码一个列表：
+
+$$  
+[x_1,x_2,\dots,x_n],  
+$$
+
+自然想把它编码成拼接：
+
+$$  
+\mathrm{enc}(x_1)\mathrm{enc}(x_2)\cdots \mathrm{enc}(x_n).  
+$$
+
+这时单射不够。我们还必须知道第一个码字在哪里结束，第二个码字从哪里开始。
+
+Prefix-free 正是为了解决边界识别问题。
+
+---
+
+## 5. Lemma：prefix-free 编码可以通过拼接编码列表
+
+### Lemma
+
+设
+
+$$  
+\mathrm{enc}:X\to {0,1}^*  
+$$
+
+是 prefix-free 编码。定义列表编码：
+
+$$  
+\mathrm{listEnc}([x_1,\dots,x_n])
+=
+\mathrm{enc}(x_1)\mathrm{enc}(x_2)\cdots \mathrm{enc}(x_n).  
+$$
+
+则任意合法拼接串都有唯一分解。也就是说，若
+
+$$  
+\mathrm{enc}(x_1)\cdots \mathrm{enc}(x_m)
+=
+\mathrm{enc}(y_1)\cdots \mathrm{enc}(y_n),  
+$$
+
+则
+
+$$  
+m=n,  
+\qquad  
+x_i=y_i\quad \forall i.  
+$$
+
+### Proof
+
+记
+
+$$  
+c_i=\mathrm{enc}(x_i),  
+\qquad  
+d_j=\mathrm{enc}(y_j).  
+$$
+
+于是有
+
+$$  
+c_1c_2\cdots c_m=d_1d_2\cdots d_n.  
+$$
+
+比较第一个码字 $c_1$ 与 $d_1$。因为两个整体字符串相同，$c_1$ 和 $d_1$ 从开头开始逐位一致，直到其中较短者结束。因此，较短者一定是较长者的前缀。
+
+由于编码是 prefix-free，不可能出现一个码字是另一个不同码字的真前缀。因此只能有
+
+$$  
+c_1=d_1.  
+$$
+
+因为 $\mathrm{enc}$ 是编码，特别地它是单射，所以
+
+$$  
+x_1=y_1.  
+$$
+
+消去相同前缀 $c_1=d_1$，得到
+
+$$  
+c_2\cdots c_m=d_2\cdots d_n.  
+$$
+
+重复同样论证，可得所有码字逐一相等。因此
+
+$$  
+m=n,  
+\qquad  
+x_i=y_i.  
+$$
+
+证毕。
+
+### 解码算法
+
+树视角下，解码算法是显然的：
+
+1. 从根节点开始；
+    
+2. 读到 $0$ 就向左，读到 $1$ 就向右；
+    
+3. 一旦到达叶子，就输出对应对象，并回到根；
+    
+4. 重复直到字符串读完。
+    
+
+由于码字是 prefix-free 的，到达叶子的时刻就是一个对象结束的时刻。
+
+---
+
+## 6. 一个通用的 prefix-free 转换
+
+现在我们希望有一个通用包装器：任意二进制字符串 $s\in\{0,1\}^*$，都能被转换成 prefix-free 码字。
+
+定义变换
+
+$$  
+T:\{0,1\}^*\to\{0,1\}^*
+$$
+
+如下：
+
+$$  
+0\mapsto 00,  
+\qquad  
+1\mapsto 11,  
+$$
+
+最后附加终止符
+
+$$  
+1.  
+$$
+
+即若
+
+$$  
+s=s_1s_2\cdots s_n,  
+$$
+
+则
+
+$$  
+T(s)=\phi(s_1)\phi(s_2)\cdots \phi(s_n)01,  
+$$
+
+其中
+
+$$  
+\phi(0)=00,  
+\qquad  
+\phi(1)=11.  
+$$
+
+例如：
+
+$$  
+101\mapsto 11,00,11,01.  
+$$
+
+空串编码为：
+
+$$  
+\epsilon\mapsto 01.  
+$$
+
+### Lemma
+
+$T(\{0,1\}^*)$ 是 prefix-free 的。
+
+### Proof
+
+所有 $T(s)$ 都可以按两位一组解析。正文块只可能是
+
+$$  
+00,\qquad 11,  
+$$
+
+终止块是
+
+$$  
+1.  
+$$
+
+正文中永远不会出现终止块 $01$，而每个码字最后恰好出现一次 $01$。
+
+假设
+
+$$  
+T(s)\preceq T(t).  
+$$
+
+若 $|s|<|t|$，那么在 $T(s)$ 的第 $|s|+1$ 个块处，已经出现终止符 $01$。但在 $T(t)$ 的同一位置，它仍处于正文部分，只可能是 $00$ 或 $11$，矛盾。
+
+若 $|s|=|t|$，则 $T(s)$ 与 $T(t)$ 长度相同，又有前缀关系，因此
+
+$$  
+T(s)=T(t).  
+$$
+
+由 $\phi(0)=00,\ \phi(1)=11$ 的单射性可知
+
+$$  
+s=t.  
+$$
+
+若 $|s|>|t|$，则 $T(s)$ 不可能是 $T(t)$ 的前缀。
+
+所以
+
+$$  
+T(s)\preceq T(t)\Rightarrow s=t.  
+$$
+
+因此 $T(\{0,1\}^*)$ prefix-free。证毕。
+
+### Corollary
+
+若已有任意普通编码
+
+$$  
+\mathrm{enc}:X\to{0,1}^*,  
+$$
+
+则
+
+$$  
+\mathrm{Enc}=T\circ \mathrm{enc}  
+$$
+
+是一个 prefix-free 编码。
+
+这说明：我们不必为每一种对象单独设计 prefix-free 编码。只需要先把对象编码成普通字符串，再统一套上
+
+$$  
+\boxed{s\mapsto T(s)}  
+$$
+
+这个 self-delimiting wrapper 即可。
+
+---
+
+## 7. 有理数的编码
+
+现在回到目标：构造
+
+$$  
+\mathbb Q\to{0,1}^*.  
+$$
+
+### 7.1 有理数作为整数对
+
+每个有理数都可以唯一写成
+
+$$  
+q=\frac ab,  
+$$
+
+其中
+
+$$  
+a\in\mathbb Z,  
+\qquad  
+b\in\mathbb N_{>0},  
+\qquad  
+\gcd(a,b)=1.  
+$$
+
+因此可以把有理数表示为整数对
+
+$$  
+(a,b).  
+$$
+
+这里要求 $b>0$ 且分数化为最简，是为了获得 canonical representation。
+
+### 7.2 整数转自然数
+
+定义 zigzag 编码：
+
+$$  
+Z:\mathbb Z\to\mathbb N  
+$$
+
+为
+
+$$  
+Z(a)=  
+\begin{cases}  
+2a, & a\ge 0,\  
+-2a-1, & a<0.  
+\end{cases}  
+$$
+
+于是
+
+$$  
+0\mapsto 0,  
+\quad  
+-1\mapsto 1,  
+\quad  
+1\mapsto 2,  
+\quad  
+-2\mapsto 3,  
+\quad  
+2\mapsto 4.  
+$$
+
+这给出
+
+$$  
+\mathbb Z\leftrightarrow \mathbb N.  
+$$
+
+### 7.3 正自然数转自然数
+
+对分母 $b\in\mathbb N_{>0}$，使用
+
+$$  
+b\mapsto b-1\in\mathbb N.  
+$$
+
+于是有理数
+
+$$  
+\frac ab  
+$$
+
+先变成自然数对
+
+$$  
+(Z(a),b-1)\in\mathbb N\times\mathbb N.  
+$$
+
+### 7.4 自然数对转字符串
+
+有两种做法。
+
+第一种是使用 Cantor pairing：
+
+$$  
+\pi(m,n)=\frac{(m+n)(m+n+1)}2+n.  
+$$
+
+于是：
+
+$$  
+\mathbb N\times\mathbb N\to\mathbb N\to{0,1}^*.  
+$$
+
+完整编码为：
+
+$$  
+\frac ab  
+\mapsto  
+\mathrm{bin}\bigl(\pi(Z(a),b-1)\bigr).  
+$$
+
+然后加上 prefix-free wrapper：
+
+$$  
+\boxed{  
+\mathrm{Enc}_{\mathbb Q}\left(\frac ab\right)
+=
+T\left(\mathrm{bin}\bigl(\pi(Z(a),b-1)\bigr)\right).  
+}  
+$$
+
+第二种做法是直接把 pair 看成一个长度为 $2$ 的 list：
+
+$$  
+(Z(a),b-1).  
+$$
+
+分别把两个自然数编码成字符串，再对每个字符串套 prefix-free wrapper，然后平铺拼接：
+
+$$  
+\mathrm{Enc}_{\mathbb Q}\left(\frac ab\right)
+=
+T(\mathrm{bin}(Z(a))),T(\mathrm{bin}(b-1)).  
+$$
+
+因为每一段都是 prefix-free 的，所以从左到右可以唯一拆出两个字段。
+
+如果希望 pair 本身也作为一个单独对象拥有边界，则可以再对整体做一次 wrapper，或者引入固定长度字段数目。对于 pair 来说字段数固定为 $2$，所以只要连续读取两个 prefix-free 字段即可。
+
+---
+
+## 8. 三元组与更一般的数据结构
+
+一旦能编码 pair，就能编码任意有限元组。比如三元组
+
+$$  
+(a,b,c)  
+$$
+
+可以编码为嵌套 pair：
+
+$$  
+(a,(b,c))  
+$$
+
+或者
+
+$$  
+((a,b),c).  
+$$
+
+也可以视为长度固定为 $3$ 的 list，把三个字段依次写出。
+
+更一般地，只要每个元素都有 prefix-free 编码，就可以把有限列表编码为拼接：
+
+$$  
+[x_1,\dots,x_n]  
+\mapsto  
+\mathrm{enc}(x_1)\cdots \mathrm{enc}(x_n).  
+$$
+
+若列表长度 $n$ 不是外部已知的，那么可以先编码长度，再编码内容：
+
+$$  
+\mathrm{ListEnc}([x_1,\dots,x_n])
+=
+T(\mathrm{bin}(n)),  
+\mathrm{enc}(x_1)\cdots \mathrm{enc}(x_n).  
+$$
+
+解码时：
+
+1. 先读出 prefix-free 的 $T(\mathrm{bin}(n))$，得到长度 $n$；
+    
+2. 再连续读取 $n$ 个 prefix-free 字段。
+    
+
+对于 list of lists 也是一样：
+
+1. 先给内层 list 一个编码；
+    
+2. 把内层 list 编码视为普通字符串；
+    
+3. 再套上 prefix-free wrapper；
+    
+4. 外层 list 继续用相同原则编码。
+    
+
+这就是组合式表示的核心思想：
+
+$$  
+\boxed{  
+\text{复杂对象}  
+\longrightarrow  
+\text{tuple/list/tree of simpler objects}  
+\longrightarrow  
+{0,1}^*.  
+}  
+$$
+
+---
+
+## 9. 总结
+
+表示是对象进入计算世界的入口。
+
+普通数学中，我们常常满足于存在某个双射：
+
+$$  
+\mathbb Q\sim \mathbb N\sim {0,1}^*.  
+$$
+
+但在 TCS 中，这还不够。我们需要明确构造编码、解码与边界协议。
+
+本笔记建立了如下流程：
+
+$$  
+\text{object}  
+\to  
+\text{structured finite data}  
+\to  
+\text{natural numbers / tuples}  
+\to  
+\text{binary strings}  
+\to  
+\text{prefix-free strings}.  
+$$
+
+关键工具是通用 self-delimiting wrapper：
+
+$$  
+T(s)=\phi(s_1)\cdots \phi(s_n)01,  
+\qquad  
+\phi(0)=00,  
+\quad  
+\phi(1)=11.  
+$$
+
+它把任意普通二进制字符串转换成 prefix-free 码字。于是，一旦某个对象已经能被编码成普通二进制串，我们就能自动获得一个可拼接、可列表化、可嵌套的表示。
+
+这就是 TCS 的表示观：

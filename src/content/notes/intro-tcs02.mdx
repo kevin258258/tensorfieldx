@@ -1,0 +1,740 @@
+---
+title: "Intro to TCS Note 2：计算与 Boolean 电路"
+description: "从表示进入计算，区分可计算与不可计算，并以 Boolean 电路作为第一个有限计算模型。"
+pubDate: 2026-05-02
+tags: ["TCS", "Boolean Circuits", "Computability"]
+series: "Intro to TCS"
+seriesOrder: 2
+---
+
+## 0. 从表示到计算
+
+上一节笔记讨论的是**表示**：抽象对象如何进入计算世界。
+
+$$  
+\text{object}\xrightarrow{\mathrm{enc}}{0,1}^*.  
+$$
+
+这一步非常重要，因为机器并不直接处理“有理数”“图”“群”“公式”“证明”这些抽象对象。机器真正能处理的是某种有限、离散、可读写的表示。
+
+但是，可表示并不等于可计算。
+
+即使我们把所有对象都化为二进制字符串，仍然存在许多我们不能实现的任务。比如我们可以把程序 $M$ 和输入 $x$ 编码成字符串：
+
+$$  
+\langle M,x\rangle\in{0,1}^*.  
+$$
+
+于是停机问题似乎也可以被写成一个 Boolean function：
+
+$$  
+\mathrm{HALT}(\langle M,x\rangle)=  
+\begin{cases}  
+1,&M(x)\text{ halts},\  
+0,&M(x)\text{ does not halt}.  
+\end{cases}  
+$$
+
+从集合论角度看，这个函数当然可以被定义出来。但计算理论问的是另一个问题：
+
+> 是否真的存在一个有限机械过程，能对任意输入 $\langle M, x\rangle$ 在有限时间内输出正确答案？
+
+答案是否定的。停机问题不可判定。
+
+因此，我们需要区分：
+
+$$  
+\text{definable as a set/function}  
+\quad\not\Rightarrow\quad  
+\text{computable by a finite procedure}.  
+$$
+
+这就是从“表示”进入“计算”的入口。
+
+---
+
+## 1. 什么叫计算？
+
+在当前语境下，我们可以先把计算理解为：
+
+> 对字符串函数的一种有限时间内能输出结果的实现。
+
+也就是说，给定一个函数
+
+$$  
+f:\{0,1\}^*\to\{0,1\}^*,  
+$$
+
+如果存在某种有限描述的机械过程 $A$，使得对任意输入 $x\in\{0,1\}^*$，$A$ 都会在有限时间内停机并输出
+
+$$  
+A(x)=f(x),  
+$$
+
+那么我们说 $f$ 是可计算的。
+
+对于判定问题，我们通常关心 Boolean-valued function：
+
+$$  
+f:{0,1}^*\to{0,1}.  
+$$
+
+等价地，也可以把一个判定问题看成某个语言的 membership problem。
+
+给定
+
+$$  
+L\subseteq{0,1}^*,  
+$$
+
+定义 characteristic function：
+
+$$  
+\chi_L(x)=  
+\begin{cases}  
+1,&x\in L,\  
+0,&x\notin L.  
+\end{cases}  
+$$
+
+若 $\chi_L$ 可计算，则称 $L$ 是可判定的。
+
+所以，计算理论中一个基本转换是：
+
+$$  
+\text{problem}  
+\quad\rightsquigarrow\quad  
+\text{language }L\subseteq{0,1}^*  
+\quad\rightsquigarrow\quad  
+\chi_L:{0,1}^*\to{0,1}.  
+$$
+
+---
+
+## 2. 四个层次：可表示、可计算、部分可计算、不可计算
+
+我们可以用如下层次理解计算理论的第一条主线：
+
+$$  
+\boxed{  
+\text{可表示}  
+\to  
+\text{可计算}  
+\to  
+\text{部分可计算}  
+\to  
+\text{不可计算}  
+}  
+$$
+
+### 2.1 可表示
+
+一个对象可表示，意味着它可以被编码成有限字符串：
+
+$$  
+\mathrm{enc}:X\to{0,1}^*.  
+$$
+
+自然数、有理数、有限图、有限公式、有限证明、程序文本，都可以有有限表示。
+
+但任意实数通常没有有限表示。只有某些特殊实数，例如有理数、代数数、可计算实数，才有有限描述。
+
+所以可表示性首先划定了对象进入计算世界的范围。
+
+### 2.2 可计算
+
+可计算关心的是：字符串上的函数是否能被有限过程总是算出。
+
+$$  
+f:\{0,1\}^*\to\{0,1\}^*.  
+$$
+
+若存在算法 $A$，使得对所有输入 $x$，都有
+
+$$  
+A(x)\downarrow=f(x),  
+$$
+
+则 $f$ 可计算。
+
+这里 $A(x)\downarrow$ 表示 $A$ 在输入 $x$ 上停机。
+
+对于语言 $L$，若 $\chi_L$ 可计算，则 $L$ 可判定。
+
+### 2.3 部分可计算
+
+部分可计算允许程序在某些输入上永远不停止。
+
+一个部分函数
+
+$$  
+f:\{0,1\}^*\rightharpoonup\{0,1\}^*  
+$$
+
+可部分计算，意思是存在程序 $A$，使得当 $f(x)$ 有定义时，$A(x)$ 停机并输出 $f(x)$；当 $f(x)$ 无定义时，$A(x)$ 可以永远运行。
+
+对于语言来说，这对应 recognizable / semi-decidable：
+
+$$  
+x\in L\Rightarrow A(x)\text{ accepts},  
+$$
+
+$$  
+x\notin L\Rightarrow A(x)\text{ may run forever}.  
+$$
+
+也就是说，正例可以被确认，但反例未必可以被确认。
+
+停机语言
+
+$$  
+HALT={\langle M,x\rangle:M(x)\text{ halts}}  
+$$
+
+就是典型例子。若 $M(x)$ 真的停机，我们只要模拟它，总有一天会看到它停下。因此 $HALT$ 是 recognizable 的。但 $HALT$ 不是 decidable 的。
+
+### 2.4 不可计算
+
+不可计算意味着不存在任何有限机械过程能够完成这个任务。
+
+这不是“目前不知道怎么做”，而是原则上不存在算法。
+
+计数上可以先看到一个粗略原因：程序是有限字符串，因此程序集合是可数的；但语言集合
+
+$$  
+\mathcal P({0,1}^*)  
+$$
+
+不可数。因此绝大多数语言不可判定。
+
+更深刻的是，一些自然定义的问题也不可计算，比如停机问题。这说明不可计算性不是病态构造，而是计算本身的边界。
+
+---
+
+## 3. 第一个计算模型：Boolean 电路
+
+为了形式化“有限机械过程”，我们先引入一个最简单的计算模型：Boolean 电路。
+
+Boolean 电路处理固定长度的 bit 输入：
+
+$$  
+C:{0,1}^n\to{0,1}^m.  
+$$
+
+它由一些最基本的逻辑门组成。最常见的是：
+
+$$  
+\mathrm{AND},\quad \mathrm{OR},\quad \mathrm{NOT}.  
+$$
+
+它们分别定义为：
+
+$$  
+\mathrm{AND}(a,b)=a\land b,  
+$$
+
+$$  
+\mathrm{OR}(a,b)=a\lor b,  
+$$
+
+$$  
+\mathrm{NOT}(a)=\neg a.  
+$$
+
+其中 $a,b\in\{0,1\}$。
+
+这些门都只做非常局部、非常简单的操作。但当许多门组合起来之后，就可以计算复杂的 Boolean function。
+
+这体现了计算理论中的一个基本范式：
+
+$$  
+\boxed{  
+\text{simple local rules}  
+\Longrightarrow  
+\text{global computation}.  
+}  
+$$
+
+---
+
+## 4. Boolean 电路的形式化定义
+
+一个具有 $n$ 个输入、$m$ 个输出和 $s$ 个门的 Boolean 电路，可以看作一个带标签的有向无环图：
+
+$$  
+G=(V,E).  
+$$
+
+它满足：
+
+1. 有 $n$ 个输入节点，记为
+    
+
+$$  
+X[0],X[1],\dots,X[n-1].  
+$$
+
+这些节点没有入边。
+
+2. 其余 $s$ 个节点是逻辑门。每个门的标签是
+    
+
+$$  
+\land,\quad \lor,\quad \neg.  
+$$
+
+其中 $\land$ 和 $\lor$ 门有两个入边，$\neg$ 门有一个入边。
+
+3. 有 $m$ 个输出节点，记为
+    
+
+$$  
+Y[0],Y[1],\dots,Y[m-1].  
+$$
+
+输出节点可以理解为若干个被指定为输出的门。
+
+4. 整张图是 DAG，即 directed acyclic graph。
+    
+
+DAG 这一点非常重要。若一条边
+
+$$  
+u\to v  
+$$
+
+表示 $v$ 的值依赖于 $u$ 的值，那么无环性保证不存在循环依赖。于是我们可以对图做拓扑排序，然后按顺序计算每个节点的值。
+
+---
+
+## 5. 电路作为 DAG：操作语义
+
+给定输入
+
+$$  
+x=(x_0,\dots,x_{n-1})\in{0,1}^n,  
+$$
+
+我们先给输入端赋值：
+
+$$  
+X[i]=x_i.  
+$$
+
+然后对电路 DAG 做拓扑排序：
+
+$$  
+v_1,v_2,\dots,v_{n+s}.  
+$$
+
+拓扑排序满足：若
+
+$$  
+u\to v,  
+$$
+
+则 $u$ 一定出现在 $v$ 之前。
+
+于是我们可以按照拓扑序逐个计算门的值：
+
+```text
+for v in topological_order:
+    if v is an input node:
+        value[v] = corresponding input bit
+    if v is AND gate:
+        value[v] = value[parent1] AND value[parent2]
+    if v is OR gate:
+        value[v] = value[parent1] OR value[parent2]
+    if v is NOT gate:
+        value[v] = NOT value[parent]
+```
+
+最后读取输出节点：
+
+$$  
+(C(x))_j=\mathrm{value}[Y[j]].  
+$$
+
+因此，每个 Boolean 电路都定义了一个函数：
+
+$$  
+f_C:{0,1}^n\to{0,1}^m.  
+$$
+
+这就是 Boolean 电路作为计算模型的核心。
+
+---
+
+## 6. Size 与 depth
+
+Boolean 电路天然有两个重要复杂度参数。
+
+### 6.1 Size
+
+电路的 size 通常定义为门的数量：
+
+$$  
+\mathrm{size}(C)=s.  
+$$
+
+它衡量计算所需的总基本操作数。
+
+直观上：
+
+$$  
+\text{size} = \text{work}.  
+$$
+
+### 6.2 Depth
+
+电路的 depth 是从输入到输出的最长路径长度。
+
+它衡量最长依赖链的长度，也就是在完全并行执行时需要的时间。
+
+直观上：
+
+$$  
+\text{depth} = \text{parallel time}.  
+$$
+
+例如计算
+
+$$  
+x_1\land x_2\land\cdots\land x_n.  
+$$
+
+若线性串联：
+
+$$  
+(((x_1\land x_2)\land x_3)\cdots\land x_n),  
+$$
+
+则 depth 是 $O(n)$。
+
+但如果用平衡二叉树：
+
+$$  
+(x_1\land x_2)\land(x_3\land x_4)\land\cdots,  
+$$
+
+则 depth 可以降到 $O(\log n)$，而 size 仍然是 $O(n)$。
+
+所以 Boolean 电路不仅刻画能否计算，还天然刻画了并行计算结构。
+
+---
+
+## 7. 例子：ALLEQ
+
+定义函数
+
+$$  
+\mathrm{ALLEQ}:{0,1}^4\to{0,1},  
+$$
+
+当且仅当
+
+$$  
+x_0=x_1=x_2=x_3  
+$$
+
+时输出 $1$。
+
+它有两种直观构造。
+
+第一种是观察全相等只有两种情况：
+
+$$  
+0000  
+\quad\text{or}\quad  
+1111.  
+$$
+
+所以：
+
+$$  
+\mathrm{ALLEQ}(x)
+=
+(\neg x_0\land\neg x_1\land\neg x_2\land\neg x_3)  
+\lor  
+(x_0\land x_1\land x_2\land x_3).  
+$$
+
+第二种是比较相邻变量是否相等：
+
+$$  
+\mathrm{ALLEQ}(x)
+=
+(x_0=x_1)\land(x_1=x_2)\land(x_2=x_3).  
+$$
+
+而
+
+$$  
+a=b  
+$$
+
+可以写成
+
+$$  
+(a\land b)\lor(\neg a\land\neg b),  
+$$
+
+或者写成
+
+$$  
+\neg(a\oplus b).  
+$$
+
+若允许使用 XOR/XNOR 门，则构造会更简洁。但如果基础门只有 AND/OR/NOT，就需要把这些门展开。
+
+这个例子说明：同一个函数可以有许多不同电路实现。电路不是函数本身，而是函数的一种表示。
+
+---
+
+## 8. 电路与直线程序的等价
+
+Boolean 电路是 DAG 形式的计算。另一种很自然的表示是 straight-line program，即没有循环、没有分支、只按顺序赋值的程序。
+
+例如：
+
+```text
+t1 = x0 AND x1
+t2 = NOT x2
+t3 = t1 OR t2
+y  = t3 AND x3
+```
+
+它和电路表达的是同一种东西。
+
+从程序到电路：
+
+- 每一行赋值对应一个 gate；
+    
+- 变量依赖对应 wire；
+    
+- 输入变量对应输入节点；
+    
+- 输出变量对应输出节点。
+    
+
+从电路到程序：
+
+- 对电路 DAG 做拓扑排序；
+    
+- 按拓扑序为每个 gate 写一行赋值；
+    
+- 由于前驱节点一定已经计算，所以程序合法。
+    
+
+因此，Boolean 电路与基于 AND/OR/NOT 的直线程序具有相同计算能力。
+
+更抽象地说，证明两个计算模型等价，就是构造两种语义保持的翻译：
+
+$$  
+T_{A\to B}:\mathcal M_A\to\mathcal M_B,  
+$$
+
+$$  
+T_{B\to A}:\mathcal M_B\to\mathcal M_A,  
+$$
+
+并满足
+
+$$  
+\llbracket T_{A\to B}(P)\rrbracket_B
+=
+\llbracket P\rrbracket_A.  
+$$
+
+这里 $\llbracket -\rrbracket$ 表示语义解释，即一个语法对象实际计算出的函数。
+
+注意，这通常不是原始语法对象之间的严格双射。因为许多不同电路可以计算同一个函数，许多不同程序也可以计算同一个函数。
+
+但若把“计算同一个函数”的语法对象视为等价，然后取商，那么两个计算模型在语义层面确实对应同一个函数类。
+
+---
+
+## 9. NAND 门的完备性
+
+虽然我们最初使用 AND/OR/NOT 作为基础门，但实际上只用 NAND 一个门就足够了。
+
+定义 NAND：
+
+$$  
+\mathrm{NAND}(a,b)=\neg(a\land b).  
+$$
+
+它可以实现 NOT：
+
+$$  
+\neg a = \mathrm{NAND}(a,a).  
+$$
+
+它可以实现 AND：
+
+$$  
+a\land b
+=
+\neg\mathrm{NAND}(a,b)
+=
+\mathrm{NAND}(\mathrm{NAND}(a,b),\mathrm{NAND}(a,b)).  
+$$
+
+它也可以实现 OR。由 De Morgan 定律：
+
+$$  
+a\lor b=\neg(\neg a\land\neg b).  
+$$
+
+所以：
+
+$$  
+a\lor b
+=
+\mathrm{NAND}(\mathrm{NAND}(a,a),\mathrm{NAND}(b,b)).  
+$$
+
+因此，任何 AND/OR/NOT 电路都可以被转换成 NAND-only 电路。
+
+这说明 NAND 是 functionally complete 的：
+
+$$  
+\boxed{  
+\mathrm{NAND}\text{ alone can express all Boolean circuits.}  
+}  
+$$
+
+这也是计算理论中一个典型现象：基础操作的选择并不总是本质的。只要一种门集能够有效模拟另一种门集，它们在计算能力上就是等价的。
+
+---
+
+## 10. 固定长度计算的限制
+
+Boolean 电路有一个明显限制：一个具体电路只能处理固定长度输入。
+
+例如
+
+$$  
+C:{0,1}^{100}\to{0,1}  
+$$
+
+只接受长度为 $100$ 的输入。它不能直接处理长度 $101$ 或任意长度的字符串。
+
+因此，如果要用电路判定一个语言
+
+$$  
+L\subseteq{0,1}^*,  
+$$
+
+不能只用一个电路，而需要一族电路：
+
+$$  
+{C_n}_{n\ge 0},  
+\qquad  
+C_n:{0,1}^n\to{0,1}.  
+$$
+
+其中 $C_n$ 专门处理长度为 $n$ 的输入。
+
+这个观点非常重要。单个电路是定长计算模型；真正面向任意长度输入的算法，需要某种统一机制。
+
+因此我们会进一步问：
+
+> 是否存在一个统一程序，能够给定 $n$，生成对应电路 $C_n$？
+
+这就是 uniformity 问题。
+
+如果不要求 uniformity，那么对每个长度 $n$ 单独选择一个电路，甚至可以把答案硬编码进去。这样会过强，不能真正刻画算法。
+
+所以，电路模型要想接近通常意义上的算法，需要考虑 uniform circuit family。
+
+---
+
+## 11. 有限计算模型的等价思想
+
+Boolean 电路、AON-CIRC 直线程序、NAND 电路等模型看起来不同，但它们的计算能力可以通过互相模拟来证明等价。
+
+这种等价性背后的思想是：
+
+1. 每个模型的对象都是有限描述；
+    
+2. 每个基本操作都只处理有限 bit；
+    
+3. 一个模型中的基本操作可以被另一个模型中的有限片段模拟；
+    
+4. 模拟过程保持语义，即计算出的函数不变。
+    
+
+所以对于固定长度、无循环、有限的 Boolean computation，这些模型在表达能力上是等价的。
+
+它们的差别主要体现在：
+
+- 表示是否方便；
+    
+- Size 增加多少；
+    
+- Depth 增加多少；
+    
+- 是否容易构造；
+    
+- 是否适合证明某个定理。
+    
+
+这就是计算理论中的一个重要审美：
+
+$$  
+\boxed{  
+\text{模型可以不同，但只要能有效互相模拟，计算能力就是同一个。}  
+}  
+$$
+
+之后更一般的计算模型，例如图灵机、RAM 程序、lambda calculus，也会体现同样思想。它们不是因为语法长得一样而等价，而是因为它们可以互相编译、互相模拟，并保持计算语义不变。
+
+---
+
+## 12. 总结
+
+本节从“表示”进入“计算”。
+
+上一节说明：对象必须先获得有限离散表示，才能进入计算世界。
+
+本节进一步说明：即使对象已经被表示为字符串，也并非所有字符串函数都能被有限过程实现。
+
+我们引入了 Boolean 电路作为第一个计算模型：
+
+$$  
+C:{0,1}^n\to{0,1}^m.  
+$$
+
+它本质上是一个带逻辑门标签的 DAG。DAG 的拓扑序给出计算顺序，size 衡量总工作量，depth 衡量并行时间。
+
+我们还看到：
+
+- AND/OR/NOT 可以组合出复杂 Boolean function；
+    
+- 同一函数可以有多个不同电路表示；
+    
+- 电路与直线程序可以互相翻译；
+    
+- NAND 一个门就足以表达所有 Boolean 电路；
+    
+- 单个电路只能处理固定长度输入；
+    
+- 要处理任意长度输入，需要电路族与 uniformity。
+    
+
+这一节的核心句子是：
+
+$$  
+\boxed{  
+\text{计算是在有限表示上的有限机械变换。}  
+}  
+$$
+
+而 Boolean 电路给出了这种变换的第一个清晰模型：
+
+$$  
+\boxed{  
+\text{finite DAG} + \text{local Boolean rules} = \text{fixed-length computation}.  
+}  
+$$
