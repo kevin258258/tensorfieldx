@@ -258,70 +258,87 @@ Mixed precision 下的 $I_{\text{circuit}}$ 约在 $0.35 \sim 0.50$ 之间。
 
 | dtype | Peak TFLOP/s |
 |-------|-------------|
-| FP32  | 8.14        |
-| TF32  | 16.45       |
-| FP16  | 29.73       |
-| BF16  | 31.77       |
+| FP32  | 9.71        |
+| FP16  | 25.00       |
+| BF16  | 35.07       |
 
-FP16/BF16 峰值是 FP32 的 3.7–3.9 倍。
+FP16 峰值是 FP32 的 2.58 倍，BF16 是 3.61 倍。
 
-### GEMM n=4096
+### Compute Utilization：决定性指标
 
-用 ρ 指标（§11 推导）验证：$ρ = AI / R$，其中 $R = P / B_{\text{mem}}$。
+ρ 告诉你工作负载离 ridge 多远。但还有一个更直接的指标：**计算单元利用率**。
 
-| dtype | 耗时 | AI_std | $I_{\text{circuit}}$ (model) | ρ | $ρ_{\text{FP16}} / ρ_{\text{FP32}}$ |
-|-------|------|--------|------|----|----|
-| FP32  | 14.6 ms | 683 | 683 | 22.4 | — |
-| FP16  | 4.5 ms  | 1365 | — | 12.3 | 0.55 |
-| BF16  | 4.2 ms  | 1365 | — | 11.5 | 0.51 |
+$$
+U_d(n) = \frac{\text{实测 } \text{TFLOP/s}_d(n)}{\text{峰值 } \text{TFLOP/s}_d}
+$$
 
-AI_std 确实翻倍了（683 → 1365）。但 ρ 从 22.4 **下降到** 12.3——工作负载在 FP16 下距离 ridge 更远了。理论预测 $ρ_{\text{FP16}} / ρ_{\text{FP32}} = 2 / 3.65 = 0.548$，实测 0.549。
+$U$ 直接衡量：你的 kernel 用到了硬件峰值算力的百分之几。
 
-### MLP 8 层，hidden=2048
+在不同矩阵大小上测 $U$：
 
-| dtype | 耗时 | AI_std | ρ |
-|-------|------|--------|----|
-| FP32  | 2.73 ms | 124 | 4.1 |
-| FP16  | 0.85 ms | 248 | 2.0 |
+| n | AI_std | $U_{\text{FP32}}$ | $U_{\text{FP16}}$ | $U_{\text{BF16}}$ | $U_{\text{FP16}} / U_{\text{FP32}}$ |
+|----|--------|--------|--------|--------|------|
+| 128 | 21 | 8.0% | 3.9% | 2.7% | 0.49 |
+| 256 | 43 | 34.1% | 27.8% | 19.0% | 0.81 |
+| 512 | 85 | 79.1% | 63.5% | 43.0% | 0.80 |
+| 1024 | 171 | 97.4% | 88.8% | 64.7% | 0.91 |
+| 2048 | 341 | 99.9% | 105.6% | 91.8% | 1.06 |
+| 4096 | 683 | 87.5% | 122.3% | 99.6% | 1.40 |
 
-MLP 在 FP32 下 ρ=4.1，已经离 memory wall 不远。FP16 降到 2.0——**比 FP32 更 memory-bound**。
+（n ≥ 2048 时测量噪声较大，两端基本都接近饱和。重点看 n = 256/512/1024。）
+
+**在 n = 512 这个关键尺寸上：FP32 用到了 79% 的峰值算力，FP16 只用到 63%。差距 16 个百分点。**
+
+在 roofline 上，n=512 时 AI_FP32 = 85 > ridge_32 = 36，AI_FP16 = 171 > ridge_16 = 94。按传统模型，两者都应该接近饱和。但实际上 FP16 差了 16 个百分点。
+
+为什么？因为ridge 右移得比 AI 远。FP32 的 AI 是 ridge 的 2.4 倍，FP16 只有 1.8 倍。margin 越小，越难饱和。
+
+这个 gap 对任何 $r_P > 2$ 的 GPU 都成立。对于 memory-bound 的 kernel，理论下限是：
+
+$$
+\frac{U_{\text{FP16}}}{U_{\text{FP32}}} = \frac{2}{r_P}
+$$
+
+本卡 $r_P = 2.58$，理论下限 = 0.78。实测 n=256 时比值为 0.81——接近下限。
+
+**结论：对于任何未完全饱和的 kernel size，FP16 的计算利用率始终低于 FP32。低精度没有帮你跨越 memory wall——它只是让你的计算单元更闲。**
 
 ### 跨 GPU 代际
 
-| GPU | 代 | $P_{\text{FP16}} / P_{\text{FP32}}$ | $ρ_{\text{FP16}} / ρ_{\text{FP32}}$ |
+| GPU | 代 | $r_P = P_{\text{FP16}} / P_{\text{FP32}}$ | $U_{\text{FP16}} / U_{\text{FP32}}$ 下限 |
 |-----|-----|------|------|
 | V100 | Volta | 8.0 | 0.25 |
 | A100 | Ampere | 16.0 | **0.12** |
 | H100 | Hopper | 14.8 | 0.14 |
 | RTX 4090 | Ada | 4.0 | 0.50 |
-| RTX 5060 | Blackwell | 3.65 | 0.55（实测） |
+| RTX 5060 | Blackwell | 2.58 | 0.78（实测 0.81） |
 
-2020 年后的 GPU，$P_{\text{FP16}} / P_{\text{FP32}} \gg 2$，FP16 的 ρ 无一例外低于 FP32。Tensor Core 越强的卡上效应越明显——A100 的 ρ 只有 FP32 的 12%。
+Tensor Core 越强的卡，FP16 的计算利用率越低。A100 在 FP16 下的利用率最多只有 FP32 的 12%——不是因为它慢，是因为它太快了，memory 根本喂不饱。
 
 ---
 
 # 11. 与 memory-bound 的关系
 
-传统 roofline 判断 workload 是否 memory-bound：
+传统 roofline：
 
 $$
 P_{\text{attainable}} = \min(P_{\text{peak}}, AI_{\text{std}} \cdot B_{\text{mem}})
 $$
 
-从 FP32 到 FP16，两个东西同时变化：
+FP32 → FP16，两个东西同时变化：
 
 - $AI_{\text{std}}$ ↑（bytes moved 下降）
 - $P_{\text{peak}}$ ↑↑（FP16 计算单元更小、更密集，可用 Tensor Core）
 
 关键：**$P_{\text{peak}}$ 涨得比 $AI_{\text{std}}$ 快。**
 
-定义 dimensionless 距离指标 $\rho = AI / R = AI \cdot B_{\text{mem}} / P_{\text{peak}}$：
+定义 $\rho = AI / R = AI \cdot B_{\text{mem}} / P_{\text{peak}}$：
 
 $$
-\frac{\rho_{\text{FP16}}}{\rho_{\text{FP32}}} = \frac{AI_{\text{FP16}}}{AI_{\text{FP32}}} \cdot \frac{P_{\text{FP32}}}{P_{\text{FP16}}} = \frac{2}{r_P},\quad r_P = \frac{P_{\text{FP16}}}{P_{\text{FP32}}}
+\frac{\rho_{\text{FP16}}}{\rho_{\text{FP32}}} = \frac{2}{r_P},\quad r_P = \frac{P_{\text{FP16}}}{P_{\text{FP32}}}
 $$
 
-**当 $r_P > 2$ 时，$\rho$ 必然下降。** 在现代 GPU 上 $r_P$ 从 4 到 16，所以 FP16 的 workload 距离 ridge 始终比 FP32 更远——更偏 memory-bound。
+**当 $r_P > 2$ 时，$\rho$ 必然下降，$U$ 也必然下降。**
 
 ---
 
