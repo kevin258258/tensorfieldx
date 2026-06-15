@@ -1,5 +1,5 @@
 ---
-title: "从 FLOPs/Byte 到 Bit-Circuit/Bit：低精度计算强度的抽象泄漏分析"
+title: "低精度不应该用flops来进行计算强度的分析"
 description: "传统教材说 FP16 翻倍 Arithmetic Intensity 就能逃离 memory wall。我从电路级计算模型重新推导，发现 FP16 的 I_circuit 只有 FP32 的 0.44 倍，并在 RTX 5060 上实验验证。"
 pubDate: 2026-06-15
 updatedDate: 2026-06-15
@@ -15,10 +15,9 @@ tags: ["GPU", "Roofline", "FP16", "Performance", "CS336"]
 
 ---
 
-# 1. 问题背景
+# 1. 背景
 
-在经典 roofline model 或 CS336 / MLSys 语境中，算子的计算强度通常定义为：
-
+想起之前的cs336还没看完，起来复习的时候看到了这个地方，但总觉得哪里不对。课程中计算强度的定义是：
 $$
 AI_{\text{std}} = \frac{\text{FLOPs}}{\text{Bytes moved}}
 $$
@@ -51,7 +50,7 @@ $$
 \frac{AI_{\text{std}, \text{fp16}}}{AI_{\text{std}, \text{fp32}}} = \frac{B_{\text{fp32}}}{B_{\text{fp16}}} \approx 2
 $$
 
-这个结论在 FLOP count 的抽象层面是正确的。但它忽略了一个关键事实：**FP16 的单次运算本身比 FP32 便宜。**
+这个结论在 FLOP count 的抽象层面是正确的。但它忽略了一个事实：**FP16 的单次运算本身比 FP32 便宜。**
 
 ---
 
@@ -353,7 +352,6 @@ $$
 
 $$I_{\text{circuit}} = \frac{\text{bit-level compute work}}{\text{transferred bits}}$$
 
-这个指标不应取代传统的 FLOP/Byte——两者回答的是不同抽象层的问题。但当你讨论 precision、能耗、硬件面积或混合精度计算时，FLOP 的抽象会泄漏。而 $I_{\text{circuit}}$ 告诉你泄漏有多严重。
 
 ---
 
