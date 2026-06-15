@@ -102,7 +102,7 @@
 <div class="chapter-header" id="ch1"><h2>第1章：我们能学习一个"模拟器"吗</h2><div class="ch-meta">Slide 2-8 | 核心主题：学习环境模拟器的可行性、根本局限与失败模式的三层分析</div></div>
 
 <div class="slide-block" id="s3">
-<div class="slide-img-wrap"><span class="slide-num">Slide 2-4</span><br><img src="../slides_img/lec-15/slides/page_0003.png" alt="Can we learn a simulator?" loading="lazy"><div class="img-caption">Slide 3-4：学习模拟器的概念 — Veo 2、Sora 等视频生成模型展示了学习复杂环境动态的潜力</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 2-4</span><br><img loading="lazy" src="slides/lec-15/page_0003.png" alt="Can we learn a simulator?" loading="lazy"><div class="img-caption">Slide 3-4：学习模拟器的概念 — Veo 2、Sora 等视频生成模型展示了学习复杂环境动态的潜力</div></div>
 <div class="notes-body"><h3>学习模拟器的愿景与根本矛盾</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -138,7 +138,7 @@
 </div></div>
 
 <div class="slide-block" id="s5">
-<div class="slide-img-wrap"><span class="slide-num">Slide 5-8</span><br><img src="../slides_img/lec-15/slides/page_0005.png" alt="Why learning a simulator fails" loading="lazy"><div class="img-caption">Slide 5-8：三个失败模式 + 三层分析框架</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 5-8</span><br><img loading="lazy" src="slides/lec-15/page_0005.png" alt="Why learning a simulator fails" loading="lazy"><div class="img-caption">Slide 5-8：三个失败模式 + 三层分析框架</div></div>
 <div class="notes-body"><h3>失败模式与三层分析框架</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -180,7 +180,7 @@
 <div class="chapter-header" id="ch2"><h2>第2章：分布偏移与不确定性</h2><div class="ch-meta">Slide 9-15 | 核心主题：分布偏移的形式化理解、信任区域与悲观主义策略、探索-保守的张力</div></div>
 
 <div class="slide-block" id="s9">
-<div class="slide-img-wrap"><span class="slide-num">Slide 9-12</span><br><img src="../slides_img/lec-15/slides/page_0009.png" alt="Distributional shift in model-based RL" loading="lazy"><div class="img-caption">Slide 9-12：分布偏移的经典教学案例 — 模型在训练分布内准确、在分布外不可靠、策略被"引诱"到未知区域</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 9-12</span><br><img loading="lazy" src="slides/lec-15/page_0009.png" alt="Distributional shift in model-based RL" loading="lazy"><div class="img-caption">Slide 9-12：分布偏移的经典教学案例 — 模型在训练分布内准确、在分布外不可靠、策略被"引诱"到未知区域</div></div>
 <div class="notes-body"><h3>分布偏移的形式化理解</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -217,7 +217,7 @@ $$\hat{s}_1 = \hat{f}_\phi(s_0, a_0), \quad \hat{s}_2 = \hat{f}_\phi(\hat{s}_1, 
 </div></div>
 
 <div class="slide-block" id="s13">
-<div class="slide-img-wrap"><span class="slide-num">Slide 13-14</span><br><img src="../slides_img/lec-15/slides/page_0013.png" alt="Strategies to address distributional shift" loading="lazy"><div class="img-caption">Slide 13-14：解决分布偏移的两条路径 — 信任区域约束与不确定性感知的悲观主义</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 13-14</span><br><img loading="lazy" src="slides/lec-15/page_0013.png" alt="Strategies to address distributional shift" loading="lazy"><div class="img-caption">Slide 13-14：解决分布偏移的两条路径 — 信任区域约束与不确定性感知的悲观主义</div></div>
 <div class="notes-body"><h3>信任区域与悲观主义：分布偏移的两种解决策略</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -261,7 +261,7 @@ $$\tilde{r}_{\text{pess}} = \mathbb{E}[\hat{r}] - \alpha \cdot \sigma$$
 </div></div>
 
 <div class="slide-block" id="s15">
-<div class="slide-img-wrap"><span class="slide-num">Slide 15</span><br><img src="../slides_img/lec-15/slides/page_0015.png" alt="Need to explore to get better" loading="lazy"><div class="img-caption">Slide 15：探索与乐观主义的必要性 — 悲观值 ≠ 期望值 ≠ 乐观值</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 15</span><br><img loading="lazy" src="slides/lec-15/page_0015.png" alt="Need to explore to get better" loading="lazy"><div class="img-caption">Slide 15：探索与乐观主义的必要性 — 悲观值 ≠ 期望值 ≠ 乐观值</div></div>
 <div class="notes-body"><h3>探索、乐观主义与 OFU 原则</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -309,7 +309,7 @@ $$\text{UCB}(a) = \hat{Q}(a) + c \sqrt{\frac{\ln t}{N(a)}}$$
 <div class="chapter-header" id="ch3"><h2>第3章：不确定性感知神经网络</h2><div class="ch-meta">Slide 16-22 | 核心主题：Aleatoric vs Epistemic 不确定性的区分、贝叶斯神经网络、Bootstrap Ensembles 及其在 model-based RL 中的应用</div></div>
 
 <div class="slide-block" id="s16">
-<div class="slide-img-wrap"><span class="slide-num">Slide 16-17</span><br><img src="../slides_img/lec-15/slides/page_0016.png" alt="Aleatoric vs epistemic uncertainty" loading="lazy"><div class="img-caption">Slide 16-17：区分两种根本不同的不确定性——偶然的（数据固有）vs 认知的（知识不足）</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 16-17</span><br><img loading="lazy" src="slides/lec-15/page_0016.png" alt="Aleatoric vs epistemic uncertainty" loading="lazy"><div class="img-caption">Slide 16-17：区分两种根本不同的不确定性——偶然的（数据固有）vs 认知的（知识不足）</div></div>
 <div class="notes-body"><h3>偶然不确定性 vs 认知不确定性</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -348,7 +348,7 @@ $$H(\hat{p}_\phi) = H_{\text{aleatoric}} + H_{\text{epistemic}}$$
 </div></div>
 
 <div class="slide-block" id="s18">
-<div class="slide-img-wrap"><span class="slide-num">Slide 18-21</span><br><img src="../slides_img/lec-15/slides/page_0018.png" alt="Estimating model uncertainty" loading="lazy"><div class="img-caption">Slide 18-21：从贝叶斯神经网络到 Bootstrap Ensembles — 估计模型不确定性的理论与实用方法</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 18-21</span><br><img loading="lazy" src="slides/lec-15/page_0018.png" alt="Estimating model uncertainty" loading="lazy"><div class="img-caption">Slide 18-21：从贝叶斯神经网络到 Bootstrap Ensembles — 估计模型不确定性的理论与实用方法</div></div>
 <div class="notes-body"><h3>贝叶斯方法与 Bootstrap Ensembles</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -399,7 +399,7 @@ $$\sigma_{\text{epistemic}}^2 = \frac{1}{K}\sum_{k=1}^K (\hat{y}_k - \bar{y})^2,
 </div></div>
 
 <div class="slide-block" id="s22">
-<div class="slide-img-wrap"><span class="slide-num">Slide 22</span><br><img src="../slides_img/lec-15/slides/page_0022.png" alt="Next time preview" loading="lazy"><div class="img-caption">Slide 22：总结与展望 — "使用不确定性感知的模型来处理分布偏移"</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 22</span><br><img loading="lazy" src="slides/lec-15/page_0022.png" alt="Next time preview" loading="lazy"><div class="img-caption">Slide 22：总结与展望 — "使用不确定性感知的模型来处理分布偏移"</div></div>
 <div class="notes-body"><h3>总结、展望与 CS 285 课程叙事</h3>
 
 <div class="concept-block"><h5>概念详解</h5>

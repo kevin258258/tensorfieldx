@@ -86,7 +86,7 @@
 
 <!-- Slide 2-7: Recap + open-loop vs closed-loop -->
 <div class="slide-block" id="s2">
-<div class="slide-img-wrap"><span class="slide-num">Slide 2-7</span><br><img src="../slides_img/lec-16/slides/page_0004.png" alt="Deterministic vs stochastic open-loop vs closed-loop" loading="lazy"><div class="img-caption">Slide 2-7：从确定性单条轨迹到随机闭环——规划范式的递进</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 2-7</span><br><img loading="lazy" src="slides/lec-16/page_0004.png" alt="Deterministic vs stochastic open-loop vs closed-loop" loading="lazy"><div class="img-caption">Slide 2-7：从确定性单条轨迹到随机闭环——规划范式的递进</div></div>
 <div class="notes-body"><h3>规划范式的三个层次：确定性、开环随机、闭环随机</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -124,7 +124,7 @@
 
 <!-- Slide 8-10: Open-loop optimization (random shooting + CEM) -->
 <div class="slide-block" id="s5">
-<div class="slide-img-wrap"><span class="slide-num">Slide 8-10</span><br><img src="../slides_img/lec-16/slides/page_0009.png" alt="Random shooting and CEM" loading="lazy"><div class="img-caption">Slide 8-10：随机打靶法与交叉熵方法（CEM）——从猜想到迭代精炼</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 8-10</span><br><img loading="lazy" src="slides/lec-16/page_0009.png" alt="Random shooting and CEM" loading="lazy"><div class="img-caption">Slide 8-10：随机打靶法与交叉熵方法（CEM）——从猜想到迭代精炼</div></div>
 <div class="notes-body"><h3>随机打靶法与交叉熵方法（CEM）</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -166,7 +166,7 @@ $$\mu_{\text{new}} = \frac{1}{K}\sum_{i \in \mathcal{E}} \mathbf{a}_i, \quad \Si
 
 <!-- Slide 11-13: Limitations, alternatives, planning with uncertainty, real-world example -->
 <div class="slide-block" id="s11">
-<div class="slide-img-wrap"><span class="slide-num">Slide 11-13</span><br><img src="../slides_img/lec-16/slides/page_0012.png" alt="Problems, alternatives, planning with uncertainty" loading="lazy"><div class="img-caption">Slide 11-12：CEM/随机优化的两大限制 + 处理不确定性的规划 + Slide 13：真实世界的灵巧操作案例</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 11-13</span><br><img loading="lazy" src="slides/lec-16/page_0012.png" alt="Problems, alternatives, planning with uncertainty" loading="lazy"><div class="img-caption">Slide 11-12：CEM/随机优化的两大限制 + 处理不确定性的规划 + Slide 13：真实世界的灵巧操作案例</div></div>
 <div class="notes-body"><h3>CEM 的局限、替代方法与不确定性下的规划</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -209,7 +209,7 @@ $$\mu_{\text{new}} = \frac{1}{K}\sum_{i \in \mathcal{E}} \mathbf{a}_i, \quad \Si
 
 <!-- Slide 14-17: Policy learning intro, backprop vs policy gradient -->
 <div class="slide-block" id="s14">
-<div class="slide-img-wrap"><span class="slide-num">Slide 14-17</span><br><img src="../slides_img/lec-16/slides/page_0015.png" alt="Notional learned simulator algorithm revisited" loading="lazy"><div class="img-caption">Slide 14-17：从规划回到策略学习——两种梯度通路：策略梯度 vs 反向传播（路径导数）</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 14-17</span><br><img loading="lazy" src="slides/lec-16/page_0015.png" alt="Notional learned simulator algorithm revisited" loading="lazy"><div class="img-caption">Slide 14-17：从规划回到策略学习——两种梯度通路：策略梯度 vs 反向传播（路径导数）</div></div>
 <div class="notes-body"><h3>模型辅助策略学习：两条梯度通路的对决</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -261,7 +261,7 @@ $$\frac{\partial s_H}{\partial \theta} = \sum_{\tau=1}^{H-1} \left( \prod_{k=\ta
 
 <!-- Slide 18-21: Curse of long rollouts + short rollouts -->
 <div class="slide-block" id="s18">
-<div class="slide-img-wrap"><span class="slide-num">Slide 18-21</span><br><img src="../slides_img/lec-16/slides/page_0019.png" alt="Curse of long rollouts and short rollout solution" loading="lazy"><div class="img-caption">Slide 18-21：长 rollout 的"混沌诅咒" + 短 rollout 的救赎</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 18-21</span><br><img loading="lazy" src="slides/lec-16/page_0019.png" alt="Curse of long rollouts and short rollout solution" loading="lazy"><div class="img-caption">Slide 18-21：长 rollout 的"混沌诅咒" + 短 rollout 的救赎</div></div>
 <div class="notes-body"><h3>长 Rollout 的诅咒与短 Rollout 的救赎</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -305,7 +305,7 @@ $$\|\hat{s}_k - s_k^{\text{true}}\| \leq \epsilon \cdot \frac{L^k - 1}{L - 1} \q
 
 <!-- Slide 22-25: Dyna, model-accelerated off-policy RL, MBA/MVE/MBPO -->
 <div class="slide-block" id="s22">
-<div class="slide-img-wrap"><span class="slide-num">Slide 22-25</span><br><img src="../slides_img/lec-16/slides/page_0023.png" alt="Dyna and model-accelerated RL" loading="lazy"><div class="img-caption">Slide 22-24：Dyna 式混合训练的经典配方与现代离线实现 + Slide 25：MBA、MVE、MBPO 算法谱系</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 22-25</span><br><img loading="lazy" src="slides/lec-16/page_0023.png" alt="Dyna and model-accelerated RL" loading="lazy"><div class="img-caption">Slide 22-24：Dyna 式混合训练的经典配方与现代离线实现 + Slide 25：MBA、MVE、MBPO 算法谱系</div></div>
 <div class="notes-body"><h3>Dyna 式模型加速与 MBA/MVE/MBPO 谱系</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -368,7 +368,7 @@ $$\hat{V}_{\text{MVE}}(s) = \sum_{t=0}^{k-1} \gamma^t \hat{r}_t + \gamma^k V(\ha
 
 <!-- Slide 26-31: Intermission + latent state space models -->
 <div class="slide-block" id="s26">
-<div class="slide-img-wrap"><span class="slide-num">Slide 26-31</span><br><img src="../slides_img/lec-16/slides/page_0029.png" alt="Latent state space models" loading="lazy"><div class="img-caption">Slide 26-31：幕间休息 → 潜空间状态模型的动机、架构与训练逻辑</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 26-31</span><br><img loading="lazy" src="slides/lec-16/page_0029.png" alt="Latent state space models" loading="lazy"><div class="img-caption">Slide 26-31：幕间休息 → 潜空间状态模型的动机、架构与训练逻辑</div></div>
 <div class="notes-body"><h3>潜空间状态模型：为什么、是什么、怎么训练</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -418,7 +418,7 @@ $$\text{maximize} \quad \mathbb{E}_{q(z_t|o_{\leq t})} \left[ \log p(o_t|z_t) + 
 
 <!-- Slide 32-35: Encoder choices + training paradigm -->
 <div class="slide-block" id="s32">
-<div class="slide-img-wrap"><span class="slide-num">Slide 32-35</span><br><img src="../slides_img/lec-16/slides/page_0033.png" alt="Encoder choices and training paradigm" loading="lazy"><div class="img-caption">Slide 32-35：从全平滑后验到单步确定性编码器——编码器谱系 + 潜空间 rollout 的训练架构</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 32-35</span><br><img loading="lazy" src="slides/lec-16/page_0033.png" alt="Encoder choices and training paradigm" loading="lazy"><div class="img-caption">Slide 32-35：从全平滑后验到单步确定性编码器——编码器谱系 + 潜空间 rollout 的训练架构</div></div>
 <div class="notes-body"><h3>编码器的谱系与潜空间 Rollout 训练范式</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
@@ -458,7 +458,7 @@ $$\text{maximize} \quad \mathbb{E}_{q(z_t|o_{\leq t})} \left[ \log p(o_t|z_t) + 
 
 <!-- Slide 36-38: Actor-critic + model-based RL + applications -->
 <div class="slide-block" id="s36">
-<div class="slide-img-wrap"><span class="slide-num">Slide 36-38</span><br><img src="../slides_img/lec-16/slides/page_0037.png" alt="Actor-critic + model-based RL" loading="lazy"><div class="img-caption">Slide 36-38：Actor-Critic + 学到的表示 + 模型 → 端到端架构 + 应用案例</div></div>
+<div class="slide-img-wrap"><span class="slide-num">Slide 36-38</span><br><img loading="lazy" src="slides/lec-16/page_0037.png" alt="Actor-critic + model-based RL" loading="lazy"><div class="img-caption">Slide 36-38：Actor-Critic + 学到的表示 + 模型 → 端到端架构 + 应用案例</div></div>
 <div class="notes-body"><h3>Actor-Critic 与 Model-Based RL 的深度融合</h3>
 
 <div class="concept-block"><h5>概念详解</h5>
