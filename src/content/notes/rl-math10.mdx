@@ -2,25 +2,45 @@
 title: "RL 数学 Note 10：离线强化学习算法"
 description: "AWR、AWAC、IQL、CQL 等离线 RL 算法，以及从离线到在线的迁移。"
 pubDate: 2026-05-12
-tags: ["RL", "Mathematics", "Offline RL", "IQL", "CQL", "CS285"]
+tags: ["RL", "Mathematics", "CS285"]
 series: "RL Mathematics"
 seriesOrder: 10
 ---
 
-本讲从策略约束出发，推导 AWR/AWAC 等隐式约束方法，再进入 IQL 的期望回归视角与 CQL 的保守 Q 学习视角，最后讨论 Offline-to-Online 的迁移问题。
+AWR、AWAC、IQL、CQL 等离线 RL 算法，以及从离线到在线的迁移。
 
 ## 完整讲义
 
-下面嵌入 CS 285 第 18 讲的完整交互式讲义（含幻灯片原图、KaTeX 公式与侧边栏导航）：
+本页链接到 CS 285 第 18 讲的完整交互式讲义（含幻灯片原图、KaTeX 公式与侧边栏导航）。讲义以独立页面形式呈现，可在新标签页中全屏阅读。
 
-<iframe
-  src="/interactive/rl-cs285/lec-18_讲义.html"
-  width="100%"
-  height="900px"
-  style="border: 1px solid #e0d6c5; border-radius: 8px;"
-  loading="lazy"
-  title="CS 285 Lec 18 Offline RL Algorithms"
-/>
+<div class="not-prose my-8">
+  <a
+    href="/interactive/rl-cs285/lec-18_讲义.html"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="group block rounded-xl border border-edge bg-surface/50 p-6 transition-colors hover:border-accent/30 hover:bg-accent/3"
+  >
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h3 class="font-display text-lg font-semibold text-primary group-hover:text-accent transition-colors">
+          CS 285 Lec 18：Offline RL Algorithms
+        </h3>
+        <p class="mt-2 text-sm font-body text-secondary leading-relaxed">
+          点击在新标签页打开完整讲义。
+        </p>
+      </div>
+      <svg
+        class="w-5 h-5 text-muted group-hover:text-accent transition-colors shrink-0 mt-1"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M7 17 17 7M17 7H7M17 7v10"/>
+      </svg>
+    </div>
+  </a>
+</div>
 
 ## 备用链接
 
