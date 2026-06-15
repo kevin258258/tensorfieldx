@@ -1,0 +1,404 @@
+
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; }
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; color: white;
+    display: flex; gap: 4px; padding: 8px 12px; overflow-x: auto; z-index: 100;
+  }
+  nav a { color: white; text-decoration: none; padding: 6px 10px; border-radius: 4px; font-size: 13px; white-space: nowrap; }
+  nav a:hover, nav a.active { background: #4a90d9; }
+  .section { padding: 70px 20px 30px; max-width: 1100px; margin: 0 auto; }
+  .section h2 { margin-top: 0; border-bottom: 2px solid #4a90d9; padding-bottom: 8px; }
+  .mockup { border: 1px solid #ddd; border-radius: 8px; margin: 16px 0; background: #fafbfc; }
+  .mockup-header { background: #e8f0f8; padding: 10px 14px; font-weight: bold; border-radius: 8px 8px 0 0; }
+  .mockup-body { padding: 14px; }
+  .sm-grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 4px; }
+  .sm-cell { padding: 8px; text-align: center; background: #4a90d9; color: white; border-radius: 4px; cursor: pointer; font-size: 10px; }
+  .sm-cell:hover { background: #357abd; }
+  .hierarchy { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .hierarchy-box { flex: 1; min-width: 220px; }
+  .thread-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; }
+  .thread-cell { padding: 5px; background: #81c784; text-align: center; font-size: 9px; border-radius: 2px; }
+  .warp-row { padding: 10px; background: #ffb74d; margin: 4px 0; text-align: center; border-radius: 4px; }
+  .block-cell { padding: 16px; background: #4a90d9; color: white; text-align: center; border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 8px; border-bottom: 1px solid #ddd; }
+  .occ-bar-bg { background: #e3f2fd; height: 24px; border-radius: 12px; overflow: hidden; }
+  .occ-bar { height: 100%; background: #4a90d9; transition: width 0.3s; }
+</style>
+
+<nav id="navbar">
+  <a href="#overview" class="active">GPU 鸟瞰</a>
+  <a href="#sm">SM 内部</a>
+  <a href="#hierarchy">执行层级</a>
+  <a href="#scheduler">Warp 调度</a>
+  <a href="#simt">SIMT</a>
+  <a href="#occupancy">Occupancy</a>
+</nav>
+
+<!-- Section 1: Overview -->
+<div class="section" id="overview">
+  <h2>1. GPU 整体鸟瞰</h2>
+  <p>GPU 由多个 Streaming Multiprocessor (SM) 组成，SM 通过 L2 Cache 和 DRAM 交互。点击任意 SM 查看提示。</p>
+  <div class="mockup">
+    <div class="mockup-header">NVIDIA GPU（示例：RTX 5060，26 SMs）</div>
+    <div class="mockup-body">
+      <div class="sm-grid" id="gpu-body"></div>
+    </div>
+  </div>
+  <h3>关键组件</h3>
+  <ul>
+    <li><strong>SM</strong>：GPU 的计算核心，同时驻留多个 block/warp。</li>
+    <li><strong>DRAM</strong>：大容量全局显存，速度相对慢。</li>
+    <li><strong>L2 Cache</strong>：所有 SM 共享，缓冲 DRAM 访问。</li>
+    <li><strong>PCIe / NVLink</strong>：与 CPU / 其他 GPU 通信。</li>
+  </ul>
+  <h3>数据流动</h3>
+  <p>Thread ↔ Register ↔ Shared Memory/L1 ↔ L2 ↔ DRAM。越靠近 thread，越快、越小。</p>
+</div>
+
+<!-- Section 2: SM Internals -->
+<div class="section" id="sm">
+  <h2>2. SM 内部结构</h2>
+  <p>一个 SM 就像一个小型工厂：Warp Scheduler 是调度员，CUDA Cores 是工人，Register File 和 Shared Memory 是车间里的快速缓存。</p>
+  <div style="text-align:center;">
+    <svg viewBox="0 0 800 520" style="width:100%;max-width:800px;background:#fafbfc;border:1px solid #ddd;border-radius:8px;">
+      <rect x="50" y="50" width="700" height="420" fill="#f0f4f8" stroke="#333" stroke-width="2" rx="10"/>
+      <text x="400" y="40" text-anchor="middle" font-size="18" font-weight="bold">Streaming Multiprocessor (SM)</text>
+      <rect x="80" y="80" width="130" height="50" fill="#ffcc80" stroke="#333" rx="5"/><text x="145" y="110" text-anchor="middle" font-size="12">Warp Scheduler 1</text>
+      <rect x="80" y="150" width="130" height="50" fill="#ffcc80" stroke="#333" rx="5"/><text x="145" y="180" text-anchor="middle" font-size="12">Warp Scheduler 2</text>
+      <rect x="80" y="220" width="130" height="50" fill="#ffcc80" stroke="#333" rx="5"/><text x="145" y="250" text-anchor="middle" font-size="12">Warp Scheduler 3</text>
+      <rect x="80" y="290" width="130" height="50" fill="#ffcc80" stroke="#333" rx="5"/><text x="145" y="320" text-anchor="middle" font-size="12">Warp Scheduler 4</text>
+      <rect x="240" y="90" width="80" height="30" fill="#fff59d" stroke="#333" rx="5"/><text x="280" y="110" text-anchor="middle" font-size="11">Dispatch</text>
+      <rect x="240" y="160" width="80" height="30" fill="#fff59d" stroke="#333" rx="5"/><text x="280" y="180" text-anchor="middle" font-size="11">Dispatch</text>
+      <rect x="240" y="230" width="80" height="30" fill="#fff59d" stroke="#333" rx="5"/><text x="280" y="250" text-anchor="middle" font-size="11">Dispatch</text>
+      <rect x="240" y="300" width="80" height="30" fill="#fff59d" stroke="#333" rx="5"/><text x="280" y="320" text-anchor="middle" font-size="11">Dispatch</text>
+      <rect x="360" y="80" width="360" height="120" fill="#e3f2fd" stroke="#333" rx="5"/>
+      <text x="540" y="100" text-anchor="middle" font-size="13" font-weight="bold">CUDA Cores / Execution Units</text>
+      <g id="cuda-cores"></g>
+      <rect x="360" y="220" width="170" height="100" fill="#c5e1a5" stroke="#333" rx="5"/>
+      <text x="445" y="275" text-anchor="middle" font-size="13">Register File</text>
+      <rect x="550" y="220" width="170" height="100" fill="#b39ddb" stroke="#333" rx="5"/>
+      <text x="635" y="275" text-anchor="middle" font-size="13">Shared Memory / L1</text>
+      <rect x="360" y="340" width="170" height="60" fill="#ffab91" stroke="#333" rx="5"/>
+      <text x="445" y="375" text-anchor="middle" font-size="12">Load/Store Units</text>
+      <rect x="550" y="340" width="170" height="60" fill="#ffab91" stroke="#333" rx="5"/>
+      <text x="635" y="375" text-anchor="middle" font-size="12">SFU / Tensor Cores</text>
+    </svg>
+  </div>
+  <h3>组件说明</h3>
+  <ul>
+    <li><strong>Warp Scheduler</strong>：每周期从 eligible warps 中选一个，把指令发给 Dispatch Unit。</li>
+    <li><strong>Dispatch Unit</strong>：把指令派发到具体的执行单元。</li>
+    <li><strong>CUDA Core</strong>：执行单个 thread 的标量指令。一个 SM 通常有 64~128 个 FP32 CUDA Cores。</li>
+    <li><strong>Register File</strong>：给所有活跃 thread 分配寄存器，容量大、延迟极低。</li>
+    <li><strong>Shared Memory / L1</strong>：同 block 内 thread 共享，可手动管理。</li>
+    <li><strong>Load/Store Unit</strong>：负责 global/local memory 访问。</li>
+    <li><strong>SFU / Tensor Core</strong>：处理特殊函数和矩阵乘/卷积加速。</li>
+  </ul>
+</div>
+
+<!-- Section 3: Hierarchy -->
+<div class="section" id="hierarchy">
+  <h2>3. 执行层级：Grid → Block → Warp → Thread</h2>
+  <div class="hierarchy">
+    <div class="hierarchy-box">
+      <div class="mockup"><div class="mockup-header">Grid (2×3 blocks)</div><div class="mockup-body" id="grid-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div></div>
+    </div>
+    <div class="hierarchy-box">
+      <div class="mockup"><div class="mockup-header">一个 Block = 4 Warps</div><div class="mockup-body" id="block-body"></div></div>
+    </div>
+    <div class="hierarchy-box">
+      <div class="mockup"><div class="mockup-header">一个 Warp = 32 Threads</div><div class="mockup-body"><div class="thread-grid" id="warp-body"></div></div></div>
+    </div>
+  </div>
+  <h3>关键数字</h3>
+  <ul>
+    <li><strong>Warp Size</strong>：固定 32 个 threads。</li>
+    <li><strong>Block Size</strong>：通常是 32 的倍数（64, 128, 256, 512, 1024）。</li>
+    <li>一个 Block 内的 threads 可以共享 Shared Memory 并同步（<code>__syncthreads</code>）。</li>
+    <li>不同 Block 之间不能同步，也不能直接共享内存。</li>
+  </ul>
+  <h3>索引公式</h3>
+  <p>1D：<code>global_id = blockIdx.x * blockDim.x + threadIdx.x</code></p>
+  <p>2D：<code>row = blockIdx.y * blockDim.y + threadIdx.y; col = blockIdx.x * blockDim.x + threadIdx.x</code></p>
+</div>
+
+<!-- Section 4: Warp Scheduler -->
+<div class="section" id="scheduler">
+  <h2>4. Warp Scheduler：隐藏延迟的秘密</h2>
+  <p>当某个 warp 等待内存数据时，Warp Scheduler 会立刻切换到另一个 ready warp，让 CUDA Cores 几乎不空闲。</p>
+  <div style="text-align:center;">
+    <svg viewBox="0 0 900 420" style="width:100%;max-width:900px;background:#fafbfc;border:1px solid #ddd;border-radius:8px;">
+      <rect x="50" y="50" width="800" height="320" fill="#f0f4f8" stroke="#333" stroke-width="2" rx="10"/>
+      <text x="450" y="40" text-anchor="middle" font-size="18" font-weight="bold">SM with 4 Warp Schedulers</text>
+      <rect x="80" y="80" width="120" height="40" fill="#ffcc80" stroke="#333" rx="5"/><text x="140" y="105" text-anchor="middle" font-size="12">Scheduler 0</text>
+      <rect x="80" y="140" width="120" height="40" fill="#ffcc80" stroke="#333" rx="5"/><text x="140" y="165" text-anchor="middle" font-size="12">Scheduler 1</text>
+      <rect x="80" y="200" width="120" height="40" fill="#ffcc80" stroke="#333" rx="5"/><text x="140" y="225" text-anchor="middle" font-size="12">Scheduler 2</text>
+      <rect x="80" y="260" width="120" height="40" fill="#ffcc80" stroke="#333" rx="5"/><text x="140" y="285" text-anchor="middle" font-size="12">Scheduler 3</text>
+      <rect x="300" y="80" width="250" height="120" fill="#fff9c4" stroke="#333" rx="5"/>
+      <text x="425" y="105" text-anchor="middle" font-size="13" font-weight="bold">Eligible Warp Pool</text>
+      <g id="warp-pool"></g>
+      <rect x="580" y="80" width="240" height="120" fill="#ffccbc" stroke="#333" rx="5"/>
+      <text x="700" y="105" text-anchor="middle" font-size="13" font-weight="bold">Waiting on Memory</text>
+      <g id="waiting-warps"></g>
+      <rect x="300" y="220" width="520" height="120" fill="#e3f2fd" stroke="#333" rx="5"/>
+      <text x="560" y="245" text-anchor="middle" font-size="13" font-weight="bold">CUDA Cores / Execution Units</text>
+      <g id="exec-units"></g>
+    </svg>
+  </div>
+  <h3>调度过程</h3>
+  <ol>
+    <li>Kernel launch 后，grid 被切成多个 block。</li>
+    <li>Block 被分配到空闲的 SM 上。</li>
+    <li>每个 block 内部的 threads 被进一步切成 32-thread 的 warp。</li>
+    <li>Warp Scheduler 每周期检查 eligible warp pool，选一个 ready 的 warp。</li>
+    <li>如果选中的 warp 需要访问内存，把它移到 waiting pool，同时调度另一个 warp。</li>
+    <li>内存数据到达后，waiting warp 回到 eligible pool。</li>
+  </ol>
+  <p><strong>为什么这叫 latency hiding？</strong> 内存访问可能需要几百个时钟周期。Warp Scheduler 通过快速切换 warp，让 CUDA Cores 总有事情做。</p>
+</div>
+
+<!-- Section 5: SIMT -->
+<div class="section" id="simt">
+  <h2>5. SIMT、Warp Divergence 与 Memory Coalescing</h2>
+  <div class="hierarchy">
+    <div class="hierarchy-box">
+      <div class="mockup"><div class="mockup-header">SIMT：同一条指令</div><div class="mockup-body"><div class="thread-grid" id="simt-warp"></div><p style="font-size:0.9em;color:#555;">所有 threads 同步执行 ADD。</p></div></div>
+    </div>
+    <div class="hierarchy-box">
+      <div class="mockup"><div class="mockup-header">Divergence</div><div class="mockup-body"><div class="thread-grid" id="div-warp"></div><p style="font-size:0.9em;color:#555;">绿色执行 A，红色执行 B；两边串行执行。<br><button class="mock-button" onclick="animateDivergence()">播放发散动画</button></p></div></div>
+    </div>
+    <div class="hierarchy-box">
+      <div class="mockup"><div class="mockup-header">Coalescing</div><div class="mockup-body"><div id="coalesce-threads" style="display:flex;gap:2px;margin:10px 0;"></div><div id="coalesce-mem" style="display:flex;gap:1px;"></div><p style="font-size:0.9em;color:#555;">32 个相邻地址合并成少量 cache line 访问。</p></div></div>
+    </div>
+  </div>
+  <h3>如何避免 divergence？</h3>
+  <ul>
+    <li>让同一个 warp 内的 threads 走相同分支。</li>
+    <li>如果必须分支，尽量让分支边界与 warp 边界对齐。</li>
+    <li>利用 Triton/CUDA 的 ballot/shuffle 等 warp 级原语。</li>
+  </ul>
+</div>
+
+<!-- Section 6: Occupancy -->
+<div class="section" id="occupancy">
+  <h2>6. Occupancy 计算器</h2>
+  <p>Occupancy = 每个 SM 上同时活跃的 warp 数 / SM 支持的最大 warp 数。它决定了 latency hiding 的能力。</p>
+  <div class="mockup">
+    <div class="mockup-header">输入你的 kernel 参数</div>
+    <div class="mockup-body">
+      <div style="margin:10px 0;">
+        <label>Block Size: <span id="block-size-val">128</span></label><br>
+        <input type="range" id="block-size" min="32" max="1024" step="32" value="128" style="width:80%;">
+      </div>
+      <div style="margin:10px 0;">
+        <label>Shared Memory per Block (KB): <span id="smem-val">0</span></label><br>
+        <input type="range" id="smem" min="0" max="48" step="4" value="0" style="width:80%;">
+      </div>
+      <div style="margin:10px 0;">
+        <label>Registers per Thread: <span id="reg-val">32</span></label><br>
+        <input type="range" id="reg" min="16" max="128" step="16" value="32" style="width:80%;">
+      </div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">计算结果</div>
+    <div class="mockup-body">
+      <table>
+        <tr><td>Max Warps per SM</td><td style="text-align:right;">48</td></tr>
+        <tr><td>Max Threads per SM</td><td style="text-align:right;">1536</td></tr>
+        <tr><td>Max Registers per SM</td><td style="text-align:right;">65536</td></tr>
+        <tr><td>Max Shared Memory per SM (KB)</td><td style="text-align:right;">48</td></tr>
+        <tr><td><strong>Warps per Block</strong></td><td style="text-align:right;"><strong id="warps-per-block">4</strong></td></tr>
+        <tr><td><strong>Limiting Factor</strong></td><td style="text-align:right;"><strong id="limiter">threads</strong></td></tr>
+        <tr><td><strong>Blocks per SM</strong></td><td style="text-align:right;"><strong id="blocks-per-sm">12</strong></td></tr>
+        <tr><td><strong>Warps per SM</strong></td><td style="text-align:right;"><strong id="warps-per-sm">48</strong></td></tr>
+        <tr><td><strong>Occupancy</strong></td><td style="text-align:right;"><strong id="occupancy">100%</strong></td></tr>
+      </table>
+      <div class="occ-bar-bg"><div class="occ-bar" id="occ-bar" style="width:100%;"></div></div>
+    </div>
+  </div>
+  <h3>常见瓶颈</h3>
+  <ul>
+    <li><strong>threads</strong>：block size 太大，每个 SM 放不下足够多的 block。</li>
+    <li><strong>registers</strong>：每个 thread 用太多寄存器。</li>
+    <li><strong>shared memory</strong>：每个 block 用太多 shared memory。</li>
+    <li><strong>warps</strong>：同时需要的 warp 数超过 SM 上限（较少见）。</li>
+  </ul>
+</div>
+
+<script>
+  // GPU overview SMs
+  const gpuBody = document.getElementById('gpu-body');
+  for (let i = 0; i < 26; i++) {
+    const sm = document.createElement('div');
+    sm.className = 'sm-cell';
+    sm.textContent = 'SM' + i;
+    sm.onclick = () => alert('SM' + i + '：进入“SM 内部结构”查看详情');
+    gpuBody.appendChild(sm);
+  }
+
+  // CUDA cores grid
+  const g = document.getElementById('cuda-cores');
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 16; c++) {
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', 370 + c * 20);
+      rect.setAttribute('y', 110 + r * 20);
+      rect.setAttribute('width', 16);
+      rect.setAttribute('height', 16);
+      rect.setAttribute('fill', '#64b5f6');
+      rect.setAttribute('stroke', '#1976d2');
+      rect.setAttribute('rx', 2);
+      g.appendChild(rect);
+    }
+  }
+
+  // Hierarchy
+  const gridBody = document.getElementById('grid-body');
+  for (let i = 0; i < 6; i++) {
+    const b = document.createElement('div');
+    b.className = 'block-cell';
+    b.textContent = 'Block ' + i;
+    gridBody.appendChild(b);
+  }
+  const blockBody = document.getElementById('block-body');
+  for (let i = 0; i < 4; i++) {
+    const w = document.createElement('div');
+    w.className = 'warp-row';
+    w.textContent = 'Warp ' + i + ' (32 threads)';
+    blockBody.appendChild(w);
+  }
+  const warpBody = document.getElementById('warp-body');
+  for (let i = 0; i < 32; i++) {
+    const t = document.createElement('div');
+    t.className = 'thread-cell';
+    t.textContent = 'T' + i;
+    warpBody.appendChild(t);
+  }
+
+  // Warp pool
+  const poolG = document.getElementById('warp-pool');
+  for (let i = 0; i < 8; i++) {
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', 315 + (i % 4) * 55);
+    rect.setAttribute('y', 125 + Math.floor(i / 4) * 30);
+    rect.setAttribute('width', 45); rect.setAttribute('height', 22);
+    rect.setAttribute('fill', '#ffb74d'); rect.setAttribute('stroke', '#f57c00'); rect.setAttribute('rx', 3);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', 337 + (i % 4) * 55);
+    text.setAttribute('y', 141 + Math.floor(i / 4) * 30);
+    text.setAttribute('text-anchor', 'middle'); text.setAttribute('font-size', '9');
+    text.textContent = 'W' + i;
+    poolG.appendChild(rect); poolG.appendChild(text);
+  }
+  const waitG = document.getElementById('waiting-warps');
+  for (let i = 0; i < 4; i++) {
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', 595 + (i % 2) * 100);
+    rect.setAttribute('y', 125 + Math.floor(i / 2) * 35);
+    rect.setAttribute('width', 85); rect.setAttribute('height', 25);
+    rect.setAttribute('fill', '#ef9a9a'); rect.setAttribute('stroke', '#c62828'); rect.setAttribute('rx', 3);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', 637 + (i % 2) * 100);
+    text.setAttribute('y', 142 + Math.floor(i / 2) * 35);
+    text.setAttribute('text-anchor', 'middle'); text.setAttribute('font-size', '9');
+    text.textContent = 'W' + (i + 8) + ' (stall)';
+    waitG.appendChild(rect); waitG.appendChild(text);
+  }
+  const euG = document.getElementById('exec-units');
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 16; c++) {
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', 310 + c * 30);
+      rect.setAttribute('y', 265 + r * 30);
+      rect.setAttribute('width', 24); rect.setAttribute('height', 24);
+      rect.setAttribute('fill', '#64b5f6'); rect.setAttribute('stroke', '#1976d2'); rect.setAttribute('rx', 2);
+      euG.appendChild(rect);
+    }
+  }
+
+  // SIMT / Divergence
+  function makeThreads(containerId, count, color) {
+    const c = document.getElementById(containerId);
+    for (let i = 0; i < count; i++) {
+      const t = document.createElement('div');
+      t.className = 'thread-cell';
+      t.style.background = color;
+      t.textContent = i;
+      c.appendChild(t);
+    }
+  }
+  makeThreads('simt-warp', 32, '#81c784');
+  makeThreads('div-warp', 32, '#81c784');
+  function animateDivergence() {
+    const c = document.getElementById('div-warp');
+    const children = Array.from(c.children);
+    children.forEach((t, i) => {
+      setTimeout(() => { t.style.background = (i % 2 === 0) ? '#81c784' : '#e57373'; }, i * 30);
+    });
+    setTimeout(() => { children.forEach(t => t.style.background = '#81c784'); }, 1500);
+  }
+  const ct = document.getElementById('coalesce-threads');
+  for (let i = 0; i < 8; i++) {
+    const t = document.createElement('div');
+    t.style.cssText = 'padding:4px;background:#64b5f6;color:white;font-size:8px;text-align:center;flex:1;';
+    t.textContent = 'T' + i;
+    ct.appendChild(t);
+  }
+  const cm = document.getElementById('coalesce-mem');
+  for (let i = 0; i < 4; i++) {
+    const m = document.createElement('div');
+    m.style.cssText = 'width:40px;height:30px;background:#b39ddb;border:1px solid #7e57c2;display:flex;align-items:center;justify-content:center;font-size:9px;';
+    m.textContent = 'Cache ' + i;
+    cm.appendChild(m);
+  }
+
+  // Occupancy calculator
+  const blockSizeInput = document.getElementById('block-size');
+  const smemInput = document.getElementById('smem');
+  const regInput = document.getElementById('reg');
+  function calc() {
+    const blockSize = parseInt(blockSizeInput.value);
+    const smemKB = parseInt(smemInput.value);
+    const reg = parseInt(regInput.value);
+    document.getElementById('block-size-val').textContent = blockSize;
+    document.getElementById('smem-val').textContent = smemKB;
+    document.getElementById('reg-val').textContent = reg;
+    const warpSize = 32, maxWarpsPerSM = 48, maxThreadsPerSM = 1536, maxRegsPerSM = 65536, maxSmemPerSM = 48 * 1024, maxBlocksPerSM = 32;
+    const warpsPerBlock = Math.ceil(blockSize / warpSize);
+    const byThreads = Math.floor(maxThreadsPerSM / blockSize);
+    const byWarps = Math.floor(maxWarpsPerSM / warpsPerBlock);
+    const byRegs = Math.floor(maxRegsPerSM / (reg * blockSize));
+    const bySmem = smemKB > 0 ? Math.floor(maxSmemPerSM / (smemKB * 1024)) : maxBlocksPerSM;
+    const blocksPerSM = Math.max(0, Math.min(byThreads, byWarps, byRegs, bySmem, maxBlocksPerSM));
+    const warpsPerSM = blocksPerSM * warpsPerBlock;
+    const occupancy = Math.min(100, Math.round((warpsPerSM / maxWarpsPerSM) * 100));
+    const minVal = Math.min(byThreads, byWarps, byRegs, bySmem);
+    let limiter = 'threads';
+    if (minVal === byWarps) limiter = 'warps';
+    else if (minVal === byRegs) limiter = 'registers';
+    else if (minVal === bySmem) limiter = 'shared memory';
+    document.getElementById('warps-per-block').textContent = warpsPerBlock;
+    document.getElementById('limiter').textContent = limiter;
+    document.getElementById('blocks-per-sm').textContent = blocksPerSM;
+    document.getElementById('warps-per-sm').textContent = warpsPerSM;
+    document.getElementById('occupancy').textContent = occupancy + '%';
+    document.getElementById('occ-bar').style.width = occupancy + '%';
+  }
+  [blockSizeInput, smemInput, regInput].forEach(el => el.addEventListener('input', calc));
+  calc();
+
+  // Navigation active state
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(sec => { if (sec.getBoundingClientRect().top <= 80) current = sec.getAttribute('id'); });
+    navLinks.forEach(a => {
+      a.classList.remove('active');
+      if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+    });
+  });
+</script>
