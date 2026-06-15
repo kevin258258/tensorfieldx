@@ -1,182 +1,362 @@
 ---
-title: "FLOPs 不是一个好单位"
-description: "传统教材说 FP16 算力密度（Arithmetic Intensity）翻倍就能跨越 memory wall。在 RTX 5060 实测后我发现恰好相反——算得越快，离 memory wall 反而越近。"
+title: "从 FLOPs/Byte 到 Bit-Circuit/Bit：低精度计算强度的抽象泄漏分析"
+description: "传统教材说 FP16 翻倍 Arithmetic Intensity 就能逃离 memory wall。我从电路级计算模型重新推导，发现 FP16 的 I_circuit 只有 FP32 的 0.44 倍，并在 RTX 5060 上实验验证。"
 pubDate: 2026-06-15
+updatedDate: 2026-06-15
 tags: ["GPU", "Roofline", "FP16", "Performance", "CS336"]
 ---
 
 <figure>
-  <img src="/images/blog/cs336-fp16-ai-slide.png" alt="CS336 Lecture 6 slide: FP16 doubles arithmetic intensity" style="border:1px solid #e0d6c5;border-radius:8px;width:100%" />
-  <figcaption style="text-align:center;font-size:13px;color:#908878;margin-top:6px;">CS336 Lecture 6 讲义截图。这页 slide 是我写这篇 blog 的起点。</figcaption>
+  <img src="/images/blog/cs336-fp16-ai-slide.png" alt="CS336 Lecture 6 slide: FP16 doubles arithmetic intensity" style="border: 1px solid #e0d6c5; border-radius: 8px; width: 100%;" />
+  <figcaption style="text-align: center; font-size: 13px; color: #908878; margin-top: 6px;">
+    CS336 Lecture 6 讲义截图。传统结论：FP32 → FP16，Arithmetic Intensity 翻倍，工作负载更 compute-bound。
+  </figcaption>
 </figure>
 
 ---
 
-读 CS336 Lecture 6 的讲义，看到上面这页的时候，我停住了。
+# 1. 问题背景
 
-这页的核心逻辑很简单：
-
-> FP32 → FP16：每个浮点数从 4 字节变成 2 字节。FLOPs 不变，bytes 减半，所以 Arithmetic Intensity（FLOPs / bytes）翻倍。AI 越大越 compute-bound。所以 FP16 让工作负载更偏向 compute-bound。
-
-逻辑链看起来没毛病。但我总觉得哪里不对。
-
----
-
-如果 AI 翻倍，工作负载就更 compute-bound，那就意味着**从 FP32 切到 FP16，原来 memory-bound 的操作可以变成 compute-bound**。意思是精度降低不仅让计算变快，还能"跨越" memory wall。
-
-这听起来太美好了。美好到像是免费午餐。
-
-我决定在 RTX 5060 上实测一下。
-
----
-
-## Roofline 少了什么东西
-
-先明确几个定义。
-
-传统 roofline 模型里，一个工作负载的"位置"由 AI 决定。ridge point（分隔 memory-bound 和 compute-bound 的分界线）是峰值计算吞吐 $P$ 除以 HBM 带宽 $B$：
+在经典 roofline model 或 CS336 / MLSys 语境中，算子的计算强度通常定义为：
 
 $$
-R = \frac{P}{B}
+AI_{\text{std}} = \frac{\text{FLOPs}}{\text{Bytes moved}}
 $$
 
-这个 ridge point 是**按 dtype 不同**的。FP32 有 FP32 的 ridge，FP16 有 FP16 的 ridge。因为 FP16 算得快，$P_{\text{FP16}}$ 比 $P_{\text{FP32}}$ 大多了，所以 FP16 的 ridge point 在横轴右边很远。
+含义：每从内存搬运 1 byte 数据，可以执行多少次抽象浮点运算。
 
-教材只说了 AI 翻倍——"横轴上的点往右移了"。但它没说 ridge point 也在往右移，而且移得更远。
+例如矩阵乘 $C = AB$，其中 $A \in \mathbb{R}^{M \times K}$，$B \in \mathbb{R}^{K \times N}$，$C \in \mathbb{R}^{M \times N}$。传统 FLOP count 近似为 $2MKN$。
 
-所以我定义了一个简单的东西：**ρ**，衡量工作负载当前距离 ridge 多远。
-
-$$
-\rho = \frac{AI}{R} = \frac{AI \cdot B}{P}
-$$
-
-$\rho \ll 1$ 说明 bottleneck 在 memory。$\rho \gg 1$ 说明 bottleneck 在 compute。
-
-从 FP32 到 FP16，bytes 减半（AI ×2），peak 变成原来的 $r_P$ 倍。ρ 怎么变？
+若数据类型从 FP32 换成 FP16，同一个矩阵乘的 FLOP count 不变，但每个元素从 32 bit 变成 16 bit，数据搬运量约减半：
 
 $$
-\frac{\rho_{\text{FP16}}}{\rho_{\text{FP32}}}
-= \frac{AI_{\text{FP16}}}{AI_{\text{FP32}}} \cdot \frac{P_{\text{FP32}}}{P_{\text{FP16}}}
-= \frac{2}{r_P}
+AI_{\text{std}, \text{fp16}} \approx 2 AI_{\text{std}, \text{fp32}}
 $$
 
-如果 $r_P > 2$，$\rho$ 下降——**工作负载离 ridge 更远了，更偏向 memory-bound**。
+这就是开头那页 slide 的结论：**低精度提高 arithmetic intensity，更容易跨越 memory-bound 的限制。**
+
+但这个结论依赖一个抽象假设：**一次 FP16 浮点操作和一次 FP32 浮点操作都被记为同一个 FLOP。**
+
+如果我们关心的是更底层的电路代价、能耗、面积和物理计算量，这个抽象就会泄漏。FP16 加法 ≠ FP32 加法，FP16 乘法 ≠ FP32 乘法——它们在门电路规模、晶体管翻转、电容充放电和可并行数量上都不同。
+
+FLOP count 是算法层面的操作计数，不是物理层面的计算代价。
 
 ---
 
-## 实测
+# 2. 标准 FLOP/Byte 指标的抽象假设
 
-RTX 5060 Laptop GPU，CUDA 12.8。HBM 带宽实测 267 GB/s。
-
-先测每个 dtype 的 peak throughput（大矩阵 matmul 逼近饱和）：
-
-| dtype | peak TFLOP/s | $r_P$ |
-|-------|-------------|-------|
-| FP32  | 8.1         | 1.0   |
-| TF32  | 16.5        | 2.0   |
-| FP16  | 29.7        | **3.65** |
-| BF16  | 31.8        | 3.9   |
-
-$r_P = 3.65$。理论预测 $\rho_{\text{FP16}} / \rho_{\text{FP32}} = 2 / 3.65 = 0.55$。
-
-跑一个 4096×4096 GEMM：
-
-| dtype | 耗时 | AI | ρ |
-|-------|-----|----|----|
-| FP32  | 14.6 ms | 683 | **22.4** |
-| FP16  | 4.5 ms  | 1365 | **12.3** |
-
-实测 ρ 比值：$12.3 / 22.4 = 0.549$。
-
-**跟理论预测差不到 1%。**
-
-8 层 MLP（hidden=2048, batch=256）：
-
-| dtype | 耗时 | AI | ρ |
-|-------|-----|----|----|
-| FP32  | 2.7 ms | 124 | **4.1** |
-| FP16  | 0.9 ms | 248 | **2.0** |
-
-MLP 本来就接近 memory wall（ρ=4.1 不大）。换 FP16 后 ρ 变成了 2.0——**离 memory wall 更近了一半**，而不是跨过去了。
-
----
-
-## 换一个角度：电路代价
-
-有人说：既然 FP32 的一个 FLOP 比 FP16 的一个 FLOP "重"，那或许应该按电路工作量来归一化。
-
-FP32 FMA 的硬件面积大约是一个 32×32 乘法器阵列 + 32 位加法器 + 规格化逻辑。FP16 FMA 只用 16×16 乘法器（面积约是 32×32 的四分之一）加 16 位加法器。
-
-电路工作量比值大概在 4× 到 8× 之间。取保守值 4×，FP16 的 circuit weight = 0.25：
+传统 AI_std 隐含地把一次浮点加法、一次浮点乘法或一次 FMA 看作同等单位的"操作"。因此对同一个 GEMM $C = AB$，无论 FP32 还是 FP16，FLOP count 都是 $2MKN$。变化只发生在分母的搬运量上：
 
 $$
-I_{\text{bit}} = AI_{\text{std}} \times \text{circuit\_weight}
+\frac{AI_{\text{std}, \text{fp16}}}{AI_{\text{std}, \text{fp32}}} = \frac{B_{\text{fp32}}}{B_{\text{fp16}}} \approx 2
 $$
 
-| dtype | AI_std | $I_{\text{bit}}$ |
-|-------|--------|-------------------|
-| FP32  | 683    | **683**           |
-| FP16  | 1365   | **341**           |
-
-按实际电路代价算，FP16 的算力密度**只有 FP32 的一半**。不管用抽象 FLOPs 还是电路代价，结论都一样：$\rho$ 不会上升。
+这个结论在 FLOP count 的抽象层面是正确的。但它忽略了一个关键事实：**FP16 的单次运算本身比 FP32 便宜。**
 
 ---
 
-## 其他 GPU 也一样
+# 3. 电路级计算量模型
 
-这个结论不是 RTX 5060 的特例。只要 $r_P > 2$，FP16 的 $\rho$ 就会降。
+引入一个粗略但有解释力的 bit-level compute model。
 
-| GPU | 代 | $r_P$ | $\rho_{\text{FP16}} / \rho_{\text{FP32}}$ |
-|-----|-----|-------|------------------------------------------|
-| V100      | Volta  | 8.0  | 0.25 |
-| A100      | Ampere | 16.0 | **0.12** |
-| H100      | Hopper | 14.8 | 0.14 |
-| RTX 4090  | Ada    | 4.0  | 0.50 |
-| RTX 5060  | Blackwell | 3.65 | 0.55（实测） |
+设 $b$ 为浮点数总 bit 宽度，$p$ 为有效尾数位数：
 
-最讽刺的是 A100/H100——这些"AI 训练专用卡"的 Tensor Core 强度极高，$r_P$ 在 15-16，FP16 的 ρ 只有 FP32 的 **12%**。训练的时候大家往死里用 FP16，但 ρ 其实是最低的。
+- FP32：sign 1 bit，exponent 8 bit，fraction 23 bit → $p_{32} = 24$（含 hidden leading bit）
+- FP16：sign 1 bit，exponent 5 bit，fraction 10 bit → $p_{16} = 11$
 
-2020 年之后的 GPU，$r_P \gg 2$，无一例外。
+### 加法
 
----
+$p$-bit 加法器的代价近似线性增长：$C_{\text{add}}(p) \sim O(p)$。浮点加法还需要 exponent compare、mantissa alignment、shift、normalize、rounding，但主导直觉仍是位宽越大代价越高。
 
-## TF32：一个特别有趣的 case
+### 乘法
 
-TF32 的 bytes 和 FP32 完全一样（都是 32-bit 存储），但速度是 FP32 的 2×。
+$p$-bit 乘法器需要生成和规约大量 partial products，代价近似按二次增长：$C_{\text{mul}}(p) \sim O(p^2)$。这是最关键的一点——低精度乘法的电路代价下降得比数据位宽更快。
 
-GEMM n=4096, TF32：AI = 683（和 FP32 一样），ρ = **11.1**（只有 FP32 的一半）。
+### FMA
 
-bytes 没省，AI 没变，只有 compute 变快了——所以 ρ 直接折半。
+对 $a \times b + c$，使用简化模型：
 
-这个 case 特别干净，因为没有任何 bytes 变化来混淆视线。纯粹是"peak 涨了所以 ridge 右移了"。
+$$
+C_{\text{FMA}}(p) \approx p^2 + p
+$$
 
----
-
-## 所以 FP16 有什么用
-
-FP16 非常有用。本篇不是在说它不好。
-
-- 同样的矩阵乘法，FP16 比 FP32 快了 3.65 倍。这是实实在在的 wall-clock 改善。
-- 显存减半，能放更大的 batch 或模型。
-- 带宽压力确实小了（读写的总字节减少了）。
-
-但——这些是 **throughput** 和 **capacity** 层面的收益，不是 **roofline 位置** 层面的。切到 FP16 不会让你的 workload"跨越 memory wall"。如果你的 kernel 在 FP32 下是 memory-bound，切 FP16 之后大概率还是 memory-bound，而且**更 memory-bound 了**（因为 ridge 跑得更远）。
+$p^2$ 对应乘法部分，$p$ 对应加法/累加部分。这个模型不是精确的硬件能耗模型，但足以表达电路复杂度的缩放规律。
 
 ---
 
-## 结论
+# 4. 新指标：Bit-Circuit Intensity
 
-优化的顺序应该是：
+定义：
 
-1. 先测当前 dtype 下的实际用时和 ρ。
-2. 如果瓶颈在 memory（$\rho$ 小），优先做 **kernel fusion、tiling、减少 DRAM 访问**。
-3. 切精度可以给你更大的吞吐，但不会改变 roofline 上的位置关系。
+$$
+I_{\text{circuit}} = \frac{C_{\text{circuit}}}{B_{\text{moved}}}
+$$
 
-不要让 AI 的翻倍迷惑了你。翻倍的是数据复用的次数，被翻更多倍的是计算速度。两者赛跑，计算速度赢得太离谱——所以 ρ 反而下降。
+其中 $C_{\text{circuit}}$ 是电路级计算工作量（gate-equivalent work、partial-product work），$B_{\text{moved}}$ 是传输的 bit 数。
+
+比较 FP16 和 FP32：
+
+$$
+\frac{I_{16}}{I_{32}} = \frac{C_{16}}{C_{32}} \cdot \frac{B_{32}}{B_{16}}
+$$
+
+所有数据从 FP32 变为 FP16 时，$B_{32} / B_{16} \approx 2$。所以关键在于 $C_{16} / C_{32}$。
+
+传统 FLOP/Byte 视角等价于假设 $C_{16} = C_{32}$，所以得到 $2\times$。但电路级视角下 $C_{16}$ 远小于 $C_{32}$，尤其对乘法/FMA。
 
 ---
 
-## 实验代码与原始数据
+# 5. 加法主导 workload
 
-- [roofline_dtype_experiment.ipynb](/notebooks/cs336/roofline_dtype_experiment.ipynb) — 完整可复现实验
-- [CS336 Lec 6 Roofline 分析](/notes/cs336-lecture-06-roofline-dtype/) — 配套 notes
+若只考虑简单加法，用 bit 宽度近似（$C \sim b$）：
+
+$$
+\frac{C_{\text{add}, 16}}{C_{\text{add}, 32}} = \frac{16}{32} = \frac{1}{2}
+$$
+
+$$
+\frac{I_{\text{add}, 16}}{I_{\text{add}, 32}} \approx 2 \cdot \frac{1}{2} = 1
+$$
+
+加法类操作的 $I_{\text{circuit}}$ 在 FP16 和 FP32 下大致持平，而不是传统视角的 $2\times$。
+
+若用 significand 位数 $p$ 近似（$C \sim p$）：
+
+$$
+\frac{C_{16}}{C_{32}} = \frac{11}{24} \approx 0.458,\quad \frac{I_{16}}{I_{32}} \approx 2 \cdot 0.458 \approx 0.917
+$$
+
+两者都不到 $2\times$。
+
+---
+
+# 6. 乘法主导 workload
+
+乘法是更重要的情况。若用 significand 位数估计：
+
+$$
+C_{\text{mul}}(p) \sim p^2
+$$
+
+$$
+\frac{C_{\text{mul}, 16}}{C_{\text{mul}, 32}} = \left(\frac{11}{24}\right)^2 = \frac{121}{576} \approx 0.210
+$$
+
+乘以传输减半的因子：
+
+$$
+\frac{I_{\text{mul}, 16}}{I_{\text{mul}, 32}} \approx 2 \cdot 0.210 = 0.420
+$$
+
+在乘法主导的 workload 中：
+
+$$
+I_{\text{circuit}, \text{fp16}} \approx 0.42 \, I_{\text{circuit}, \text{fp32}}
+$$
+
+这和传统结论**方向相反**。传统视角说 $2\times$，电路级视角说 $0.42\times$。差异来自一个事实：FP16 乘法器面积约为 FP32 乘法器的四分之一。
+
+---
+
+# 7. FMA / GEMM 主导 workload
+
+深度学习中更典型的是 FMA。代入 $C_{\text{FMA}}(p) \approx p^2 + p$：
+
+$$
+C_{\text{FMA}, 32} \approx 24^2 + 24 = 600
+$$
+$$
+C_{\text{FMA}, 16} \approx 11^2 + 11 = 132
+$$
+
+$$
+\frac{C_{\text{FMA}, 16}}{C_{\text{FMA}, 32}} = \frac{132}{600} = 0.22
+$$
+
+乘以传输减半：
+
+$$
+\frac{I_{\text{FMA}, 16}}{I_{\text{FMA}, 32}} \approx 2 \cdot 0.22 = 0.44
+$$
+
+因此对于 FMA/GEMM 主导的 workload：
+
+$$
+I_{\text{circuit}, \text{fp16}} \approx 0.44 \, I_{\text{circuit}, \text{fp32}}
+$$
+
+**按电路级计算量/传输 bit 定义 intensity，FP16 不是提高 intensity，而是降低 intensity。**
+
+---
+
+# 8. 矩阵乘中的显式推导
+
+$A \in \mathbb{R}^{M \times K}$，$B \in \mathbb{R}^{K \times N}$，每个乘加电路工作量 $C_{\text{FMA}}(p) = p^2 + p$：
+
+$$
+I_{\text{circuit}}(b, p) = \frac{MKN \cdot C_{\text{FMA}}(p)}{b(MK + KN + MN)}
+$$
+
+FP32：
+
+$$
+I_{\text{circuit}, 32} = \frac{MKN \cdot 600}{32(MK + KN + MN)}
+$$
+
+FP16：
+
+$$
+I_{\text{circuit}, 16} = \frac{MKN \cdot 132}{16(MK + KN + MN)}
+$$
+
+相除：
+
+$$
+\frac{I_{\text{circuit}, 16}}{I_{\text{circuit}, 32}} = \frac{132/16}{600/32} = \frac{8.25}{18.75} = 0.44
+$$
+
+与 §7 的结论一致。
+
+---
+
+# 9. Mixed Precision 的情况
+
+现实硬件中常见的不是纯 FP16 FMA，而是 **FP16/BF16 multiply + FP32 accumulate**：
+
+$$
+C_{\text{mixed}} \approx p_{16}^2 + p_{32} = 11^2 + 24 = 145
+$$
+
+相比 FP32 FMA 的 600：
+
+$$
+\frac{C_{\text{mixed}}}{C_{\text{FMA}, 32}} = \frac{145}{600} \approx 0.242
+$$
+
+若 A、B 为 FP16，C 为 FP32，square GEMM（$M=N=K=n$）：
+
+$$
+B_{\text{mixed}} = 16n^2 + 16n^2 + 32n^2 = 64n^2,\quad B_{32} = 96n^2
+$$
+
+$$
+\frac{B_{32}}{B_{\text{mixed}}} = \frac{96}{64} = 1.5
+$$
+
+$$
+\frac{I_{\text{mixed}}}{I_{32}} \approx 1.5 \cdot 0.242 = 0.363
+$$
+
+Mixed precision 下的 $I_{\text{circuit}}$ 约在 $0.35 \sim 0.50$ 之间。
+
+---
+
+# 10. 实测验证
+
+实验环境：RTX 5060 Laptop GPU（Blackwell），CUDA 12.8，PyTorch cu128。HBM 带宽实测 267.3 GB/s。
+
+### 峰值吞吐
+
+| dtype | Peak TFLOP/s |
+|-------|-------------|
+| FP32  | 8.14        |
+| TF32  | 16.45       |
+| FP16  | 29.73       |
+| BF16  | 31.77       |
+
+FP16/BF16 峰值是 FP32 的 3.7–3.9 倍。
+
+### GEMM n=4096
+
+用 ρ 指标（§11 推导）验证：$ρ = AI / R$，其中 $R = P / B_{\text{mem}}$。
+
+| dtype | 耗时 | AI_std | $I_{\text{circuit}}$ (model) | ρ | $ρ_{\text{FP16}} / ρ_{\text{FP32}}$ |
+|-------|------|--------|------|----|----|
+| FP32  | 14.6 ms | 683 | 683 | 22.4 | — |
+| FP16  | 4.5 ms  | 1365 | — | 12.3 | 0.55 |
+| BF16  | 4.2 ms  | 1365 | — | 11.5 | 0.51 |
+
+AI_std 确实翻倍了（683 → 1365）。但 ρ 从 22.4 **下降到** 12.3——工作负载在 FP16 下距离 ridge 更远了。理论预测 $ρ_{\text{FP16}} / ρ_{\text{FP32}} = 2 / 3.65 = 0.548$，实测 0.549。
+
+### MLP 8 层，hidden=2048
+
+| dtype | 耗时 | AI_std | ρ |
+|-------|------|--------|----|
+| FP32  | 2.73 ms | 124 | 4.1 |
+| FP16  | 0.85 ms | 248 | 2.0 |
+
+MLP 在 FP32 下 ρ=4.1，已经离 memory wall 不远。FP16 降到 2.0——**比 FP32 更 memory-bound**。
+
+### 跨 GPU 代际
+
+| GPU | 代 | $P_{\text{FP16}} / P_{\text{FP32}}$ | $ρ_{\text{FP16}} / ρ_{\text{FP32}}$ |
+|-----|-----|------|------|
+| V100 | Volta | 8.0 | 0.25 |
+| A100 | Ampere | 16.0 | **0.12** |
+| H100 | Hopper | 14.8 | 0.14 |
+| RTX 4090 | Ada | 4.0 | 0.50 |
+| RTX 5060 | Blackwell | 3.65 | 0.55（实测） |
+
+2020 年后的 GPU，$P_{\text{FP16}} / P_{\text{FP32}} \gg 2$，FP16 的 ρ 无一例外低于 FP32。Tensor Core 越强的卡上效应越明显——A100 的 ρ 只有 FP32 的 12%。
+
+---
+
+# 11. 与 memory-bound 的关系
+
+传统 roofline 判断 workload 是否 memory-bound：
+
+$$
+P_{\text{attainable}} = \min(P_{\text{peak}}, AI_{\text{std}} \cdot B_{\text{mem}})
+$$
+
+从 FP32 到 FP16，两个东西同时变化：
+
+- $AI_{\text{std}}$ ↑（bytes moved 下降）
+- $P_{\text{peak}}$ ↑↑（FP16 计算单元更小、更密集，可用 Tensor Core）
+
+关键：**$P_{\text{peak}}$ 涨得比 $AI_{\text{std}}$ 快。**
+
+定义 dimensionless 距离指标 $\rho = AI / R = AI \cdot B_{\text{mem}} / P_{\text{peak}}$：
+
+$$
+\frac{\rho_{\text{FP16}}}{\rho_{\text{FP32}}} = \frac{AI_{\text{FP16}}}{AI_{\text{FP32}}} \cdot \frac{P_{\text{FP32}}}{P_{\text{FP16}}} = \frac{2}{r_P},\quad r_P = \frac{P_{\text{FP16}}}{P_{\text{FP32}}}
+$$
+
+**当 $r_P > 2$ 时，$\rho$ 必然下降。** 在现代 GPU 上 $r_P$ 从 4 到 16，所以 FP16 的 workload 距离 ridge 始终比 FP32 更远——更偏 memory-bound。
+
+---
+
+# 12. 总结
+
+传统 FLOP/Byte 指标下：$AI_{\text{std}, \text{fp16}} \approx 2 AI_{\text{std}, \text{fp32}}$。因为 FLOP count 不变，数据搬运量减半。
+
+电路级 $I_{\text{circuit}}$ 指标下，结果完全不同：
+
+| Workload | $I_{\text{circuit}, \text{fp16}} / I_{\text{circuit}, \text{fp32}}$ |
+|----------|-----|
+| 加法主导 | $\sim 0.9 \sim 1.0$ |
+| 乘法主导 | $\sim 0.42$ |
+| FMA/GEMM | $\sim 0.44$ |
+| Mixed Precision GEMM | $\sim 0.35 \sim 0.50$ |
+
+两者的区别：
+
+- **FLOP/Byte 视角**：低精度让数据更小，所以 intensity 增大
+- **Circuit/Bit 视角**：低精度让计算更便宜，而且下降更快，所以 intensity 减小
+
+低精度的系统效果不是简单地跨越 memory-bound，而是：
+
+1. 减少数据搬运
+2. 降低单次算术操作的电路代价
+3. 提高硬件峰值吞吐
+4. 使计算更便宜，从而让数据供给、locality、memory hierarchy 更关键
+
+$$I_{\text{circuit}} = \frac{\text{bit-level compute work}}{\text{transferred bits}}$$
+
+这个指标不应取代传统的 FLOP/Byte——两者回答的是不同抽象层的问题。但当你讨论 precision、能耗、硬件面积或混合精度计算时，FLOP 的抽象会泄漏。而 $I_{\text{circuit}}$ 告诉你泄漏有多严重。
+
+---
+
+## 实验代码
+
+[roofline_dtype_experiment.ipynb](/notebooks/cs336/roofline_dtype_experiment.ipynb) — RTX 5060 完整可复现实验
