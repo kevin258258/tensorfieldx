@@ -1,0 +1,161 @@
+---
+title: "FLOPs 是一个谎言 — 重新思考算力密度的度量"
+description: "传统 CS 教材说 FP16 算力密度翻倍就能跨越 memory wall。我在 RTX 5060 上实测发现恰恰相反：FP16 的峰值吞吐增长远超内存节省，ρ 值反而下降了。"
+pubDate: 2026-06-15
+tags: ["GPU", "Roofline", "FP16", "Performance", "CS336"]
+---
+
+每本 GPU 编程教材都会教一个概念：
+
+> **算力密度（Arithmetic Intensity）= FLOPs / Bytes**。越高越 compute-bound，越低越 memory-bound。用 FP16 替代 FP32，bytes 减半，FLOPs 不变，AI 翻倍——所以工作负载更 compute-bound 了。
+
+我读 CS336 Lecture 6 的时候，盯着那页 "FP16 increases arithmetic intensity" 的 slide 想了很久。
+
+**这个结论是错的。** 不是"近似"，不是"不够精确"。是核心前提错了。
+
+---
+
+## FLOPs 为什么不是一个好单位
+
+FLOPs 这个指标有一个隐含的、从未被质疑的假设：
+
+> 一个 FP32 FMA 和一个 FP16 FMA 的"计算代价"相同。
+
+但在电路中，这个假设完全站不住脚。一个 FP32 FMA 涉及 32 位加法和 32 位乘法，中间有指数对齐、归一化、舍入逻辑。一个 FP16 FMA 只需要处理 16 位。根据 NVIDIA 的白皮书数据，FP16 Tensor Core 的吞吐峰值可达 FP32 的 **3 到 8 倍**。
+
+把这两个算力用同一个单位 "FLOP" 来计数，就像把自行车的"辆/小时"和卡车的"辆/小时"直接比较一样——计数单位相同，实际运输能力差了一个数量级。
+
+更精确地说：
+
+```
+1 个 abstract FLOP ≠ 1 个 abstract FLOP
+```
+
+不同精度的 FLOP 在晶体管开关次数、能耗、甚至物理面积上都是完全不同的。
+
+---
+
+## 应该怎么衡量
+
+我们需要一个电路级别（circuit-level）的计算度量。一个自然的定义是：
+
+$$
+C_{\text{bit}}(d) = \text{(操作对应的 bit 数)} \times \text{(该操作的电路权重)}
+$$
+
+然后用 bit-level 的算力密度：
+
+$$
+I_{\text{bit}} = \frac{C_{\text{bit}}}{\text{HBM bits transferred}}
+$$
+
+但即使不用这么精确的定义，我们也可以用另一个更直观的指标来检验 FLOPs-based AI 是否误导：
+
+$$
+\rho = \frac{AI_{\text{std}}}{P_{\text{peak, dtype}} / B_{\text{mem}}}
+$$
+
+$\rho$ 度量的是**工作负载距离该 dtype 的 roofline ridge point 有多远**。
+
+- $\rho \ll 1$：memory-bound
+- $\rho \gg 1$：compute-bound
+
+如果"FP16 让工作负载更 compute-bound"的说法成立，那么 FP32 → FP16 时 $\rho$ 应该**增大**。对吧？
+
+---
+
+## 实验：RTX 5060 实测
+
+我在 RTX 5060（Blackwell, sm_120）上做了实测。
+
+### 峰值吞吐
+
+首先测量每个 dtype 在 GEMM 上的峰值吞吐（大矩阵 `8192×8192×8192`，让 GPU 接近饱和）：
+
+| Dtype | Peak TFLOP/s |
+|-------|-------------|
+| FP32  | 9.89        |
+| TF32  | 10.29       |
+| FP16  | 30.92       |
+| BF16  | 35.02       |
+
+FP16 的峰值是 FP32 的 **3.1 倍**。BF16 是 **3.5 倍**。
+
+注意这不是"float16 更快"那么简单。这意味着**同样的抽象 FLOPs 数，FP16 用少得多的电路工作在更短的时间内完成**。所以 "一个 FP16 FLOP" 和 "一个 FP32 FLOP" 根本不是一个东西。
+
+### GEMM 的 ρ 值
+
+大矩阵乘法（workload: `4096×4096×4096`）：
+
+| Dtype | $AI_{\text{std}}$ | HBM Bytes | $\rho$  |
+|-------|-------------------|-----------|---------|
+| FP32  | ~185              | ~72 MB    | ~3785   |
+| FP16  | ~370              | ~36 MB    | **~2119** |
+
+$AI_{\text{std}}$ 确实翻倍了。但 $\rho$ 从 3785 **下降**到了 2119。下降了 44%。
+
+### MLP 的 ρ 值
+
+一个 8 层 MLP（`hidden=4096, batch=512`）：
+
+| Dtype | $AI_{\text{std}}$ | HBM Bytes | $\rho$  |
+|-------|-------------------|-----------|---------|
+| FP32  | ~63               | ~208 MB   | ~1283   |
+| FP16  | ~126              | ~104 MB   | **~652** |
+
+$\rho$ 从 1283 下降到了 652。下降了 49%。
+
+---
+
+## 为什么会这样
+
+Roofline 的 ridge point 是 $P_{\text{peak}} / B_{\text{mem}}$。FLOPs 翻倍（AI 增大）的同时，ridge point 也随着 peak throughput 大幅右移。
+
+$$
+\rho_{\text{FP16}} = \frac{2 \times AI_{\text{FP32}}}{3.1 \times (P_{\text{FP32}} / B_{\text{mem}})} \approx 0.65 \times \rho_{\text{FP32}}
+$$
+
+分子变大，分母变得更多。$\rho$ 反而减小——工作负载在 FP16 下**反而更 memory-bound 了**。
+
+这个反直觉的结果在学校里几乎没人提。我们被教导"减少精度=数据变小=更少 bandwidth pressure=更容易 compute-bound"，但这个推理漏掉了最关键的一项：**计算速度也变快了，而且快得更多。**
+
+---
+
+## 所以 FP16 没用吗？
+
+当然不是。FP16 的好处非常真实：
+
+1. **绝对延迟更低** —— 同样的矩阵乘法，FP16 比 FP32 快 2-3x。
+2. **内存占用减半** —— 可以放更大的 batch、更大的模型。
+3. **显存带宽压力减小** —— bytes 确实少了一半。
+
+但这些好处是 **throughput 和 capacity 层面的**，不是 **算术密度** 层面的。把 FP16 描绘成"让 workload 跨越 memory wall"是一种混淆因果的说辞。
+
+---
+
+## 我们需要的不是更小的数，而是更诚实的度量
+
+这件事让我真正不安的，不是 AI 的数值错了——数值本来就是一个模型。让人不安的是：**几乎所有人都在用它推导出恰好让自己舒服的结论。**
+
+"FLOPs 不变、bytes 减半、AI 翻倍"这串推理太干净了，干净到让人不想去质疑它。但实际芯片上的行为——晶体管开关、功耗墙、Tensor Core scheduling——从来不会因为你定义了均匀的 "FLOPs" 就变得均匀。
+
+我建议：
+
+1. **永远同时报告 AI 和 ρ**。AI 告诉你 abstract 层面数据复用多少，ρ 告诉你实际距离 memory wall 多远。
+2. **引入 bit-level 的算力度量**。FLOPs 是 70 年代 Cray 时代的遗产，今天的混合精度计算需要一个新的单位。
+3. **在设计优化时，先测 ρ 再决定方向**。如果 FP16 下 ρ 反而更小，那说明瓶颈仍在 memory——此时应该优先考虑 operator fusion、kernel merging、或者更大的 tiles，而不是盲目切精度。
+
+---
+
+## 附：实验代码与数据
+
+完整的实验代码和原始数据在：
+
+- [roofline_dtype_experiment.ipynb](/notebooks/cs336/roofline_dtype_experiment.ipynb)
+- [CS336 Lecture 6 Roofline 分析](/notes/cs336-lecture-06-roofline-dtype/)
+
+你可以在自己的 GPU 上跑同样的实验。不同 GPU（A100、H100、RTX 4090）的 FP16/FP32 peak ratio 不同，结论可能略有差异，但方向是一致的。
+
+---
+
+*"When a measure becomes a target, it ceases to be a good measure."* — Goodhart's Law
