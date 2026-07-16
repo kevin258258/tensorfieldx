@@ -198,6 +198,52 @@ test("design tokens define the lavender auxiliary color", async () => {
   );
 });
 
+test("transition overlay is persistent and wired to the engine", async () => {
+  const layout = await readSrc("src/layouts/BaseLayout.astro");
+
+  assert.match(
+    layout,
+    /id="page-transition-overlay"\s+transition:persist/,
+    "the transition overlay must survive client-side swaps via transition:persist",
+  );
+
+  assert.match(
+    layout,
+    /initTransitions\(\)/,
+    "layout should initialize the transition engine",
+  );
+});
+
+test("links declare their transition tier at render time", async () => {
+  const nav = await readSrc("src/components/chrome/SiteNav.astro");
+  const notesDetail = await readSrc("src/pages/notes/[...slug].astro");
+  const notesIndex = await readSrc("src/pages/notes/index.astro");
+
+  assert.match(
+    nav,
+    /data-transition="section"/,
+    "top-level nav links should request the L2 section show",
+  );
+
+  assert.match(
+    notesDetail,
+    /data-transition="series" data-dir="prev"/,
+    "prev-in-series link should request L0 with direction",
+  );
+
+  assert.match(
+    notesDetail,
+    /data-article-title/,
+    "article title should be marked as the L1 fly target",
+  );
+
+  assert.match(
+    notesIndex,
+    /data-transition="enter"/,
+    "list rows should request the L1 title-fly transition",
+  );
+});
+
 test("global interactive scripts reinitialize after Astro route transitions", async () => {
   const layoutSource = await readSrc("src/layouts/BaseLayout.astro");
   const searchSource = await readSrc("src/components/Search.astro");

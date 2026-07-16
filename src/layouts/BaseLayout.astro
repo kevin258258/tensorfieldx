@@ -1,5 +1,6 @@
 ---
 import "../styles/tokens.css";
+import "../styles/transitions.css";
 import "@fontsource/playfair-display/400-italic.css";
 import "@fontsource/playfair-display/700.css";
 import "@fontsource/playfair-display/700-italic.css";
@@ -10,6 +11,7 @@ import Search from "../components/Search.astro";
 import LinkPreview from "../components/LinkPreview.astro";
 import SiteNav from "../components/chrome/SiteNav.astro";
 import SiteFooter from "../components/chrome/SiteFooter.astro";
+import Emblem from "../components/motion/Emblem.astro";
 import Analytics from "@vercel/analytics/astro";
 import { ClientRouter } from "astro:transitions";
 
@@ -68,9 +70,17 @@ const currentPath = Astro.url.pathname;
       <SiteFooter />
     </div>
 
+    <div id="page-transition-overlay" transition:persist aria-hidden="true">
+      <div class="t-overlay-bg"></div>
+      <div class="t-emblem-wrap">
+        <Emblem />
+      </div>
+    </div>
+
     <script>
       import { initReveal } from "../scripts/reveal";
       import { initCopyCode } from "../scripts/copyCode";
+      import { initTransitions } from "../scripts/transitions";
 
       let backToTopTicking = false;
       let backToTopScrollBound = false;
@@ -120,6 +130,7 @@ const currentPath = Astro.url.pathname;
 
       document.addEventListener("astro:page-load", setupPageUi);
       setupPageUi();
+      initTransitions();
     </script>
   </body>
 </html>

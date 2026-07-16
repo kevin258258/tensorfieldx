@@ -44,7 +44,7 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
                 <span>{readTime} min read</span>
             </div>
 
-            <h1 class="text-3xl md:text-5xl font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
+            <h1 data-article-title class="text-3xl md:text-5xl font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
                 {post.data.title}
             </h1>
 
@@ -76,7 +76,7 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
 
         <nav class="mt-16 pt-8 border-t border-edge grid grid-cols-1 sm:grid-cols-2 gap-4" data-animate="fade-up">
             {prev ? (
-                <a href={`/blog/${prev.slug}`} class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+                <a href={`/blog/${prev.slug}`} data-transition="series" data-dir="prev" class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
                     <span class="font-mono text-[10px] text-muted mb-1">&larr; Previous</span>
                     <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{prev.title}</span>
                 </a>
@@ -87,7 +87,7 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
                 </a>
             )}
             {next ? (
-                <a href={`/blog/${next.slug}`} class="group flex flex-col items-end text-right p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+                <a href={`/blog/${next.slug}`} data-transition="series" data-dir="next" class="group flex flex-col items-end text-right p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
                     <span class="font-mono text-[10px] text-muted mb-1">Next &rarr;</span>
                     <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{next.title}</span>
                 </a>

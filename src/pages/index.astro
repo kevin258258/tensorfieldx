@@ -82,15 +82,15 @@ const sortedNotes = allNotes.sort(
 			<h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-8">Explore</h2>
 
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<a href="/notes" class="group p-6 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all" data-tilt="6">
+				<a href="/notes" data-transition="section" class="group p-6 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all" data-tilt="6">
 					<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">Notes</h3>
 					<p class="font-sans text-xs text-muted leading-relaxed">Course notes and technical derivations.</p>
 				</a>
-				<a href="/projects" class="group p-6 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all" data-tilt="6">
+				<a href="/projects" data-transition="section" class="group p-6 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all" data-tilt="6">
 					<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">Projects</h3>
 					<p class="font-sans text-xs text-muted leading-relaxed">Experiments and coursework.</p>
 				</a>
-				<a href="/about" class="group p-6 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all" data-tilt="6">
+				<a href="/about" data-transition="section" class="group p-6 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all" data-tilt="6">
 					<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">About</h3>
 					<p class="font-sans text-xs text-muted leading-relaxed">Profile and contact.</p>
 				</a>
@@ -105,11 +105,11 @@ const sortedNotes = allNotes.sort(
 
 			<div class="divide-y divide-edge">
 				{sortedNotes.slice(0, 6).map((note) => (
-					<a href={`/notes/${note.slug}`} class="group flex items-baseline gap-4 py-4 hover:bg-accent/3 px-3 rounded transition-colors">
+					<a href={`/notes/${note.slug}`} data-transition="enter" class="group flex items-baseline gap-4 py-4 hover:bg-accent/3 px-3 rounded transition-colors">
 						<span class="font-mono text-[11px] text-muted w-24 shrink-0">
 							{note.data.pubDate.toISOString().split('T')[0]}
 						</span>
-						<span class="font-body text-base text-primary group-hover:text-accent transition-colors flex-1">
+						<span data-fly-title class="font-body text-base text-primary group-hover:text-accent transition-colors flex-1">
 							{note.data.title}
 						</span>
 						{note.data.series && (
@@ -122,7 +122,7 @@ const sortedNotes = allNotes.sort(
 			</div>
 
 			<div class="mt-8">
-				<a href="/notes" class="inline-flex items-center gap-2 font-sans text-sm text-accent hover:underline underline-offset-4">
+				<a href="/notes" data-transition="section" class="inline-flex items-center gap-2 font-sans text-sm text-accent hover:underline underline-offset-4">
 					View all notes
 					<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14m0 0-7-7m7 7-7 7"/></svg>
 				</a>

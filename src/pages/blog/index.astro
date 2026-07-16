@@ -23,13 +23,13 @@ const posts = allPosts
         {posts.length > 0 ? (
             <div class="divide-y divide-edge" data-animate="stagger-fade-up">
                 {posts.map((post) => (
-                    <a href={`/blog/${post.slug}`} class="group block py-6 hover:bg-accent/3 px-3 rounded transition-colors">
+                    <a href={`/blog/${post.slug}`} data-transition="enter" class="group block py-6 hover:bg-accent/3 px-3 rounded transition-colors">
                         <div class="flex items-baseline gap-3 mb-2">
                             <span class="font-mono text-[11px] text-muted shrink-0">
                                 {post.data.pubDate.toISOString().split('T')[0]}
                             </span>
                         </div>
-                        <h2 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">
+                        <h2 data-fly-title class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">
                             {post.data.title}
                         </h2>
                         {post.data.description && (

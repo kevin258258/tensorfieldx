@@ -1,0 +1,156 @@
+/* ─────────────────────────────────────────────
+   Transition system — 3 tiers (driven by src/scripts/transitions.ts)
+   L0 series: horizontal drift + crossfade (~300ms)
+   L1 enter:  clicked title flies to article title (FLIP, ~400ms)
+   L2 section: emblem show + inversion flash (~900ms)
+   ───────────────────────────────────────────── */
+
+/* While any managed transition runs, suppress the default page-rise
+   so entrances are choreographed by the engine instead. */
+html.is-tx .page-shell {
+  animation: none !important;
+}
+
+/* ── Emblem (shared motif; also reused by heroes in later phases) ── */
+.emblem {
+  --em-fg: rgb(var(--color-primary));
+  --em-accent: rgb(var(--color-accent-warm));
+  --em-core-cross: rgb(var(--color-paper));
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.emblem path,
+.emblem circle {
+  fill: none;
+  stroke: var(--em-fg);
+}
+.emblem-cross path        { stroke-width: 0.6; opacity: 0.5; }
+.emblem-corners path      { stroke-width: 0.9; }
+.emblem-ring-outer        { stroke-width: 0.7; }
+.emblem-ring-dashed       { stroke-width: 0.6; stroke-dasharray: 2 2.6; opacity: 0.7; }
+.emblem-ticks             { stroke-width: 2.6; stroke-dasharray: 0.5 17.3; }
+.emblem-dots circle       { fill: var(--em-accent); stroke: none; }
+.emblem-arc-a             { stroke-width: 4;   stroke-dasharray: 34 101; }
+.emblem-arc-b             { stroke: var(--em-accent); stroke-width: 5; stroke-dasharray: 24 70.2; }
+.emblem-arc-c             { stroke-width: 2.2; stroke-dasharray: 12 47.7; opacity: 0.85; }
+.emblem-core              { fill: var(--em-fg); stroke: none; }
+.emblem-core-cross        { stroke: var(--em-core-cross); stroke-width: 0.8; }
+
+/* Continuous motion lives on the SVG; transform-box/origin anchor
+   rotation to the emblem center. Speeds differ per layer (异速反向). */
+.emblem-arc-a,
+.emblem-arc-b,
+.emblem-arc-c,
+.emblem-ticks,
+.emblem-ring-dashed {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+}
+.emblem-arc-a        { animation: emblem-spin 9s linear infinite; }
+.emblem-arc-b        { animation: emblem-spin 6.5s linear infinite reverse; }
+.emblem-arc-c        { animation: emblem-spin 4.5s linear infinite; }
+.emblem-ticks        { animation: emblem-spin 26s linear infinite reverse; }
+.emblem-ring-dashed  { animation: emblem-spin 34s linear infinite; }
+
+@keyframes emblem-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── L2 overlay ── */
+#page-transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  display: grid;
+  place-items: center;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+#page-transition-overlay.is-active {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#page-transition-overlay .t-overlay-bg {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--color-primary));
+  opacity: 0;
+}
+/* Inversion = hard cut (no transition): paper geometry on ink field. */
+#page-transition-overlay.is-inverted .t-overlay-bg {
+  opacity: 1;
+}
+#page-transition-overlay.is-inverted .emblem {
+  --em-fg: rgb(var(--color-paper));
+  --em-accent: rgb(var(--color-lav));
+  --em-core-cross: rgb(var(--color-primary));
+}
+/* Inverted punch: arcs snap to longer segments + faster spin. */
+#page-transition-overlay.is-inverted .emblem-arc-a {
+  stroke-dasharray: 52 83;
+  animation-duration: 1.4s;
+}
+#page-transition-overlay.is-inverted .emblem-arc-b {
+  stroke-dasharray: 36 58.2;
+  animation-duration: 1s;
+}
+
+#page-transition-overlay .t-emblem-wrap {
+  position: relative;
+  width: min(38vmin, 340px);
+  will-change: transform, opacity;
+}
+
+/* ── L0 series drift ── */
+main.t0-exit-next,
+main.t0-exit-prev {
+  opacity: 0;
+  transition: opacity 130ms ease-in, transform 130ms ease-in;
+}
+main.t0-exit-next { transform: translateX(-16px); }
+main.t0-exit-prev { transform: translateX(16px); }
+
+main.t0-enter-next { animation: t0-in-next 260ms cubic-bezier(0.16, 1, 0.3, 1); }
+main.t0-enter-prev { animation: t0-in-prev 260ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes t0-in-next {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes t0-in-prev {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── L1 flying title clone ── */
+.fly-title-clone {
+  position: fixed;
+  z-index: 9995;
+  margin: 0;
+  pointer-events: none;
+  transform-origin: left top;
+  will-change: transform, opacity;
+}
+
+/* ── Degrade: reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .emblem-arc-a,
+  .emblem-arc-b,
+  .emblem-arc-c,
+  .emblem-ticks,
+  .emblem-ring-dashed {
+    animation: none;
+  }
+  main.t0-exit-next,
+  main.t0-exit-prev {
+    transition: none;
+  }
+  main.t0-enter-next,
+  main.t0-enter-prev {
+    animation-duration: 1ms;
+  }
+}

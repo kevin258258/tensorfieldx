@@ -100,7 +100,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                     <span>{readTime} min read</span>
                 </div>
 
-                <h1 class="text-3xl md:text-5xl lg:text-[3.25rem] font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
+                <h1 data-article-title class="text-3xl md:text-5xl lg:text-[3.25rem] font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
                     {post.data.title}
                 </h1>
 
@@ -150,7 +150,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                                 {i === currentSeriesIdx ? (
                                     <span>{sp.title}</span>
                                 ) : (
-                                    <a href={`/notes/${sp.slug}`} data-astro-prefetch="tap" class="hover:text-accent transition-colors">{sp.title}</a>
+                                    <a href={`/notes/${sp.slug}`} data-transition="series" data-astro-prefetch="tap" class="hover:text-accent transition-colors">{sp.title}</a>
                                 )}
                             </li>
                         ))}
@@ -160,13 +160,13 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
 
             <nav class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4" data-animate="fade-up">
                 {prev ? (
-                    <a href={`/notes/${prev.slug}`} data-astro-prefetch="tap" class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+                    <a href={`/notes/${prev.slug}`} data-transition="series" data-dir="prev" data-astro-prefetch="tap" class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
                         <span class="font-mono text-[10px] text-muted mb-1">&larr; Previous</span>
                         <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{prev.title}</span>
                     </a>
                 ) : <div />}
                 {next ? (
-                    <a href={`/notes/${next.slug}`} data-astro-prefetch="tap" class="group flex flex-col items-end text-right p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
+                    <a href={`/notes/${next.slug}`} data-transition="series" data-dir="next" data-astro-prefetch="tap" class="group flex flex-col items-end text-right p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
                         <span class="font-mono text-[10px] text-muted mb-1">Next &rarr;</span>
                         <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{next.title}</span>
                     </a>

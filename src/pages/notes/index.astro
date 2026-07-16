@@ -61,13 +61,14 @@ Object.values(seriesGroups).forEach(g => g.sort((a, b) => (a.seriesOrder || 0) -
                             {seriesNotes.map(note => (
                                 <a
                                     href={`/notes/${note.slug}`}
+                                    data-transition="enter"
                                     data-astro-prefetch="viewport"
                                     class="flex items-baseline gap-4 py-3 transition-colors rounded-md px-4 pl-12 hover:bg-accent/5"
                                 >
                                     <span class="font-mono text-[11px] w-24 shrink-0 text-muted">
                                         {note.pubDate.split('T')[0]}
                                     </span>
-                                    <span class="font-body text-[15px] text-primary/85">
+                                    <span data-fly-title class="font-body text-[15px] text-primary/85">
                                         {note.title}
                                     </span>
                                     {note.seriesOrder != null && note.seriesOrder > 0 && (
@@ -83,13 +84,14 @@ Object.values(seriesGroups).forEach(g => g.sort((a, b) => (a.seriesOrder || 0) -
                 {singles.map(note => (
                     <a
                         href={`/notes/${note.slug}`}
+                        data-transition="enter"
                         data-astro-prefetch="viewport"
                         class="flex items-baseline gap-4 py-3 transition-colors rounded-md px-4 hover:bg-accent/5"
                     >
                         <span class="font-mono text-[11px] w-24 shrink-0 text-muted">
                             {note.pubDate.split('T')[0]}
                         </span>
-                        <span class="font-body text-[15px] text-primary/85">
+                        <span data-fly-title class="font-body text-[15px] text-primary/85">
                             {note.title}
                         </span>
                     </a>
