@@ -1,0 +1,181 @@
+/* ─────────────────────────────────────────────
+   TensorFieldX design tokens —— 全站配色唯一来源
+   冷白基底 × 墨蓝 × 电蓝 × 淡紫/深紫（无第三色、无暖色）
+   utility 名沿用旧称（paper/surface/primary/…），避免全站批量改名；
+   语义对照见每条注释。
+   ───────────────────────────────────────────── */
+:root {
+  --color-paper: 236 237 245;       /* #ECEDF5 冷白，页面底 */
+  --color-surface: 250 251 254;     /* #FAFBFE 冰面，卡片 */
+  --color-primary: 30 42 94;        /* #1E2A5E 墨蓝，正文/标题 */
+  --color-secondary: 74 80 110;     /* #4A506E 次级文字 */
+  --color-muted: 138 143 168;       /* #8A8FA8 弱化文字 */
+  --color-accent: 43 91 220;        /* #2B5BDC 电蓝，链接/强调 */
+  --color-accent-warm: 139 127 224; /* #8B7FE0 深紫，点缀 */
+  --color-lav: 201 193 240;         /* #C9C1F0 淡紫，图形/辅助 */
+  --color-border: 213 216 230;      /* #D5D8E6 冷色边线 */
+}
+
+html { touch-action: manipulation; }
+a, button, input, [role="button"] { touch-action: manipulation; }
+
+body {
+  background: rgb(var(--color-paper));
+}
+
+/* Fixed flat background layer (kept out of the reading flow) */
+.page-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: rgb(var(--color-paper));
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(var(--color-muted) / 0.35); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--color-accent) / 0.6); }
+
+::selection {
+  background: rgb(var(--color-lav) / 0.55);
+  color: rgb(var(--color-primary));
+}
+
+/* ── Chrome micro-interactions ── */
+.ui-brand-link,
+.ui-nav-link,
+.ui-text-link,
+.ui-icon-btn,
+.ui-fab {
+  position: relative;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 220ms ease;
+}
+
+.ui-brand-link:hover,
+.ui-nav-link:hover,
+.ui-text-link:hover,
+.ui-icon-btn:hover,
+.ui-fab:hover {
+  transform: translateY(-1px);
+}
+
+.ui-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.65rem;
+  height: 1px;
+  background: rgb(var(--color-accent));
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 180ms ease;
+}
+
+.ui-nav-link:hover::after,
+.ui-nav-link.is-active::after {
+  transform: scaleX(1);
+}
+
+.ui-icon-btn::before,
+.ui-fab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgb(var(--color-accent) / 0.1), transparent 65%);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.ui-icon-btn:hover::before,
+.ui-fab:hover::before {
+  opacity: 1;
+}
+
+.ui-icon-btn:active,
+.ui-fab:active {
+  transform: scale(0.97);
+}
+
+.page-shell {
+  animation: shellRiseIn 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes shellRiseIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Scroll reveal (replaces GSAP ScrollTrigger; driven by src/scripts/reveal.ts) ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal[data-animate="fade-in"]     { transform: none; }
+.reveal[data-animate="slide-left"]  { transform: translateX(-24px); }
+.reveal[data-animate="slide-right"] { transform: translateX(24px); }
+.reveal[data-animate="scale-in"]    { transform: scale(0.94); }
+.reveal-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Code blocks (shiki, light-only) ── */
+:root pre[class*="astro-code"],
+:root .astro-code {
+  background: rgb(255 255 255) !important;
+  border: 1px solid rgb(var(--color-border));
+  border-radius: 0.5rem;
+}
+:root pre[class*="astro-code"] code span {
+  color: var(--shiki-light, inherit) !important;
+}
+
+pre code {
+  font-size: 0.85em;
+  line-height: 1.7;
+}
+
+/* ── KaTeX ── */
+.katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 1rem 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.katex-display::-webkit-scrollbar { display: none; }
+
+@media (max-width: 640px) {
+  .katex-display .katex { font-size: 0.9em; }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .page-shell {
+    animation: none !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .ui-brand-link,
+  .ui-nav-link,
+  .ui-text-link,
+  .ui-icon-btn,
+  .ui-fab {
+    transition: none !important;
+    transform: none !important;
+  }
+}

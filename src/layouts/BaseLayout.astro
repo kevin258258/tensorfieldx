@@ -1,6 +1,15 @@
 ---
+import "../styles/tokens.css";
+import "@fontsource/playfair-display/400-italic.css";
+import "@fontsource/playfair-display/700.css";
+import "@fontsource/playfair-display/700-italic.css";
+import "@fontsource/source-serif-4/400.css";
+import "@fontsource/source-serif-4/600.css";
+import "@fontsource/jetbrains-mono/400.css";
 import Search from "../components/Search.astro";
 import LinkPreview from "../components/LinkPreview.astro";
+import SiteNav from "../components/chrome/SiteNav.astro";
+import SiteFooter from "../components/chrome/SiteFooter.astro";
 import Analytics from "@vercel/analytics/astro";
 import { ClientRouter } from "astro:transitions";
 
@@ -11,20 +20,10 @@ interface Props {
 
 const { title, needsKatex = false } = Astro.props;
 const currentPath = Astro.url.pathname;
-
-const navLinks = [
-  { href: "/notes", label: "Notes" },
-  { href: "/blog", label: "Blog" },
-  { href: "/projects", label: "Projects" },
-  { href: "/publications", label: "Publications" },
-  { href: "/tags", label: "Tags" },
-  { href: "/cv", label: "CV" },
-  { href: "/about", label: "About" },
-];
 ---
 
 <!doctype html>
-<html lang="en" class="h-full w-full max-w-full" transition:animate="none">
+<html lang="en" class="h-full w-full max-w-full">
   <head>
     <meta charset="UTF-8" />
     <Analytics />
@@ -41,422 +40,16 @@ const navLinks = [
         onload="this.media='all'"
       />
     )}
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,700;1,700&family=Source+Serif+4:wght@400;600&display=optional"
-      onload="this.rel='stylesheet'"
-    />
-    <noscript>
-      <link
-        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,700;1,700&family=Source+Serif+4:wght@400;600&display=optional"
-        rel="stylesheet"
-      />
-    </noscript>
-
-    <script is:inline>
-      (function() {
-        var storedTheme = localStorage.getItem('theme');
-        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        var isDark = storedTheme === 'dark' || (!storedTheme && prefersDark);
-        document.documentElement.classList.toggle('dark', isDark);
-        document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
-        document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
-      })();
-    </script>
-
-    <style is:global>
-      :root {
-        --color-paper: 244 241 236;
-        --color-surface: 255 254 249;
-        --color-primary: 26 26 26;
-        --color-secondary: 85 82 78;
-        --color-muted: 120 116 110;
-        --color-accent: 43 91 220;
-        --color-accent-warm: 200 90 58;
-        --color-border: 190 185 175;
-      }
-
-      .dark {
-        --color-paper: 22 22 26;
-        --color-surface: 30 30 35;
-        --color-primary: 235 233 228;
-        --color-secondary: 158 155 148;
-        --color-muted: 100 98 92;
-        --color-accent: 120 165 245;
-        --color-accent-warm: 220 110 78;
-        --color-border: 55 53 50;
-      }
-
-      html { touch-action: manipulation; }
-      a, button, input, [role="button"] { touch-action: manipulation; }
-
-      ::-webkit-scrollbar { width: 5px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: rgb(var(--color-muted) / 0.3); border-radius: 3px; }
-      ::-webkit-scrollbar-thumb:hover { background: rgb(var(--color-accent) / 0.6); }
-
-      ::selection {
-        background: rgb(var(--color-accent) / 0.2);
-        color: rgb(var(--color-primary));
-      }
-
-      body {
-        background: transparent;
-      }
-
-      .page-background {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-        background:
-          radial-gradient(circle at 85% 0%, rgb(255 255 255 / 0.22), transparent 28%),
-          linear-gradient(180deg, rgb(var(--color-paper)), rgb(239 235 228));
-        overflow: hidden;
-      }
-
-      .page-background::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: url("/images/paper-texture.webp") center top / 1280px auto repeat;
-        opacity: 0.3;
-        mix-blend-mode: multiply;
-      }
-
-      .dark .page-background {
-        background:
-          radial-gradient(circle at top, rgb(255 255 255 / 0.03), transparent 38%),
-          linear-gradient(rgb(20 21 24), rgb(var(--color-paper)));
-      }
-
-      .dark .page-background::before {
-        background: url("/images/paper-texture.webp") center top / 1280px auto repeat;
-        opacity: 0.12;
-        filter: grayscale(1) invert(1) brightness(0.22) contrast(0.9);
-        mix-blend-mode: soft-light;
-      }
-
-      @media (max-width: 767px) {
-        .font-display,
-        .font-body {
-          font-family: Georgia, "Times New Roman", serif !important;
-        }
-
-        .font-sans {
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-        }
-
-        .font-mono {
-          font-family: ui-monospace, "SFMono-Regular", Menlo, monospace !important;
-        }
-      }
-
-      /* ── Page transition (navigation) ── */
-      ::view-transition-old(root) {
-        animation: pageFadeOut 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-      }
-      ::view-transition-new(root) {
-        animation: pageFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
-      }
-
-      @keyframes pageFadeOut {
-        from { opacity: 1; transform: scale(1); }
-        to   { opacity: 0; transform: scale(1.01); }
-      }
-      @keyframes pageFadeIn {
-        from { opacity: 0; transform: scale(0.99); }
-        to   { opacity: 1; transform: scale(1); }
-      }
-
-      .ui-brand-link,
-      .ui-nav-link,
-      .ui-text-link,
-      .ui-icon-btn,
-      .ui-fab {
-        position: relative;
-        transition:
-          color 180ms ease,
-          border-color 180ms ease,
-          background-color 180ms ease,
-          transform 180ms ease,
-          box-shadow 220ms ease;
-      }
-
-      .ui-brand-link:hover,
-      .ui-nav-link:hover,
-      .ui-text-link:hover,
-      .ui-icon-btn:hover,
-      .ui-fab:hover {
-        transform: translateY(-1px);
-      }
-
-      .ui-nav-link::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: -0.65rem;
-        height: 1px;
-        background: rgb(var(--color-accent));
-        transform: scaleX(0);
-        transform-origin: center;
-        transition: transform 180ms ease;
-      }
-
-      .ui-nav-link:hover::after,
-      .ui-nav-link.is-active::after {
-        transform: scaleX(1);
-      }
-
-      .ui-icon-btn::before,
-      .ui-fab::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        background: linear-gradient(135deg, rgb(var(--color-accent) / 0.1), transparent 65%);
-        opacity: 0;
-        transition: opacity 180ms ease;
-      }
-
-      .ui-icon-btn:hover::before,
-      .ui-fab:hover::before {
-        opacity: 1;
-      }
-
-      .ui-icon-btn:active,
-      .ui-fab:active {
-        transform: scale(0.97);
-      }
-
-      .page-shell {
-        animation: shellRiseIn 360ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      @keyframes shellRiseIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      /* Reduced motion */
-      @media (prefers-reduced-motion: reduce) {
-        ::view-transition-old(root),
-        ::view-transition-new(root) {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-        }
-        .page-shell,
-        .ui-brand-link,
-        .ui-nav-link,
-        .ui-text-link,
-        .ui-icon-btn,
-        .ui-fab {
-          animation: none !important;
-          transition: none !important;
-          transform: none !important;
-        }
-      }
-
-      /* View Transition theme switch */
-      ::view-transition-old(root),
-      ::view-transition-new(root) {
-        animation-duration: 0.35s;
-        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .theme-switching *,
-      .theme-switching *::before,
-      .theme-switching *::after {
-        transition: none !important;
-        animation: none !important;
-      }
-
-      :root pre[class*="astro-code"],
-      :root .astro-code {
-        background: rgb(252 250 245) !important;
-        border: 1px solid rgb(var(--color-border));
-        border-radius: 0.5rem;
-      }
-      :root pre[class*="astro-code"] code span {
-        color: var(--shiki-light, inherit) !important;
-      }
-      .dark pre[class*="astro-code"],
-      .dark .astro-code {
-        background: rgb(var(--color-surface)) !important;
-        border-color: rgb(var(--color-border));
-      }
-      .dark pre[class*="astro-code"] code span {
-        color: var(--shiki-dark, inherit) !important;
-      }
-
-      pre code {
-        font-size: 0.85em;
-        line-height: 1.7;
-      }
-
-      .katex-display {
-        max-width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding: 1rem 0;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-      .katex-display::-webkit-scrollbar { display: none; }
-
-      .dark .katex { color: rgb(var(--color-primary)); }
-
-      @media (max-width: 640px) {
-        .katex-display .katex { font-size: 0.9em; }
-      }
-
-      /* ── Custom cursor canvas ── */
-      .custom-cursor-canvas {
-        position: fixed;
-        inset: 0;
-        z-index: 9998;
-        pointer-events: none;
-      }
-      @media (pointer: coarse) {
-        .custom-cursor-canvas { display: none; }
-      }
-
-      /* ── Ambient gradient orbs ── */
-      .ambient-orb {
-        position: fixed;
-        border-radius: 50%;
-        opacity: 0.15;
-        pointer-events: none;
-        z-index: 0;
-      }
-      .ambient-orb--1 {
-        width: 600px; height: 600px;
-        background: radial-gradient(circle, rgb(var(--color-accent) / 0.22), transparent 70%);
-        top: -15%; left: -10%;
-      }
-      .ambient-orb--2 {
-        width: 500px; height: 500px;
-        background: radial-gradient(circle, rgb(var(--color-accent-warm) / 0.18), transparent 70%);
-        top: 50%; right: -12%;
-      }
-      .ambient-orb--3 {
-        width: 400px; height: 400px;
-        background: radial-gradient(circle, rgb(var(--color-accent) / 0.16), transparent 70%);
-        bottom: -10%; left: 30%;
-      }
-      @media (max-width: 767px) {
-        .ambient-orb { display: none; }
-      }
-
-      /* ── Hero particles canvas ── */
-      .hero-particles-canvas {
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-        pointer-events: none;
-      }
-
-      /* ── Progress bar glow ── */
-      #progress-bar {
-        box-shadow: 0 0 8px rgb(var(--color-accent) / 0.5), 0 0 2px rgb(var(--color-accent) / 0.3);
-      }
-
-    </style>
   </head>
 
   <body class="text-primary min-h-screen font-body relative w-full max-w-full overflow-x-hidden">
     <div class="page-background" aria-hidden="true"></div>
-    <canvas id="custom-cursor" class="custom-cursor-canvas" aria-hidden="true"></canvas>
-    <div class="ambient-orb ambient-orb--1" aria-hidden="true"></div>
-    <div class="ambient-orb ambient-orb--2" aria-hidden="true"></div>
-    <div class="ambient-orb ambient-orb--3" aria-hidden="true"></div>
 
     <Search />
     <LinkPreview />
 
     <div class="relative z-10 min-h-screen flex flex-col w-full max-w-full">
-      <nav
-        class="sticky top-0 z-40 border-b border-edge bg-paper md:bg-paper/95 w-full max-w-full"
-      >
-        <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <a
-            href={import.meta.env.BASE_URL}
-            class="ui-brand-link text-xl font-display italic font-bold text-primary hover:text-accent"
-          >
-            TFX
-          </a>
-
-          <div class="hidden md:flex items-center gap-7 text-[13px] font-sans font-medium text-secondary">
-            {navLinks.map(link => (
-              <a
-                href={link.href}
-                class:list={[
-                  "ui-nav-link hover:text-primary",
-                  { "text-primary is-active": currentPath.startsWith(link.href) }
-                ]}
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-
-          <div class="flex items-center gap-3">
-            <button
-              id="search-trigger"
-              class="ui-icon-btn flex items-center gap-2 px-3 py-2 md:py-1.5 border border-edge rounded-md hover:border-accent/40 hover:bg-accent/5 group min-h-[44px] md:min-h-0"
-            >
-              <svg class="w-4 h-4 md:w-3.5 md:h-3.5 text-muted group-hover:text-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-              </svg>
-              <kbd class="hidden md:inline text-[10px] text-muted font-mono">⌘K</kbd>
-            </button>
-
-            <button
-              id="theme-toggle"
-              class="ui-icon-btn p-2.5 md:p-2 rounded-md hover:bg-primary/5 text-secondary hover:text-primary min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
-              aria-label="Toggle theme"
-            >
-              <svg class="w-5 h-5 md:w-4 md:h-4 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-              </svg>
-              <svg class="w-5 h-5 md:w-4 md:h-4 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-              </svg>
-            </button>
-
-            <button
-              id="mobile-menu-toggle"
-              class="ui-icon-btn md:hidden p-2.5 rounded-md hover:bg-primary/5 text-secondary min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="Menu"
-            >
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path d="M3.75 9h16.5m-16.5 6.75h16.5" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div id="mobile-menu" class="hidden md:hidden border-t border-edge bg-paper px-6 py-3">
-          <div class="flex flex-col text-sm font-sans text-secondary">
-            {navLinks.map(link => (
-              <a
-                href={link.href}
-                class:list={[
-                  "ui-text-link hover:text-primary py-3 border-b border-edge/50 last:border-0",
-                  { "text-primary font-medium": currentPath.startsWith(link.href) }
-                ]}
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        </div>
-      </nav>
+      <SiteNav currentPath={currentPath} />
 
       <main class="page-shell flex-1 w-full max-w-full">
         <slot />
@@ -472,453 +65,61 @@ const navLinks = [
         </svg>
       </button>
 
-      <footer class="border-t border-edge">
-        <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-sans text-muted">
-          <span>Feixiang Tao · 2026 · Shenzhen</span>
-          <div class="flex items-center gap-4">
-            <a href="/rss.xml" class="ui-text-link hover:text-primary">RSS</a>
-            <a href="https://github.com/kevin258258" target="_blank" class="ui-text-link hover:text-primary">GitHub</a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
 
     <script>
-      import gsap from 'gsap';
-      import { ScrollTrigger } from 'gsap/ScrollTrigger';
-      gsap.registerPlugin(ScrollTrigger);
+      import { initReveal } from "../scripts/reveal";
+      import { initCopyCode } from "../scripts/copyCode";
 
-      // ── Device / capability detection ──
-      const isTouchDevice = ('ontouchstart' in window) ||
-        (navigator.maxTouchPoints > 0) ||
-        window.matchMedia('(pointer: coarse)').matches;
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const enableRichEffects = !isTouchDevice && !prefersReducedMotion;
-      const isMobile = window.matchMedia('(max-width: 767px)').matches;
-
-      // ── Theme helpers ──
       let backToTopTicking = false;
       let backToTopScrollBound = false;
 
-      const getThemePreference = () => {
-        const stored = localStorage.getItem('theme');
-        if (stored === 'dark' || stored === 'light') return stored;
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      };
-
-      const applyTheme = (theme, persist = false) => {
-        const root = document.documentElement;
-        const isDark = theme === 'dark';
-        root.classList.toggle('dark', isDark);
-        root.dataset.theme = isDark ? 'dark' : 'light';
-        root.style.colorScheme = isDark ? 'dark' : 'light';
-        if (persist) localStorage.setItem('theme', theme);
-        window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme } }));
-      };
-
-      const syncThemeFromStorage = () => {
-        applyTheme(getThemePreference(), false);
-      };
-
-      const finishThemeSwitch = () => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            document.documentElement.classList.remove('theme-switching');
-          });
-        });
-      };
-
       const syncBackToTopVisibility = () => {
-        const topBtn = document.getElementById('back-to-top');
+        const topBtn = document.getElementById("back-to-top");
         if (!topBtn) return;
 
         if (window.scrollY > 400) {
-          topBtn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
-          topBtn.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+          topBtn.classList.remove("opacity-0", "translate-y-4", "pointer-events-none");
+          topBtn.classList.add("opacity-100", "translate-y-0", "pointer-events-auto");
         } else {
-          topBtn.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
-          topBtn.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+          topBtn.classList.add("opacity-0", "translate-y-4", "pointer-events-none");
+          topBtn.classList.remove("opacity-100", "translate-y-0", "pointer-events-auto");
         }
       };
 
-      const bindBackToTopScroll = () => {
-        if (backToTopScrollBound) return;
+      const bindBackToTop = () => {
+        const topBtn = document.getElementById("back-to-top");
+        if (!topBtn) return;
 
-        window.addEventListener('scroll', () => {
-          if (backToTopTicking) return;
-
-          backToTopTicking = true;
-          requestAnimationFrame(() => {
-            syncBackToTopVisibility();
-            backToTopTicking = false;
-          });
-        }, { passive: true });
-
-        backToTopScrollBound = true;
-      };
-
-      // ── Custom cursor ──
-      let cursorCleanup = null;
-
-      function initCustomCursor() {
-        if (cursorCleanup) cursorCleanup();
-        if (!enableRichEffects) return;
-
-        const canvas = document.getElementById('custom-cursor');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        let w = canvas.width = window.innerWidth;
-        let h = canvas.height = window.innerHeight;
-
-        const trailCount = 8;
-        const trail: {x:number;y:number}[] = [];
-        let cursorX = -100, cursorY = -100;
-        let ringX = -100, ringY = -100;
-        let targetX = -100, targetY = -100;
-        let hovered = false;
-        let visible = false;
-
-        for (let i = 0; i < trailCount; i++) {
-          trail.push({ x: -100, y: -100 });
-        }
-
-        function resize() {
-          w = canvas.width = window.innerWidth;
-          h = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-
-        function onMove(e: MouseEvent) {
-          targetX = e.clientX;
-          targetY = e.clientY;
-          if (!visible) {
-            visible = true;
-            cursorX = targetX;
-            cursorY = targetY;
-            ringX = targetX;
-            ringY = targetY;
-            trail.forEach(p => { p.x = targetX; p.y = targetY; });
-          }
-        }
-        document.addEventListener('mousemove', onMove, { passive: true });
-
-        function onLeave() { visible = false; }
-        document.addEventListener('mouseleave', onLeave);
-
-        function onOver(e: MouseEvent) {
-          const el = (e.target as Element).closest('a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]');
-          if (el) hovered = true;
-        }
-        function onOut(e: MouseEvent) {
-          const el = (e.target as Element).closest('a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]');
-          if (el) hovered = false;
-        }
-        document.addEventListener('mouseover', onOver, { passive: true });
-        document.addEventListener('mouseout', onOut, { passive: true });
-
-        document.documentElement.style.cursor = 'none';
-        const interactiveSelector = 'a, button, input, [role="button"], .series-toggle, #view-list, #view-graph, [data-tilt]';
-        document.querySelectorAll(interactiveSelector).forEach(el => { (el as HTMLElement).style.cursor = 'none'; });
-
-        function draw() {
-          ctx.clearRect(0, 0, w, h);
-
-          // Smooth follow: dot snaps fast, ring drifts slower
-          cursorX += (targetX - cursorX) * 0.55;
-          cursorY += (targetY - cursorY) * 0.55;
-          ringX += (targetX - ringX) * 0.18;
-          ringY += (targetY - ringY) * 0.18;
-
-          if (!visible) {
-            requestAnimationFrame(draw);
-            return;
-          }
-
-          const isDark = document.documentElement.classList.contains('dark');
-          const accentRgb = isDark ? '120, 165, 245' : '43, 91, 220';
-
-          // Trail: 8 small particles trailing the ring
-          trail[0].x += (ringX - trail[0].x) * 0.5;
-          trail[0].y += (ringY - trail[0].y) * 0.5;
-          for (let i = 1; i < trailCount; i++) {
-            trail[i].x += (trail[i-1].x - trail[i].x) * 0.45;
-            trail[i].y += (trail[i-1].y - trail[i].y) * 0.45;
-          }
-
-          for (let i = trailCount - 1; i >= 0; i--) {
-            const p = trail[i];
-            const t = 1 - i / trailCount;
-            const alpha = t * t * 0.35;
-            const size = t * 3.5;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${accentRgb}, ${alpha})`;
-            ctx.fill();
-          }
-
-          // Outer ring — scales up on hover
-          const ringBase = 7;
-          const ringTarget = hovered ? 18 : ringBase;
-          const ringR = ringBase + (ringTarget - ringBase) * (hovered ? 1 : 0);
-          // Animate ring size via lerp in draw loop
-          const ringAlpha = 0.55 + (hovered ? 0.3 : 0);
-
-          ctx.beginPath();
-          ctx.arc(ringX, ringY, ringR, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(${accentRgb}, ${ringAlpha})`;
-          ctx.lineWidth = hovered ? 1.8 : 1.2;
-          ctx.stroke();
-
-          // Inner dot — precise, always visible
-          const dotR = hovered ? 2 : 3.5;
-          ctx.beginPath();
-          ctx.arc(cursorX, cursorY, dotR, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${accentRgb}, 0.95)`;
-          ctx.fill();
-
-          requestAnimationFrame(draw);
-        }
-
-        draw();
-
-        cursorCleanup = () => {
-          window.removeEventListener('resize', resize);
-          document.removeEventListener('mousemove', onMove);
-          document.removeEventListener('mouseleave', onLeave);
-          document.removeEventListener('mouseover', onOver);
-          document.removeEventListener('mouseout', onOut);
-          document.documentElement.style.cursor = '';
-          document.querySelectorAll(interactiveSelector).forEach(el => { (el as HTMLElement).style.cursor = ''; });
-        };
-      }
-
-      // ── Ambient orbs ──
-      function initAmbientOrbs() {
-        if (prefersReducedMotion) return;
-
-        const orb1 = document.querySelector('.ambient-orb--1');
-        const orb2 = document.querySelector('.ambient-orb--2');
-        const orb3 = document.querySelector('.ambient-orb--3');
-        if (!orb1 || !orb2 || !orb3) return;
-
-        gsap.to(orb1, {
-          x: '8%', y: '6%',
-          duration: 22, ease: 'sine.inOut', repeat: -1, yoyo: true,
-        });
-        gsap.to(orb1, {
-          opacity: 0.5,
-          duration: 9, ease: 'sine.inOut', repeat: -1, yoyo: true,
-        });
-
-        gsap.to(orb2, {
-          x: '-6%', y: '-10%',
-          duration: 26, ease: 'sine.inOut', repeat: -1, yoyo: true,
-        });
-        gsap.to(orb2, {
-          opacity: 0.35,
-          duration: 11, ease: 'sine.inOut', repeat: -1, yoyo: true,
-        });
-
-        gsap.to(orb3, {
-          x: '10%', y: '-8%',
-          duration: 19, ease: 'sine.inOut', repeat: -1, yoyo: true,
-        });
-        gsap.to(orb3, {
-          opacity: 0.48,
-          duration: 8, ease: 'sine.inOut', repeat: -1, yoyo: true,
-        });
-      }
-
-      // ── Scroll-triggered reveals ──
-      function initScrollTriggers() {
-        ScrollTrigger.getAll().forEach(st => st.kill(false));
-
-        document.querySelectorAll('[data-animate]').forEach(el => {
-          const type = el.dataset.animate;
-
-          if (type === 'stagger-fade-up') {
-            const children = Array.from(el.children);
-            if (children.length === 0) return;
-
-            gsap.set(children, { opacity: 0, y: 30 });
-
-            ScrollTrigger.create({
-              trigger: el,
-              start: 'top 88%',
-              once: true,
-              onEnter: () => {
-                gsap.to(children, {
-                  opacity: 1, y: 0,
-                  duration: 0.5, stagger: 0.06, ease: 'power3.out',
-                });
-              },
-            });
-          } else {
-            let fromVars: Record<string, number> = {};
-            switch (type) {
-              case 'fade-up': fromVars = { opacity: 0, y: 40 }; break;
-              case 'fade-in': fromVars = { opacity: 0 }; break;
-              case 'slide-left': fromVars = { opacity: 0, x: -40 }; break;
-              case 'slide-right': fromVars = { opacity: 0, x: 40 }; break;
-              case 'scale-in': fromVars = { opacity: 0, scale: 0.92 }; break;
-            }
-
-            if (Object.keys(fromVars).length > 0) {
-              gsap.set(el, fromVars);
-
-              ScrollTrigger.create({
-                trigger: el,
-                start: 'top 88%',
-                once: true,
-                onEnter: () => {
-                  gsap.to(el, {
-                    opacity: 1, y: 0, x: 0, scale: 1,
-                    duration: 0.7, ease: 'power3.out',
-                  });
-                },
+        if (!backToTopScrollBound) {
+          window.addEventListener(
+            "scroll",
+            () => {
+              if (backToTopTicking) return;
+              backToTopTicking = true;
+              requestAnimationFrame(() => {
+                syncBackToTopVisibility();
+                backToTopTicking = false;
               });
-            }
-          }
-        });
+            },
+            { passive: true },
+          );
+          backToTopScrollBound = true;
+        }
 
-        requestAnimationFrame(() => {
-          ScrollTrigger.refresh();
-        });
-      }
+        syncBackToTopVisibility();
+        topBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+      };
 
-      // ── 3D tilt ──
-      function init3DTilt() {
-        if (!enableRichEffects) return;
-
-        document.querySelectorAll('[data-tilt]').forEach(card => {
-          const el = card;
-          el.style.transformStyle = 'preserve-3d';
-          el.style.perspective = '1200px';
-
-          function onMove(e) {
-            const rect = el.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width - 0.5;
-            const y = (e.clientY - rect.top) / rect.height - 0.5;
-            const intensity = parseFloat(el.dataset.tilt || '8');
-            el.style.transition = 'transform 0.1s ease-out';
-            el.style.transform = `perspective(1200px) rotateY(${x * intensity}deg) rotateX(${-y * intensity}deg) scale3d(1.02, 1.02, 1.02)`;
-          }
-
-          function onLeave() {
-            el.style.transition = 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
-            el.style.transform = 'perspective(1200px) rotateY(0deg) rotateX(0deg) scale3d(1, 1, 1)';
-          }
-
-          el.addEventListener('mousemove', onMove, { passive: true });
-          el.addEventListener('mouseleave', onLeave);
-        });
-      }
-
-      // ── Page transitions ──
-      function initPageTransitions() {
-        document.addEventListener('astro:before-preparation', () => {
-          ScrollTrigger.getAll().forEach(st => st.kill());
-        });
-
-        document.addEventListener('astro:after-swap', () => {
-          // Scroll triggers re-initialized in setupPageUi
-        });
-      }
-
-      // ── Page UI (existing + new inits) ──
       function setupPageUi() {
-        syncThemeFromStorage();
-
-        const toggle = document.getElementById('theme-toggle');
-        if (toggle) {
-          toggle.onclick = () => {
-            const nextTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-            const switchTheme = () => applyTheme(nextTheme, true);
-            if ('startViewTransition' in document) {
-              document.startViewTransition(switchTheme);
-            } else {
-              document.documentElement.classList.add('theme-switching');
-              switchTheme();
-              finishThemeSwitch();
-            }
-          };
-        }
-
-        const menuToggle = document.getElementById('mobile-menu-toggle');
-        const menu = document.getElementById('mobile-menu');
-        if (menuToggle && menu) {
-          menuToggle.onclick = () => menu.classList.toggle('hidden');
-        }
-
-        const topBtn = document.getElementById('back-to-top');
-        if (topBtn) {
-          bindBackToTopScroll();
-          syncBackToTopVisibility();
-          topBtn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        requestAnimationFrame(() => {
-          document.querySelectorAll('pre').forEach(pre => {
-            if (pre.parentElement?.classList.contains('group/code')) return;
-
-            const wrapper = document.createElement('div');
-            wrapper.className = 'relative group/code overflow-x-auto';
-            pre.parentNode?.insertBefore(wrapper, pre);
-            wrapper.appendChild(pre);
-
-            const btn = document.createElement('button');
-            btn.className = 'copy-btn absolute top-2 right-2 p-2 md:p-1.5 rounded bg-primary/5 border border-edge text-muted hover:text-accent hover:border-accent/30 opacity-100 md:opacity-0 md:group-hover/code:opacity-100 transition-all text-xs font-mono';
-            btn.textContent = 'Copy';
-            btn.onclick = async () => {
-              const code = pre.querySelector('code')?.textContent || pre.textContent || '';
-              await navigator.clipboard.writeText(code);
-              btn.textContent = 'Copied!';
-              btn.classList.add('text-accent');
-              setTimeout(() => {
-                btn.textContent = 'Copy';
-                btn.classList.remove('text-accent');
-              }, 2000);
-            };
-            wrapper.appendChild(btn);
-          });
-        });
-
-        // ── Per-page inits ──
-        initCustomCursor();
-        initScrollTriggers();
-        init3DTilt();
-
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            ScrollTrigger.refresh();
-          });
-        });
+        initReveal();
+        initCopyCode();
+        bindBackToTop();
       }
 
-      // ── Media query listener ──
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      if (!window.__themeMediaBound) {
-        mediaQuery.addEventListener('change', () => {
-          if (!localStorage.getItem('theme')) syncThemeFromStorage();
-        });
-        window.__themeMediaBound = true;
-      }
-
-      // ── Bootstrap ──
-      document.addEventListener('astro:after-swap', syncThemeFromStorage);
-      document.addEventListener('astro:page-load', () => {
-        setupPageUi();
-        setTimeout(() => {
-          ScrollTrigger.refresh();
-        }, 50);
-      });
-      syncThemeFromStorage();
+      document.addEventListener("astro:page-load", setupPageUi);
       setupPageUi();
-
-      initAmbientOrbs();
-      initPageTransitions();
     </script>
   </body>
 </html>

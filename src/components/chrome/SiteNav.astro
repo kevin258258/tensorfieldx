@@ -1,0 +1,97 @@
+---
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+
+const navLinks = [
+  { href: "/notes", label: "Notes" },
+  { href: "/blog", label: "Blog" },
+  { href: "/projects", label: "Projects" },
+  { href: "/publications", label: "Publications" },
+  { href: "/tags", label: "Tags" },
+  { href: "/cv", label: "CV" },
+  { href: "/about", label: "About" },
+];
+---
+
+<nav
+  class="sticky top-0 z-40 border-b border-edge bg-paper/95 w-full max-w-full"
+>
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+    <a
+      href={import.meta.env.BASE_URL}
+      class="ui-brand-link text-xl font-display italic font-bold text-primary hover:text-accent"
+    >
+      TFX
+    </a>
+
+    <div class="hidden md:flex items-center gap-7 text-[13px] font-sans font-medium text-secondary">
+      {navLinks.map(link => (
+        <a
+          href={link.href}
+          data-transition="section"
+          class:list={[
+            "ui-nav-link hover:text-primary",
+            { "text-primary is-active": currentPath.startsWith(link.href) }
+          ]}
+        >
+          {link.label}
+        </a>
+      ))}
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button
+        id="search-trigger"
+        class="ui-icon-btn flex items-center gap-2 px-3 py-2 md:py-1.5 border border-edge rounded-md hover:border-accent/40 hover:bg-accent/5 group min-h-[44px] md:min-h-0"
+      >
+        <svg class="w-4 h-4 md:w-3.5 md:h-3.5 text-muted group-hover:text-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+        </svg>
+        <kbd class="hidden md:inline text-[10px] text-muted font-mono">⌘K</kbd>
+      </button>
+
+      <button
+        id="mobile-menu-toggle"
+        class="ui-icon-btn md:hidden p-2.5 rounded-md hover:bg-primary/5 text-secondary min-w-[44px] min-h-[44px] flex items-center justify-center"
+        aria-label="Menu"
+      >
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path d="M3.75 9h16.5m-16.5 6.75h16.5" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="hidden md:hidden border-t border-edge bg-paper px-6 py-3">
+    <div class="flex flex-col text-sm font-sans text-secondary">
+      {navLinks.map(link => (
+        <a
+          href={link.href}
+          data-transition="section"
+          class:list={[
+            "ui-text-link hover:text-primary py-3 border-b border-edge/50 last:border-0",
+            { "text-primary font-medium": currentPath.startsWith(link.href) }
+          ]}
+        >
+          {link.label}
+        </a>
+      ))}
+    </div>
+  </div>
+</nav>
+
+<script>
+  function initSiteNav() {
+    const menuToggle = document.getElementById('mobile-menu-toggle');
+    const menu = document.getElementById('mobile-menu');
+    if (menuToggle && menu) {
+      menuToggle.onclick = () => menu.classList.toggle('hidden');
+    }
+  }
+
+  document.addEventListener('astro:page-load', initSiteNav);
+  initSiteNav();
+</script>

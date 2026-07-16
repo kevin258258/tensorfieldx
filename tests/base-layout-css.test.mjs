@@ -2,8 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
+const readSrc = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+
 test("astro prefetch config is conservative for reading-first navigation", async () => {
-  const source = await readFile(new URL("../astro.config.mjs", import.meta.url), "utf8");
+  const source = await readSrc("astro.config.mjs");
 
   assert.doesNotMatch(
     source,
@@ -19,7 +21,7 @@ test("astro prefetch config is conservative for reading-first navigation", async
 });
 
 test("long-form content avoids viewport virtualization that can unload note sections mid-scroll", async () => {
-  const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+  const source = await readSrc("src/layouts/BaseLayout.astro");
 
   assert.doesNotMatch(
     source,
@@ -34,99 +36,81 @@ test("long-form content avoids viewport virtualization that can unload note sect
   );
 });
 
-test("paper texture is rendered by a fixed background layer instead of scrolling with body content", async () => {
-  const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+test("page background is a fixed flat-color layer driven by design tokens", async () => {
+  const tokens = await readSrc("src/styles/tokens.css");
+  const layout = await readSrc("src/layouts/BaseLayout.astro");
 
   assert.match(
-    source,
-    /\.page-background\s*\{/,
-    "layout should define a dedicated background layer so the texture does not repaint with article content",
+    tokens,
+    /\.page-background\s*\{[\s\S]*?position:\s*fixed;/,
+    "background layer should be fixed to the viewport so it does not repaint with article content",
   );
 
   assert.match(
-    source,
-    /position:\s*fixed;/,
-    "background layer should be fixed to the viewport",
-  );
-
-  assert.match(
-    source,
-    /<div class="page-background" aria-hidden="true"><\/div>/,
-    "layout should render the fixed background layer outside the reading flow",
-  );
-
-  assert.match(
-    source,
-    /url\("\/images\/paper-texture\.webp"\)/,
-    "background layer should use the site paper texture asset",
-  );
-
-  assert.match(
-    source,
-    /\.page-background::before\s*\{/,
-    "paper texture should be rendered on a dedicated pseudo-element so dark mode can tune it independently",
+    tokens,
+    /\.page-background\s*\{[\s\S]*?background:\s*rgb\(var\(--color-paper\)\)/,
+    "background layer should use the paper design token (flat cool white, no texture)",
   );
 
   assert.doesNotMatch(
-    source,
-    /background-attachment\s*:\s*scroll/,
-    "body background should no longer scroll with the page on mobile",
+    tokens + layout,
+    /paper-texture/,
+    "paper texture asset was removed with the warm-paper design language",
+  );
+
+  assert.match(
+    layout,
+    /<div class="page-background" aria-hidden="true"><\/div>/,
+    "layout should render the fixed background layer outside the reading flow",
   );
 });
 
-test("theme toggle disables transitions while switching themes", async () => {
-  const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+test("dark mode and theme switching are fully removed (light-first redesign)", async () => {
+  const layout = await readSrc("src/layouts/BaseLayout.astro");
+  const nav = await readSrc("src/components/chrome/SiteNav.astro");
 
-  assert.match(
-    source,
-    /\.theme-switching\s+\*,\s*\.theme-switching\s+\*::before,\s*\.theme-switching\s+\*::after\s*\{\s*transition:\s*none\s*!important;/,
-    "theme switching should temporarily disable transitions to avoid whole-page animation on mobile",
-  );
-
-  assert.match(
-    source,
-    /classList\.add\('theme-switching'\)/,
-    "theme toggle should mark the document as theme-switching before flipping dark mode",
-  );
-
-  assert.match(
-    source,
-    /classList\.remove\('theme-switching'\)/,
-    "theme toggle should remove the theme-switching marker after the repaint frame",
+  assert.doesNotMatch(
+    layout + nav,
+    /theme-toggle|localStorage\.getItem\(['"]theme['"]\)|classList\.toggle\(['"]dark['"]/,
+    "no theme toggle or dark-class logic should remain after the light-first redesign",
   );
 });
 
-test("mobile reading paths fall back to system fonts to avoid downloading heavy webfont binaries", async () => {
-  const layoutSource = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
-  const tailwindSource = await readFile(new URL("../tailwind.config.mjs", import.meta.url), "utf8");
+test("typography does not force system-font fallbacks on mobile", async () => {
+  const layoutSource = await readSrc("src/layouts/BaseLayout.astro");
+  const tailwindSource = await readSrc("tailwind.config.mjs");
 
-  assert.match(
+  assert.doesNotMatch(
     layoutSource,
-    /@media\s*\(max-width:\s*767px\)\s*\{[\s\S]*?\.font-display,\s*\.font-body\s*\{[\s\S]*?font-family:\s*Georgia,\s*"Times New Roman",\s*serif\s*!important;/,
-    "mobile layouts should override decorative serif stacks with local system serif fonts",
-  );
-
-  assert.match(
-    layoutSource,
-    /\.font-sans\s*\{[\s\S]*?font-family:\s*system-ui,\s*-apple-system,\s*BlinkMacSystemFont,\s*"Segoe UI",\s*sans-serif\s*!important;/,
-    "mobile layouts should use the system sans stack instead of downloading Inter",
-  );
-
-  assert.match(
-    layoutSource,
-    /\.font-mono\s*\{[\s\S]*?font-family:\s*ui-monospace,\s*"SFMono-Regular",\s*Menlo,\s*monospace\s*!important;/,
-    "mobile layouts should use the local monospace stack instead of downloading JetBrains Mono",
+    /@media\s*\(max-width:\s*767px\)\s*\{[\s\S]*?Georgia,\s*"Times New Roman",\s*serif\s*!important/,
+    "mobile layouts should keep the self-hosted font stacks instead of forcing Georgia",
   );
 
   assert.match(
     tailwindSource,
     /sans:\s*\[\s*'system-ui',\s*'-apple-system',\s*'BlinkMacSystemFont',\s*'"Segoe UI"',\s*'sans-serif'\s*\]/,
-    "desktop and mobile sans text should default to the system sans stack so Inter is no longer required",
+    "sans text should default to the system sans stack",
+  );
+});
+
+test("fonts are self-hosted via fontsource, not Google Fonts", async () => {
+  const layout = await readSrc("src/layouts/BaseLayout.astro");
+
+  assert.doesNotMatch(
+    layout,
+    /fonts\.googleapis\.com|fonts\.gstatic\.com/,
+    "webfonts should be self-hosted through @fontsource packages",
+  );
+
+  assert.match(
+    layout,
+    /@fontsource\/playfair-display/,
+    "display font should be self-hosted",
   );
 });
 
 test("base layout only loads katex when a page opts in", async () => {
-  const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+  const source = await readSrc("src/layouts/BaseLayout.astro");
 
   assert.match(
     source,
@@ -136,21 +120,21 @@ test("base layout only loads katex when a page opts in", async () => {
 
   assert.match(
     source,
-    /{needsKatex && \(/,
+    /\{needsKatex && \(/,
     "KaTeX stylesheet should be conditionally rendered",
   );
 });
 
 test("math-heavy detail pages opt in to katex explicitly", async () => {
-  const noteSource = await readFile(new URL("../src/pages/notes/[...slug].astro", import.meta.url), "utf8");
-  const blogSource = await readFile(new URL("../src/pages/blog/[...slug].astro", import.meta.url), "utf8");
+  const noteSource = await readSrc("src/pages/notes/[...slug].astro");
+  const blogSource = await readSrc("src/pages/blog/[...slug].astro");
 
   assert.match(noteSource, /<BaseLayout title={post\.data\.title} needsKatex>/);
   assert.match(blogSource, /<BaseLayout title={post\.data\.title} needsKatex>/);
 });
 
 test("base layout no longer injects a redundant custom link prefetch script", async () => {
-  const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+  const source = await readSrc("src/layouts/BaseLayout.astro");
 
   assert.doesNotMatch(
     source,
@@ -159,8 +143,8 @@ test("base layout no longer injects a redundant custom link prefetch script", as
   );
 });
 
-test("base layout enables client-side navigation without visible page transition animations", async () => {
-  const source = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
+test("base layout enables client-side navigation", async () => {
+  const source = await readSrc("src/layouts/BaseLayout.astro");
 
   assert.match(
     source,
@@ -173,27 +157,54 @@ test("base layout enables client-side navigation without visible page transition
     /<ClientRouter\s+fallback="swap"\s*\/>/,
     "client router should use swap fallback to keep navigation predictable on unsupported browsers",
   );
+});
 
-  assert.match(
-    source,
-    /<html[^>]*transition:animate="none"[^>]*>/,
-    "layout should disable visible page transition animations while keeping client-side navigation",
-  );
+test("legacy decorative effects are removed from layout and pages", async () => {
+  const layout = await readSrc("src/layouts/BaseLayout.astro");
+  const home = await readSrc("src/pages/index.astro");
+  const notesIndex = await readSrc("src/pages/notes/index.astro");
 
   assert.doesNotMatch(
-    source,
-    /transition:name|::view-transition-/,
-    "layout should not reintroduce named snapshot transitions that can ghost long-form reading pages",
+    layout + home + notesIndex,
+    /gsap|ScrollTrigger|custom-cursor|ambient-orb|hero-particles|init3DTilt|KnowledgeGraph/,
+    "GSAP, custom cursor, ambient orbs, hero particles, 3D tilt and the knowledge graph were removed in the redesign",
+  );
+});
+
+test("react island dependencies are gone from package.json", async () => {
+  const pkg = JSON.parse(await readSrc("package.json"));
+  const deps = Object.keys(pkg.dependencies ?? {});
+
+  for (const removed of [
+    "gsap",
+    "react",
+    "react-dom",
+    "@astrojs/react",
+    "framer-motion",
+    "lucide-react",
+    "react-force-graph-2d",
+  ]) {
+    assert.ok(!deps.includes(removed), `${removed} should no longer be a dependency`);
+  }
+});
+
+test("design tokens define the lavender auxiliary color", async () => {
+  const tokens = await readSrc("src/styles/tokens.css");
+
+  assert.match(
+    tokens,
+    /--color-lav:\s*201 193 240;/,
+    "tokens.css should define --color-lav (#C9C1F0) as the lavender auxiliary token",
   );
 });
 
 test("global interactive scripts reinitialize after Astro route transitions", async () => {
-  const layoutSource = await readFile(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
-  const searchSource = await readFile(new URL("../src/components/Search.astro", import.meta.url), "utf8");
-  const previewSource = await readFile(new URL("../src/components/LinkPreview.astro", import.meta.url), "utf8");
-  const giscusSource = await readFile(new URL("../src/components/Giscus.astro", import.meta.url), "utf8");
-  const notesIndexSource = await readFile(new URL("../src/pages/notes/index.astro", import.meta.url), "utf8");
-  const notesDetailSource = await readFile(new URL("../src/pages/notes/[...slug].astro", import.meta.url), "utf8");
+  const layoutSource = await readSrc("src/layouts/BaseLayout.astro");
+  const searchSource = await readSrc("src/components/Search.astro");
+  const previewSource = await readSrc("src/components/LinkPreview.astro");
+  const giscusSource = await readSrc("src/components/Giscus.astro");
+  const notesIndexSource = await readSrc("src/pages/notes/index.astro");
+  const notesDetailSource = await readSrc("src/pages/notes/[...slug].astro");
 
   assert.match(
     layoutSource,
@@ -239,8 +250,8 @@ test("global interactive scripts reinitialize after Astro route transitions", as
 });
 
 test("note navigation links opt into mobile-friendly prefetching", async () => {
-  const notesIndexSource = await readFile(new URL("../src/pages/notes/index.astro", import.meta.url), "utf8");
-  const notesDetailSource = await readFile(new URL("../src/pages/notes/[...slug].astro", import.meta.url), "utf8");
+  const notesIndexSource = await readSrc("src/pages/notes/index.astro");
+  const notesDetailSource = await readSrc("src/pages/notes/[...slug].astro");
 
   assert.match(
     notesIndexSource,
@@ -256,7 +267,7 @@ test("note navigation links opt into mobile-friendly prefetching", async () => {
 });
 
 test("mobile note table of contents renders on demand instead of duplicating heading markup on first paint", async () => {
-  const notesDetailSource = await readFile(new URL("../src/pages/notes/[...slug].astro", import.meta.url), "utf8");
+  const notesDetailSource = await readSrc("src/pages/notes/[...slug].astro");
 
   assert.match(
     notesDetailSource,

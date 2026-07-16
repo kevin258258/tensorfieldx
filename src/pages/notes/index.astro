@@ -25,11 +25,6 @@ notes.forEach(note => {
     }
 });
 Object.values(seriesGroups).forEach(g => g.sort((a, b) => (a.seriesOrder || 0) - (b.seriesOrder || 0)));
-
-const notesForGraph = JSON.stringify(notes.map(n => ({
-    slug: n.slug,
-    data: { title: n.title, description: n.description, pubDate: n.pubDate, tags: n.tags, series: n.series, seriesOrder: n.seriesOrder }
-})));
 ---
 
 <BaseLayout title="Research Notes">
@@ -45,17 +40,6 @@ const notesForGraph = JSON.stringify(notes.map(n => ({
         </header>
 
         <div class="w-full min-h-[400px]">
-            <div class="flex justify-end mb-8 border-b pb-3 border-edge">
-                <div class="flex gap-1 text-xs font-sans">
-                    <button id="view-list" class="px-3 py-1.5 rounded-md transition-colors text-accent bg-accent/8">
-                        List
-                    </button>
-                    <button id="view-graph" class="px-3 py-1.5 rounded-md transition-colors text-muted">
-                        Graph
-                    </button>
-                </div>
-            </div>
-
             <div id="notes-list" class="space-y-1" data-animate="stagger-fade-up">
                 {Object.entries(seriesGroups).map(([seriesName, seriesNotes]) => (
                     <div class="rounded-lg overflow-hidden border border-edge" data-tilt="5">
@@ -112,34 +96,13 @@ const notesForGraph = JSON.stringify(notes.map(n => ({
                 ))}
             </div>
 
-            <div id="graph-container" class="hidden" data-notes={notesForGraph}></div>
         </div>
 
     </div>
 </BaseLayout>
 
 <script>
-    async function loadNotesGraph(graphEl: HTMLElement) {
-        if (graphEl.dataset.graphLoaded === 'true') return;
-
-        graphEl.dataset.graphLoaded = 'true';
-        graphEl.innerHTML = '<div class="flex items-center justify-center h-64 text-muted"><span class="font-mono text-xs">Loading graph...</span></div>';
-
-        const { default: KnowledgeGraph } = await import('../../components/KnowledgeGraph') as any;
-        const { createElement } = await import('react') as any;
-        const { createRoot } = await import('react-dom/client') as any;
-        const notesData = JSON.parse(graphEl.dataset.notes || '[]');
-        const root = createRoot(graphEl);
-        root.render(createElement(KnowledgeGraph, { notes: notesData }));
-    }
-
     function initNotesPage() {
-        const listBtn = document.getElementById('view-list');
-        const graphBtn = document.getElementById('view-graph');
-        const listEl = document.getElementById('notes-list');
-        const graphEl = document.getElementById('graph-container');
-        if (!listBtn || !graphBtn || !listEl || !graphEl) return;
-
         document.querySelectorAll('.series-toggle').forEach(btn => {
             (btn as HTMLButtonElement).onclick = () => {
                 const content = btn.nextElementSibling as HTMLElement;
@@ -154,26 +117,6 @@ const notesForGraph = JSON.stringify(notes.map(n => ({
                 else arrow.style.color = '';
             };
         });
-
-        listBtn.onclick = () => {
-            listEl.classList.remove('hidden');
-            graphEl.classList.add('hidden');
-            listBtn.classList.add('text-accent', 'bg-accent/8');
-            listBtn.classList.remove('text-muted');
-            graphBtn.classList.add('text-muted');
-            graphBtn.classList.remove('text-accent', 'bg-accent/8');
-        };
-
-        graphBtn.onclick = async () => {
-            listEl.classList.add('hidden');
-            graphEl.classList.remove('hidden');
-            graphBtn.classList.add('text-accent', 'bg-accent/8');
-            graphBtn.classList.remove('text-muted');
-            listBtn.classList.add('text-muted');
-            listBtn.classList.remove('text-accent', 'bg-accent/8');
-
-            loadNotesGraph(graphEl);
-        };
     }
 
     document.addEventListener('astro:page-load', initNotesPage);
