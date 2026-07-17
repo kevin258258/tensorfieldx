@@ -78,7 +78,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
 
         <div class="min-w-0 relative">
 
-            <nav class="flex items-center gap-1.5 font-sans text-[11px] text-muted mb-6" aria-label="Breadcrumb">
+            <nav class="flex items-center gap-1.5 font-sans text-[11px] text-muted mb-6 max-w-[68ch] mx-auto" aria-label="Breadcrumb">
                 <a href="/" class="hover:text-accent transition-colors">Home</a>
                 <span>/</span>
                 <a href="/notes" class="hover:text-accent transition-colors">Notes</a>
@@ -94,7 +94,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                 <span class="text-primary truncate max-w-[200px]">{post.data.title}</span>
             </nav>
 
-            <header class="mb-10" data-animate="fade-up">
+            <header class="mb-10 max-w-[68ch] mx-auto" data-animate="fade-up">
                 <div class="flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted mb-5">
                     {post.data.series && (
                         <a href={`/notes/series/${post.data.series}`} class="text-accent bg-accent/8 px-2 py-0.5 rounded font-sans font-medium text-[11px] hover:bg-accent/15 transition-colors">
@@ -121,7 +121,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                 )}
             </header>
 
-            <div class="prose prose-lg max-w-none
+            <div class="prose prose-lg max-w-[68ch] mx-auto
                 prose-headings:font-display prose-headings:font-bold prose-headings:text-primary prose-headings:scroll-mt-24
                 prose-p:font-body prose-p:text-primary/85 prose-p:leading-[1.85]
                 prose-strong:text-primary prose-strong:font-bold
@@ -145,7 +145,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
             </div>
 
             {seriesPosts.length > 1 && (
-                <div class="mt-12 p-5 border border-edge rounded-lg bg-surface/50">
+                <div class="mt-12 p-5 border border-edge rounded-lg bg-surface/50 max-w-[68ch] mx-auto">
                     <h4 class="font-sans text-xs font-medium text-muted uppercase tracking-wider mb-3">
                         Series: {seriesEntry?.data.title ?? post.data.series}
                     </h4>
@@ -164,7 +164,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                 </div>
             )}
 
-            <nav class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4" data-animate="fade-up">
+            <nav class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[68ch] mx-auto" data-animate="fade-up">
                 {prev ? (
                     <a href={`/notes/${prev.slug}`} data-transition="series" data-dir="prev" data-astro-prefetch="tap" class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
                         <span class="font-mono text-[10px] text-muted mb-1">&larr; Previous</span>
@@ -179,7 +179,9 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                 ) : <div />}
             </nav>
 
-            <Giscus />
+            <div class="max-w-[68ch] mx-auto">
+                <Giscus />
+            </div>
 
         </div>
 

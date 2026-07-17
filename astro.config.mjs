@@ -25,6 +25,18 @@ export default defineConfig({
 				light: 'github-light',
 				dark: 'github-dark',
 			},
+			transformers: [
+				{
+					// expose the language on <pre data-lang> so CSS can render a label
+					name: 'lang-label',
+					pre(node) {
+						const lang = this.options.lang;
+						if (lang && !['text', 'plaintext', 'ansi', 'console'].includes(lang)) {
+							node.properties['data-lang'] = lang;
+						}
+					},
+				},
+			],
 		},
 	},
 });

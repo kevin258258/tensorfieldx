@@ -51,6 +51,9 @@ importers:
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.20(tailwindcss@3.4.19)
+      katex:
+        specifier: ^0.16.28
+        version: 0.16.28
       tailwindcss:
         specifier: ^3.4.19
         version: 3.4.19

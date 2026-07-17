@@ -38,7 +38,7 @@ const currentPath = Astro.url.pathname;
     {needsKatex && (
       <link
         rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        href="/vendor/katex/katex.min.css"
         media="print"
         onload="this.media='all'"
       />
@@ -81,6 +81,7 @@ const currentPath = Astro.url.pathname;
     <script>
       import { initReveal } from "../scripts/reveal";
       import { initCopyCode } from "../scripts/copyCode";
+      import { initLightbox } from "../scripts/lightbox";
       import { initTransitions } from "../scripts/transitions";
 
       let backToTopTicking = false;
@@ -126,6 +127,7 @@ const currentPath = Astro.url.pathname;
       function setupPageUi() {
         initReveal();
         initCopyCode();
+        initLightbox();
         bindBackToTop();
       }
 

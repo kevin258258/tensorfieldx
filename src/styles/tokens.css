@@ -145,6 +145,64 @@ pre code {
   line-height: 1.7;
 }
 
+/* language label injected by the shiki lang-label transformer (data-lang) */
+:root pre[class*="astro-code"] {
+  position: relative;
+}
+:root pre[class*="astro-code"][data-lang] {
+  padding-top: 2.3rem;
+}
+:root pre[class*="astro-code"][data-lang]::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0.65rem;
+  left: 1rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--color-muted));
+}
+
+/* ── Lightbox (native <dialog>, driven by src/scripts/lightbox.ts) ── */
+.prose img {
+  cursor: zoom-in;
+}
+dialog.lightbox {
+  padding: 0;
+  border: none;
+  background: transparent;
+  max-width: min(92vw, 72rem);
+  max-height: 90vh;
+}
+dialog.lightbox::backdrop {
+  background: rgb(30 42 94 / 0.55);
+  backdrop-filter: blur(6px);
+}
+dialog.lightbox img {
+  display: block;
+  max-width: 92vw;
+  max-height: 90vh;
+  border-radius: 0.5rem;
+  cursor: zoom-out;
+}
+dialog.lightbox .lightbox-close {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.5rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: #ecedf5;
+  opacity: 0.8;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+dialog.lightbox .lightbox-close:hover {
+  opacity: 1;
+}
+
 /* ── KaTeX ── */
 .katex-display {
   max-width: 100%;
