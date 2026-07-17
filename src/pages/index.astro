@@ -5,6 +5,14 @@ import { getCollection } from 'astro:content';
 const allNotes = await getCollection('notes');
 const allPosts = await getCollection('blog');
 
+const exploreLinks = [
+	{ href: '/notes', title: 'Notes', description: 'Course notes, series, and technical derivations.' },
+	{ href: '/blog', title: 'Blog', description: 'Essays, reflections, and longer-form writing.' },
+	{ href: '/projects', title: 'Projects', description: 'Experiments, implementations, and coursework.' },
+	{ href: '/publications', title: 'Publications', description: 'Research papers, preprints, and selected work.' },
+	{ href: '/about', title: 'About', description: 'Profile, interests, and ways to get in touch.' },
+];
+
 const recentNotes = [...allNotes]
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 5);
@@ -85,19 +93,13 @@ const recentPosts = allPosts
 	<section class="border-t border-edge">
 		<div class="max-w-4xl mx-auto px-6 py-16">
 			<h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-8">Explore</h2>
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-4" data-animate="stagger-fade-up">
-				<a href="/notes" class="group p-6 border border-edge rounded-lg bg-surface/30 hover:border-accent/30 hover:bg-accent/[0.03] transition-all">
-					<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">Notes</h3>
-					<p class="font-sans text-xs text-muted leading-relaxed">Course notes, series, and technical derivations.</p>
-				</a>
-				<a href="/projects" class="group p-6 border border-edge rounded-lg bg-surface/30 hover:border-accent/30 hover:bg-accent/[0.03] transition-all">
-					<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">Projects</h3>
-					<p class="font-sans text-xs text-muted leading-relaxed">Experiments, implementations, and coursework.</p>
-				</a>
-				<a href="/about" class="group p-6 border border-edge rounded-lg bg-surface/30 hover:border-accent/30 hover:bg-accent/[0.03] transition-all">
-					<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">About</h3>
-					<p class="font-sans text-xs text-muted leading-relaxed">Profile, interests, and ways to get in touch.</p>
-				</a>
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-animate="stagger-fade-up">
+				{exploreLinks.map((link) => (
+					<a href={link.href} class="group p-6 border border-edge rounded-lg bg-surface/30 hover:border-accent/30 hover:bg-accent/[0.03] transition-all">
+						<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">{link.title}</h3>
+						<p class="font-sans text-xs text-secondary leading-relaxed">{link.description}</p>
+					</a>
+				))}
 			</div>
 		</div>
 	</section>

@@ -15,7 +15,7 @@ test("About replaces the old interest chips with two focused research directions
   assert.match(about, /interpretability/i);
   assert.equal(about.match(/data-research-interest/g)?.length, 1);
   const researchCollection = about.match(
-    /const researchInterests = (\[[\s\S]*?\]);\s*\n\s*const experiences/,
+    /const researchInterests = (\[[\s\S]*?\]);\s*\n\s*---/,
   )?.[1];
   assert.ok(researchCollection, "About should define a research-interest collection");
   assert.equal(
@@ -29,16 +29,19 @@ test("About replaces the old interest chips with two focused research directions
   );
 });
 
-test("About consolidates education, experience, CV, and welcoming contact details", async () => {
+test("About keeps education concise and reserves research experience for lab roles", async () => {
   const about = await readSrc("src/pages/about.astro");
 
   assert.match(about, />Education</);
   assert.match(about, />Research &amp; Experience</);
-  assert.match(about, /GPA:\s*3\.91/);
-  assert.match(about, /60\s*\/\s*1363/);
-  assert.match(about, /My-minimind/);
-  assert.match(about, /CS336/);
-  assert.match(about, /CS285/);
+  assert.doesNotMatch(about, /GPA|3\.91|60\s*\/\s*1363/);
+  assert.doesNotMatch(about, /My-minimind|CS336|CS224N|CS285|MIT 6\.S184|ASC Student/);
+  assert.match(about, /<div data-research-experience><\/div>/);
+});
+
+test("About provides the CV and welcoming contact details", async () => {
+  const about = await readSrc("src/pages/about.astro");
+
   assert.match(
     about,
     /href="\/cv\/Feixiang-Tao-CV\.pdf"[^>]*class="[^"]*text-accent[^"]*"/,
@@ -69,4 +72,27 @@ test("homepage profile points to the new AI research identity", async () => {
   assert.match(home, /Agentic RL/);
   assert.match(home, /Learning Theory/);
   assert.doesNotMatch(home, /Physics\s*\/\s*Math\s*\/\s*AI/);
+});
+
+test("homepage Explore exposes every primary destination", async () => {
+  const home = await readSrc("src/pages/index.astro");
+  const exploreLinks = home.match(
+    /const exploreLinks = (\[[\s\S]*?\]);\s*\n\s*const recentNotes/,
+  )?.[1];
+
+  assert.ok(exploreLinks, "homepage should define its Explore destinations once");
+  for (const [href, label] of [
+    ["/notes", "Notes"],
+    ["/blog", "Blog"],
+    ["/projects", "Projects"],
+    ["/publications", "Publications"],
+    ["/about", "About"],
+  ]) {
+    assert.match(
+      exploreLinks,
+      new RegExp(`href:\\s*["']${href}["'][\\s\\S]*?title:\\s*["']${label}["']`),
+    );
+  }
+  assert.match(home, /exploreLinks\.map/);
+  assert.match(home, /text-xs text-secondary[^>]*>{link\.description}/);
 });

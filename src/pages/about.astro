@@ -14,43 +14,6 @@ const researchInterests = [
     },
 ];
 
-const experiences = [
-    {
-        title: 'My-minimind',
-        meta: 'LLM pre-training / post-training',
-        description: 'Reproduced the MiniMind training pipeline and traced the full path from data loading and sample organization to model pre-training and post-training.',
-        href: 'https://github.com/kevin258258/My-minimind',
-    },
-    {
-        title: 'CS336: Language Modeling from Scratch',
-        meta: 'LLM architecture · ML systems',
-        description: 'Studied the Stanford course and implemented core language-model components from scratch, including a BPE tokenizer, training loop, and experiment configuration.',
-        href: 'https://github.com/kevin258258/cs336',
-    },
-    {
-        title: 'CS224N: Natural Language Processing with Deep Learning',
-        meta: 'NLP fundamentals',
-        description: 'Completed course assignments spanning word2vec, recurrent networks, attention, and Transformers.',
-        href: 'https://github.com/kevin258258/cs224n',
-    },
-    {
-        title: 'CS285: Deep Reinforcement Learning',
-        meta: 'Reinforcement learning',
-        description: 'Completed assignments and studied policy gradients, model-based RL, and modern alignment methods including PPO, DPO, TRPO, and GRPO.',
-        href: 'https://github.com/kevin258258/cs285',
-    },
-    {
-        title: 'MIT 6.S184: Flow Matching and Diffusion Models',
-        meta: 'Generative models',
-        description: 'Studied the foundations and implementation of diffusion models and flow matching.',
-        href: 'https://github.com/kevin258258/MIT-6.S184',
-    },
-    {
-        title: 'ASC Student Supercomputer Challenge',
-        meta: 'Second Prize',
-        description: 'Participated in the student supercomputing challenge as part of a team and received the second-prize award.',
-    },
-];
 ---
 
 <BaseLayout title="About">
@@ -206,7 +169,6 @@ const experiences = [
                         <div>
                             <h3 class="font-body text-lg font-semibold text-primary">Southern University of Science and Technology</h3>
                             <p class="font-sans text-sm text-secondary mt-1">Undergraduate · Academic focus in Artificial Intelligence</p>
-                            <p class="font-sans text-xs text-secondary mt-2">Freshman Fall GPA: 3.91 · Rank: 60 / 1363</p>
                         </div>
                         <span class="font-mono text-[11px] text-secondary sm:text-right">2025 – Present</span>
                     </div>
@@ -214,23 +176,7 @@ const experiences = [
 
                 <section data-animate="fade-up">
                     <h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-2 pb-2 border-b border-edge">Research &amp; Experience</h2>
-                    <div class="divide-y divide-edge">
-                        {experiences.map((experience) => (
-                            <article class="py-5 first:pt-4">
-                                <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-5">
-                                    <h3 class="font-body text-base font-semibold text-primary">
-                                        {experience.href ? (
-                                            <a href={experience.href} target="_blank" rel="noopener noreferrer" class="hover:text-accent transition-colors">
-                                                {experience.title}
-                                            </a>
-                                        ) : experience.title}
-                                    </h3>
-                                    <span class="font-mono text-[10px] text-accent shrink-0">{experience.meta}</span>
-                                </div>
-                                <p class="font-body text-sm text-secondary leading-relaxed mt-2">{experience.description}</p>
-                            </article>
-                        ))}
-                    </div>
+                    <div data-research-experience></div>
                 </section>
             </div>
         </div>
