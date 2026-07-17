@@ -1,0 +1,107 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+    const seriesEntries = await getCollection('series');
+    const notes = await getCollection('notes');
+
+    const readMin = (body?: string) => Math.max(1, Math.round((body?.length || 0) / 1000));
+
+    return seriesEntries
+        .map((entry) => {
+            const chapters = notes
+                .filter((n) => n.data.series === entry.id)
+                .sort((a, b) => (a.data.seriesOrder || 0) - (b.data.seriesOrder || 0))
+                .map((n) => ({
+                    slug: n.slug,
+                    title: n.data.title,
+                    summary: n.data.summary ?? n.data.description,
+                    pubDate: n.data.pubDate,
+                    min: readMin(n.body),
+                }));
+            return { params: { series: entry.id }, props: { entry, chapters } };
+        })
+        .filter((p) => p.props.chapters.length > 0);
+}
+
+const { entry, chapters } = Astro.props;
+const totalMin = chapters.reduce((s: number, c: any) => s + c.min, 0);
+const fmtEst = (min: number) => (min >= 60 ? `≈ ${(min / 60).toFixed(1)}H` : `≈ ${min}MIN`);
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const first = chapters[0];
+---
+
+<BaseLayout title={entry.data.title}>
+    <div class="max-w-4xl mx-auto px-6 py-14 md:py-20 min-h-screen">
+
+        <nav class="flex items-center gap-1.5 font-sans text-[11px] text-muted mb-10" aria-label="Breadcrumb">
+            <a href="/" class="hover:text-accent transition-colors">Home</a>
+            <span>/</span>
+            <a href="/notes" class="hover:text-accent transition-colors">Notes</a>
+            <span>/</span>
+            <span class="text-secondary">{entry.data.title}</span>
+        </nav>
+
+        <header class="border-l-2 border-accent-warm pl-5 md:pl-7" data-animate="fade-up">
+            <div class="font-mono text-[10px] tracking-[0.2em] text-muted">NOTES / SERIES</div>
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+                <h1 data-article-title class="font-display text-3xl md:text-5xl font-bold text-primary tracking-tight leading-[1.05]">
+                    {entry.data.title}
+                </h1>
+                {entry.data.status === 'complete'
+                    ? <span class="font-sans text-[11px] bg-primary text-paper px-2 py-1 rounded">已完结</span>
+                    : <span class="font-sans text-[11px] border border-lav text-accent-warm px-2 py-1 rounded">连载中</span>}
+            </div>
+            <p class="mt-4 font-body text-base md:text-lg text-secondary leading-relaxed max-w-2xl">
+                {entry.data.description}
+            </p>
+            <div class="mt-4 font-mono text-[11px] text-muted tracking-wider">
+                {chapters.length} 章 · {fmtEst(totalMin)}
+                {entry.data.prerequisites && <span> · 前置：{entry.data.prerequisites}</span>}
+            </div>
+        </header>
+
+        <div class="mt-12 border-t border-edge" data-animate="fade-up">
+            {chapters.map((c: any, i: number) => (
+                <a
+                    href={`/notes/${c.slug}`}
+                    data-transition="enter"
+                    data-astro-prefetch="viewport"
+                    class="group flex items-baseline gap-4 md:gap-5 py-4 border-b border-edge px-2 rounded transition-colors hover:bg-accent/5"
+                >
+                    <span class="font-mono text-xs text-accent-warm w-6 shrink-0">{pad2(i + 1)}</span>
+                    <span class="flex-1 min-w-0">
+                        <span data-fly-title class="font-body text-base text-primary group-hover:text-accent transition-colors">
+                            {c.title}
+                        </span>
+                        {c.summary && (
+                            <span class="block font-body text-xs text-secondary/90 mt-0.5 leading-relaxed">
+                                {c.summary}
+                            </span>
+                        )}
+                    </span>
+                    <span class="font-mono text-[10px] text-muted shrink-0">{c.min} MIN</span>
+                </a>
+            ))}
+        </div>
+
+        <div class="mt-10 flex flex-wrap gap-3" data-animate="fade-up">
+            <a
+                href={`/notes/${first.slug}`}
+                data-transition="enter"
+                class="inline-flex items-center gap-2 bg-primary text-paper font-sans text-sm px-4 py-2.5 rounded hover:bg-accent transition-colors"
+            >
+                从第 1 章开始
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14m0 0-7-7m7 7-7 7"/></svg>
+            </a>
+            <a
+                href="/notes"
+                class="inline-flex items-center gap-2 border border-edge text-secondary font-sans text-sm px-4 py-2.5 rounded hover:border-accent/40 hover:text-primary transition-colors"
+            >
+                返回书架
+            </a>
+        </div>
+
+    </div>
+</BaseLayout>

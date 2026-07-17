@@ -1,0 +1,177 @@
+/* ─────────────────────────────────────────────
+   Shelf cards — series cards with hover inversion.
+   Used by /notes (shelf) and the home page featured row.
+   ───────────────────────────────────────────── */
+
+.shelf-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+@media (min-width: 768px) {
+  .shelf-grid {
+    grid-template-columns: 1.35fr 1fr;
+  }
+  .shelf-card--lead {
+    grid-row: span 2;
+  }
+}
+
+.shelf-card {
+  --c-bg: rgb(var(--color-surface));
+  --c-fg: rgb(var(--color-primary));
+  --c-sub: rgb(var(--color-secondary));
+  --c-meta: rgb(var(--color-muted));
+  --c-edge: rgb(var(--color-border));
+  --c-num: rgb(var(--color-lav));
+  --c-track: rgb(30 42 94 / 0.12);
+  --c-pill-bg: rgb(var(--color-primary));
+  --c-pill-fg: rgb(var(--color-paper));
+
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: var(--c-bg);
+  border: 1px solid var(--c-edge);
+  border-radius: 0.5rem;
+  padding: 1rem 1.2rem 1.1rem;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    transform 220ms ease;
+}
+
+.shelf-card:hover {
+  --c-bg: rgb(var(--color-primary));
+  --c-fg: rgb(var(--color-paper));
+  --c-sub: rgb(var(--color-lav));
+  --c-meta: rgb(var(--color-accent-warm));
+  --c-edge: rgb(var(--color-primary));
+  --c-num: rgb(var(--color-accent-warm));
+  --c-track: rgb(250 251 254 / 0.25);
+  --c-pill-bg: rgb(var(--color-paper));
+  --c-pill-fg: rgb(var(--color-primary));
+
+  transform: translateY(-2px);
+}
+
+.shelf-num {
+  position: absolute;
+  top: -0.55rem;
+  right: 0.4rem;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  font-size: 2.4rem;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--c-num);
+  pointer-events: none;
+}
+.shelf-card--lead .shelf-num {
+  top: auto;
+  bottom: -1.4rem;
+  right: -0.3rem;
+  font-size: 5.5rem;
+  -webkit-text-stroke-width: 1.2px;
+}
+
+.shelf-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--c-meta);
+}
+
+.shelf-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  color: var(--c-fg);
+  font-size: 1.05rem;
+  line-height: 1.15;
+  margin-top: 0.4rem;
+}
+.shelf-card--lead .shelf-title {
+  font-size: 1.6rem;
+  margin-top: 0.7rem;
+}
+
+.shelf-desc {
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--c-sub);
+  margin-top: 0.35rem;
+  max-width: 92%;
+}
+.shelf-card--lead .shelf-desc {
+  font-size: 0.78rem;
+  margin-top: 0.5rem;
+}
+
+.shelf-meta-row {
+  margin-top: 0.8rem;
+}
+.shelf-card--lead .shelf-meta-row {
+  margin-top: 1.4rem;
+}
+
+.shelf-track {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--c-track);
+  overflow: hidden;
+}
+.shelf-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgb(var(--color-lav)), rgb(var(--color-accent-warm)));
+}
+
+.shelf-meta {
+  margin-top: 0.3rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: var(--c-meta);
+}
+
+.shelf-pill {
+  font-size: 0.62rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.shelf-pill--complete {
+  background: var(--c-pill-bg);
+  color: var(--c-pill-fg);
+}
+.shelf-pill--ongoing {
+  border: 1px solid rgb(var(--color-lav));
+  color: var(--c-meta);
+}
+
+.shelf-backdrop {
+  position: absolute;
+  top: -1.5rem;
+  right: -1rem;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(5rem, 16vw, 11rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgb(var(--color-lav));
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
+.shelf-filter {
+  padding: 0.3rem 0.75rem;
+  border-radius: 3px;
+  border: 1px solid rgb(var(--color-lav));
+  color: rgb(var(--color-secondary));
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+.shelf-filter.is-active {
+  background: rgb(var(--color-primary));
+  border-color: rgb(var(--color-primary));
+  color: rgb(var(--color-paper));
+}

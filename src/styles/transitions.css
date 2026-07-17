@@ -136,6 +136,12 @@ main.t0-enter-prev { animation: t0-in-prev 260ms cubic-bezier(0.16, 1, 0.3, 1); 
   will-change: transform, opacity;
 }
 
+/* ── Home hero emblem ── */
+.hero-emblem {
+  width: min(34vw, 360px);
+  margin-left: auto;
+}
+
 /* ── Degrade: reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .emblem-arc-a,

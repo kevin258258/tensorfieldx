@@ -6,6 +6,7 @@ import Giscus from '../../components/Giscus.astro';
 
 export async function getStaticPaths() {
     const posts = await getCollection('notes');
+    const seriesEntries = await getCollection('series');
     const sorted = posts.sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
     return sorted.map((post, i) => ({
         params: { slug: post.slug },
@@ -13,6 +14,9 @@ export async function getStaticPaths() {
             post,
             prev: i > 0 ? { slug: sorted[i - 1].slug, title: sorted[i - 1].data.title } : null,
             next: i < sorted.length - 1 ? { slug: sorted[i + 1].slug, title: sorted[i + 1].data.title } : null,
+            seriesEntry: post.data.series
+                ? seriesEntries.find((s) => s.id === post.data.series) ?? null
+                : null,
             seriesPosts: post.data.series
                 ? sorted
                     .filter(p => p.data.series === post.data.series)
@@ -23,7 +27,7 @@ export async function getStaticPaths() {
     }));
 }
 
-const { post, prev, next, seriesPosts } = Astro.props;
+const { post, prev, next, seriesEntry, seriesPosts } = Astro.props;
 const { Content, headings } = await post.render();
 
 const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
@@ -81,7 +85,9 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                 {post.data.series && (
                     <Fragment>
                         <span>/</span>
-                        <span class="text-secondary">{post.data.series}</span>
+                        <a href={`/notes/series/${post.data.series}`} class="text-secondary hover:text-accent transition-colors">
+                            {seriesEntry?.data.title ?? post.data.series}
+                        </a>
                     </Fragment>
                 )}
                 <span>/</span>
@@ -91,9 +97,9 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
             <header class="mb-10" data-animate="fade-up">
                 <div class="flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted mb-5">
                     {post.data.series && (
-                        <span class="text-accent bg-accent/8 px-2 py-0.5 rounded font-sans font-medium text-[11px]">
-                            {post.data.series}
-                        </span>
+                        <a href={`/notes/series/${post.data.series}`} class="text-accent bg-accent/8 px-2 py-0.5 rounded font-sans font-medium text-[11px] hover:bg-accent/15 transition-colors">
+                            {seriesEntry?.data.title ?? post.data.series}
+                        </a>
                     )}
                     <span>{post.data.pubDate.toLocaleDateString('en-CA')}</span>
                     <span>·</span>
@@ -141,7 +147,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
             {seriesPosts.length > 1 && (
                 <div class="mt-12 p-5 border border-edge rounded-lg bg-surface/50">
                     <h4 class="font-sans text-xs font-medium text-muted uppercase tracking-wider mb-3">
-                        Series: {post.data.series}
+                        Series: {seriesEntry?.data.title ?? post.data.series}
                     </h4>
                     <ol class="space-y-1.5">
                         {seriesPosts.map((sp: any, i: number) => (
@@ -177,7 +183,56 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
 
         </div>
 
-        <div class="hidden lg:block"></div>
+        <aside class="hidden lg:block h-full relative">
+            {seriesEntry && seriesPosts.length > 1 && (
+                <div class="sticky top-24 py-2 border-l border-edge pl-5">
+                    <div class="font-mono text-[10px] text-accent-warm uppercase tracking-widest leading-relaxed">
+                        {seriesEntry.data.title}
+                    </div>
+                    <div class="font-mono text-[10px] text-muted tracking-widest mt-1">
+                        {currentSeriesIdx + 1} / {seriesPosts.length} 章
+                    </div>
+                    <ol class="mt-4 space-y-2">
+                        {seriesPosts.map((sp: any, i: number) => (
+                            <li class="text-xs font-body leading-snug">
+                                {i === currentSeriesIdx ? (
+                                    <span class="text-primary font-semibold">
+                                        <span class="text-accent-warm mr-1">▸</span>{sp.title}
+                                    </span>
+                                ) : (
+                                    <a
+                                        href={`/notes/${sp.slug}`}
+                                        data-transition="series"
+                                        data-astro-prefetch="tap"
+                                        class:list={[
+                                            "hover:text-accent transition-colors line-clamp-2",
+                                            i < currentSeriesIdx ? "text-secondary" : "text-muted/70",
+                                        ]}
+                                    >
+                                        <span class="font-mono text-[10px] text-muted mr-1.5">{String(i + 1).padStart(2, '0')}</span>
+                                        {sp.title}
+                                    </a>
+                                )}
+                            </li>
+                        ))}
+                    </ol>
+                    {currentSeriesIdx < seriesPosts.length - 1 && (
+                        <a
+                            href={`/notes/${seriesPosts[currentSeriesIdx + 1].slug}`}
+                            data-transition="series"
+                            data-dir="next"
+                            data-astro-prefetch="tap"
+                            class="group block mt-5 border border-lav rounded-md p-3 hover:border-accent-warm transition-colors"
+                        >
+                            <div class="font-mono text-[9px] text-accent-warm uppercase tracking-widest">Up next</div>
+                            <div class="font-body text-xs text-primary group-hover:text-accent transition-colors mt-1 leading-snug">
+                                {seriesPosts[currentSeriesIdx + 1].title} →
+                            </div>
+                        </a>
+                    )}
+                </div>
+            )}
+        </aside>
 
     </article>
 

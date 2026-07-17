@@ -1,0 +1,7 @@
+title: "RL Mathematics"
+description: "CS285 强化学习的数学基础：从 MDP 与 Bellman 方程到策略梯度、Model-Based 与离线 RL。"
+status: "ongoing"
+order: 1
+featured: true
+plannedChapters: 10
+prerequisites: "概率论基础"

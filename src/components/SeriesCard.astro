@@ -1,0 +1,49 @@
+---
+import { fmtEst } from '../lib/series';
+
+interface Props {
+  series: {
+    slug: string;
+    title: string;
+    description: string;
+    status: 'ongoing' | 'complete';
+    planned?: number;
+    count: number;
+    totalMin: number;
+  };
+  index: number;
+  lead?: boolean;
+}
+
+const { series: s, index, lead = false } = Astro.props;
+const pad2 = (n: number) => String(n).padStart(2, '0');
+---
+
+<a
+  href={`/notes/series/${s.slug}`}
+  data-transition="enter"
+  data-astro-prefetch="viewport"
+  data-status={s.status}
+  class:list={["shelf-card", { "shelf-card--lead": lead }]}
+>
+  <span class="shelf-num" aria-hidden="true">{pad2(index + 1)}</span>
+  <div class="flex items-center justify-between gap-3">
+    <span class="shelf-label font-mono">SERIES — {s.count} CH</span>
+    {s.status === 'complete'
+      ? <span class="shelf-pill shelf-pill--complete font-sans">已完结</span>
+      : <span class="shelf-pill shelf-pill--ongoing font-sans">连载中</span>}
+  </div>
+  <h2 data-fly-title class="shelf-title">{s.title}</h2>
+  <p class="shelf-desc font-body">{s.description}</p>
+  <div class="shelf-meta-row">
+    {s.planned && (
+      <div class="shelf-track">
+        <div class="shelf-fill" style={`width: ${Math.min(100, (s.count / s.planned) * 100)}%`}></div>
+      </div>
+    )}
+    <div class="shelf-meta font-mono flex justify-between">
+      <span>{s.planned ? `${s.count}/${s.planned}` : s.count} CH</span>
+      <span>{fmtEst(s.totalMin)}</span>
+    </div>
+  </div>
+</a>

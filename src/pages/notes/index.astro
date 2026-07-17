@@ -1,122 +1,93 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import SeriesCard from '../../components/SeriesCard.astro';
 import { getCollection } from 'astro:content';
+import { buildSeriesList, readMin } from '../../lib/series';
 
 const allNotes = await getCollection('notes');
+const seriesEntries = await getCollection('series');
+const seriesList = buildSeriesList(seriesEntries, allNotes);
 
-const notes = allNotes.map(note => ({
-    slug: note.slug,
-    title: note.data.title,
-    description: note.data.description,
-    pubDate: note.data.pubDate.toISOString(),
-    tags: note.data.tags || [],
-    series: note.data.series,
-    seriesOrder: note.data.seriesOrder,
-}));
+const singles = allNotes
+    .filter((n) => !n.data.series)
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+    .map((n) => ({
+        slug: n.slug,
+        title: n.data.title,
+        pubDate: n.data.pubDate.toISOString().split('T')[0],
+        min: readMin(n.body),
+    }));
 
-const seriesGroups: Record<string, typeof notes> = {};
-const singles: typeof notes = [];
-notes.forEach(note => {
-    if (note.series) {
-        if (!seriesGroups[note.series]) seriesGroups[note.series] = [];
-        seriesGroups[note.series].push(note);
-    } else {
-        singles.push(note);
-    }
-});
-Object.values(seriesGroups).forEach(g => g.sort((a, b) => (a.seriesOrder || 0) - (b.seriesOrder || 0)));
+const ongoingCount = seriesList.filter((s) => s.status === 'ongoing').length;
+const completeCount = seriesList.length - ongoingCount;
 ---
 
-<BaseLayout title="Research Notes">
-    <div class="max-w-4xl mx-auto px-6 py-16 min-h-screen">
+<BaseLayout title="Notes">
+    <div class="relative max-w-6xl mx-auto px-6 py-14 md:py-20 min-h-screen" style="overflow-x: clip;">
 
-        <header class="mb-14" data-animate="fade-up">
-            <h1 class="text-4xl md:text-5xl font-display font-bold text-primary tracking-tight mb-4">
-                Notes
+        <div class="shelf-backdrop" aria-hidden="true">NOTES</div>
+
+        <header class="relative flex flex-wrap items-end justify-between gap-4" data-animate="fade-up">
+            <h1 class="font-display text-4xl md:text-6xl font-bold text-primary tracking-tight leading-[0.95]">
+                Notes<span class="text-accent-warm">.</span>
             </h1>
-            <p class="text-secondary font-body text-base max-w-xl leading-relaxed">
-                Technical derivations and theoretical explorations in physics, mathematics, and computer science.
-            </p>
-        </header>
-
-        <div class="w-full min-h-[400px]">
-            <div id="notes-list" class="space-y-1" data-animate="stagger-fade-up">
-                {Object.entries(seriesGroups).map(([seriesName, seriesNotes]) => (
-                    <div class="rounded-lg overflow-hidden border border-edge" data-tilt="5">
-                        <button
-                            class="series-toggle w-full flex items-center gap-3 px-4 py-3.5 transition-colors text-left group hover:bg-primary/[0.02]"
-                            data-series={seriesName}
-                        >
-                            <svg class="w-4 h-4 transition-transform text-muted series-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path d="m9 18 6-6-6-6" />
-                            </svg>
-                            <span class="font-display text-base font-semibold flex-1 text-secondary">
-                                {seriesName}
-                            </span>
-                            <span class="font-mono text-[10px] px-2 py-0.5 rounded text-muted bg-primary/[0.04]">
-                                {seriesNotes.length}
-                            </span>
-                        </button>
-                        <div class="series-content hidden border-t border-edge">
-                            {seriesNotes.map(note => (
-                                <a
-                                    href={`/notes/${note.slug}`}
-                                    data-transition="enter"
-                                    data-astro-prefetch="viewport"
-                                    class="flex items-baseline gap-4 py-3 transition-colors rounded-md px-4 pl-12 hover:bg-accent/5"
-                                >
-                                    <span class="font-mono text-[11px] w-24 shrink-0 text-muted">
-                                        {note.pubDate.split('T')[0]}
-                                    </span>
-                                    <span data-fly-title class="font-body text-[15px] text-primary/85">
-                                        {note.title}
-                                    </span>
-                                    {note.seriesOrder != null && note.seriesOrder > 0 && (
-                                        <span class="text-[10px] font-mono ml-auto text-muted">
-                                            #{note.seriesOrder}
-                                        </span>
-                                    )}
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-                {singles.map(note => (
-                    <a
-                        href={`/notes/${note.slug}`}
-                        data-transition="enter"
-                        data-astro-prefetch="viewport"
-                        class="flex items-baseline gap-4 py-3 transition-colors rounded-md px-4 hover:bg-accent/5"
-                    >
-                        <span class="font-mono text-[11px] w-24 shrink-0 text-muted">
-                            {note.pubDate.split('T')[0]}
-                        </span>
-                        <span data-fly-title class="font-body text-[15px] text-primary/85">
-                            {note.title}
-                        </span>
-                    </a>
-                ))}
+            <div class="flex gap-2 font-sans text-xs" id="shelf-filters">
+                <button data-filter="all" class="shelf-filter is-active">全部 {allNotes.length}</button>
+                <button data-filter="ongoing" class="shelf-filter">连载中 {ongoingCount}</button>
+                <button data-filter="complete" class="shelf-filter">已完结 {completeCount}</button>
             </div>
+        </header>
+        <p class="relative mt-3 font-mono text-[11px] tracking-[0.2em] text-accent-warm">
+            STRUCTURED COURSE NOTES — READ IN ORDER ▸▸
+        </p>
 
+        <div class="shelf-grid relative mt-10" data-animate="fade-up">
+            {seriesList.map((s, i) => (
+                <SeriesCard series={s} index={i} lead={i === 0} />
+            ))}
         </div>
+
+        {singles.length > 0 && (
+            <section class="relative mt-14">
+                <h2 class="font-mono text-[10px] tracking-[0.2em] text-muted border-t-2 border-primary pt-4">
+                    SINGLES — 单篇
+                </h2>
+                <div class="mt-3 divide-y divide-edge">
+                    {singles.map((n) => (
+                        <a
+                            href={`/notes/${n.slug}`}
+                            data-transition="enter"
+                            data-astro-prefetch="viewport"
+                            class="group flex items-baseline gap-4 py-3 px-2 rounded transition-colors hover:bg-accent/5"
+                        >
+                            <span class="font-mono text-[11px] w-24 shrink-0 text-muted">{n.pubDate}</span>
+                            <span data-fly-title class="font-body text-[15px] text-primary/85 group-hover:text-accent transition-colors">
+                                {n.title}
+                            </span>
+                            <span class="font-mono text-[10px] text-muted ml-auto shrink-0">{n.min} MIN</span>
+                        </a>
+                    ))}
+                </div>
+            </section>
+        )}
 
     </div>
 </BaseLayout>
 
 <script>
     function initNotesPage() {
-        document.querySelectorAll('.series-toggle').forEach(btn => {
-            (btn as HTMLButtonElement).onclick = () => {
-                const content = btn.nextElementSibling as HTMLElement;
-                const arrow = btn.querySelector('.series-arrow') as SVGElement;
-                const isOpen = !content.classList.contains('hidden');
-                content.classList.toggle('hidden');
-                arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
-                (btn as HTMLElement).style.backgroundColor = isOpen ? '' : 'rgb(var(--color-accent) / 0.04)';
-                btn.querySelector('.font-display')!.classList.toggle('text-primary', !isOpen);
-                btn.querySelector('.font-display')!.classList.toggle('text-secondary', isOpen);
-                if (!isOpen) arrow.style.color = 'rgb(var(--color-accent))';
-                else arrow.style.color = '';
+        const buttons = document.querySelectorAll<HTMLButtonElement>('#shelf-filters .shelf-filter');
+        const cards = document.querySelectorAll<HTMLElement>('.shelf-card');
+        if (!buttons.length) return;
+
+        buttons.forEach((btn) => {
+            btn.onclick = () => {
+                buttons.forEach((b) => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                const filter = btn.dataset.filter;
+                cards.forEach((card) => {
+                    card.style.display = filter === 'all' || card.dataset.status === filter ? '' : 'none';
+                });
             };
         });
     }

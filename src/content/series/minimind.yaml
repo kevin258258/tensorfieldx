@@ -1,0 +1,6 @@
+title: "MiniMind Reproduction"
+description: "从零手写一个小 LLM：RMSNorm、RoPE/YaRN、GQA、FFN 到完整架构拼装。"
+status: "complete"
+order: 2
+featured: true
+plannedChapters: 6
