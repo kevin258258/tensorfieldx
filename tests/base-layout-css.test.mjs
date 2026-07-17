@@ -36,7 +36,7 @@ test("long-form content avoids viewport virtualization that can unload note sect
   );
 });
 
-test("page background is a fixed flat-color layer driven by design tokens", async () => {
+test("page background keeps a fixed token-driven warm paper layer", async () => {
   const tokens = await readSrc("src/styles/tokens.css");
   const layout = await readSrc("src/layouts/BaseLayout.astro");
 
@@ -46,17 +46,10 @@ test("page background is a fixed flat-color layer driven by design tokens", asyn
     "background layer should be fixed to the viewport so it does not repaint with article content",
   );
 
-  assert.match(
-    tokens,
-    /\.page-background\s*\{[\s\S]*?background:\s*rgb\(var\(--color-paper\)\)/,
-    "background layer should use the paper design token (flat cool white, no texture)",
-  );
-
-  assert.doesNotMatch(
-    tokens + layout,
-    /paper-texture/,
-    "paper texture asset was removed with the warm-paper design language",
-  );
+  assert.match(tokens, /\.page-background\s*\{[\s\S]*?linear-gradient\(rgb\(var\(--color-paper\)\)/,
+    "background gradient should be anchored by the paper design token");
+  assert.match(tokens, /paper-texture\.webp/,
+    "the restored visual reference uses the subtle paper texture");
 
   assert.match(
     layout,
@@ -65,15 +58,18 @@ test("page background is a fixed flat-color layer driven by design tokens", asyn
   );
 });
 
-test("dark mode and theme switching are fully removed (light-first redesign)", async () => {
+test("class-based dark mode is restored without external dependencies", async () => {
   const layout = await readSrc("src/layouts/BaseLayout.astro");
   const nav = await readSrc("src/components/chrome/SiteNav.astro");
 
-  assert.doesNotMatch(
-    layout + nav,
-    /theme-toggle|localStorage\.getItem\(['"]theme['"]\)|classList\.toggle\(['"]dark['"]/,
-    "no theme toggle or dark-class logic should remain after the light-first redesign",
-  );
+  assert.match(layout, /localStorage\.getItem\(['"]theme['"]\)/,
+    "theme should be applied before paint from the local preference");
+  assert.match(layout, /astro:before-swap[\s\S]*newDocument\.documentElement/,
+    "theme should be applied to the incoming root before Astro swaps its attributes");
+  assert.match(nav, /id="theme-toggle"/,
+    "navigation should expose the restored light\/dark control");
+  assert.match(nav, /classList\.toggle\(['"]dark['"]\)/,
+    "theme control should toggle the dark class without a framework runtime");
 });
 
 test("typography does not force system-font fallbacks on mobile", async () => {
@@ -188,23 +184,33 @@ test("react island dependencies are gone from package.json", async () => {
   }
 });
 
-test("design tokens define the lavender auxiliary color", async () => {
+test("restored visual tokens do not retain the purple redesign accent", async () => {
   const tokens = await readSrc("src/styles/tokens.css");
+  const tailwind = await readSrc("tailwind.config.mjs");
 
-  assert.match(
-    tokens,
-    /--color-lav:\s*201 193 240;/,
-    "tokens.css should define --color-lav (#C9C1F0) as the lavender auxiliary token",
+  assert.doesNotMatch(
+    tokens + tailwind,
+    /color-lav|\blav\s*:/,
+    "legacy lavender tokens should not leak back into restored warm-paper pages",
   );
 });
 
-test("transition overlay is persistent and wired to the engine", async () => {
+test("large geometric section transition is removed while lightweight transitions stay wired", async () => {
   const layout = await readSrc("src/layouts/BaseLayout.astro");
+  const transitions = await readSrc("src/scripts/transitions.ts");
+  const nav = await readSrc("src/components/chrome/SiteNav.astro");
+  const home = await readSrc("src/pages/index.astro");
 
-  assert.match(
-    layout,
-    /id="page-transition-overlay"\s+transition:persist/,
-    "the transition overlay must survive client-side swaps via transition:persist",
+  assert.doesNotMatch(
+    layout + transitions,
+    /page-transition-overlay|t-emblem-wrap|playSection|outroSection/,
+    "top-level navigation should not render or drive the full-screen geometric overlay",
+  );
+
+  assert.doesNotMatch(
+    nav + home + transitions,
+    /data-transition="section"|"section"/,
+    "top-level links should fall through to Astro's lightweight client navigation",
   );
 
   assert.match(
@@ -214,16 +220,9 @@ test("transition overlay is persistent and wired to the engine", async () => {
   );
 });
 
-test("links declare their transition tier at render time", async () => {
-  const nav = await readSrc("src/components/chrome/SiteNav.astro");
+test("article links declare the remaining lightweight transition tiers", async () => {
   const notesDetail = await readSrc("src/pages/notes/[...slug].astro");
   const notesIndex = await readSrc("src/pages/notes/index.astro");
-
-  assert.match(
-    nav,
-    /data-transition="section"/,
-    "top-level nav links should request the L2 section show",
-  );
 
   assert.match(
     notesDetail,

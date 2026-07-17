@@ -1,26 +1,23 @@
 /**
- * 3-tier transition engine (see src/styles/transitions.css for visuals).
+ * Lightweight transition engine (see src/styles/transitions.css for visuals).
  *
  * Tiers are declared at render time via link attributes:
  *   data-transition="series"  — L0: in-series reading (fast drift + crossfade)
  *   data-transition="enter"   — L1: list → article (title FLIP)
- *   data-transition="section" — L2: top-level nav (emblem show + inversion flash)
  *
  * Unannotated navigations fall back to plain swaps; popstate gets a light L0.
  * Everything degrades to plain swaps under prefers-reduced-motion.
  */
 import { navigate } from "astro:transitions/client";
 
-type Tier = "series" | "enter" | "section";
+type Tier = "series" | "enter";
 type Dir = "next" | "prev";
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 let managed = false; // true while this engine drives a navigation
-let token = 0; // cancellation token for the L2 show
 let pendingL0: Dir | null = null;
-let pendingOutro = false;
 let pendingFly: {
   text: string;
   rect: DOMRect;
@@ -34,7 +31,6 @@ let pendingFly: {
 } | null = null;
 
 const html = () => document.documentElement;
-const overlay = () => document.getElementById("page-transition-overlay");
 const main = () => document.querySelector("main.page-shell");
 
 function snapshotTitle(el: HTMLElement) {
@@ -50,78 +46,6 @@ function snapshotTitle(el: HTMLElement) {
     lineHeight: cs.lineHeight,
     color: cs.color,
   };
-}
-
-/* ── L2 · section show ── */
-async function playSection(href: string) {
-  const ov = overlay();
-  if (!ov) return navigate(href);
-
-  const my = ++token;
-  managed = true;
-  ov.classList.remove("is-inverted");
-  ov.classList.add("is-active");
-  html().classList.add("is-tx");
-
-  const wrap = ov.querySelector(".t-emblem-wrap") as HTMLElement;
-  const corners = ov.querySelector(".emblem-corners") as unknown as SVGElement;
-
-  wrap.getAnimations().forEach((a) => a.cancel());
-  wrap.animate(
-    [
-      { transform: "scale(0.32)", opacity: 0 },
-      { transform: "scale(1)", opacity: 1 },
-    ],
-    { duration: 320, easing: "cubic-bezier(.16,1,.3,1)", fill: "forwards" },
-  );
-  corners?.animate([{ opacity: 0 }, { opacity: 1 }], {
-    duration: 260,
-    delay: 120,
-    easing: "ease-out",
-    fill: "forwards",
-  });
-
-  await wait(470);
-  if (my !== token) return;
-
-  // Inversion flash — hard cut, then navigate underneath the ink cover.
-  ov.classList.add("is-inverted");
-  await wait(130);
-  if (my !== token) return;
-
-  pendingOutro = true;
-  navigate(href);
-}
-
-async function outroSection() {
-  const ov = overlay();
-  if (!ov) return;
-  const my = token;
-  await wait(70);
-  if (my !== token) return;
-
-  const wrap = ov.querySelector(".t-emblem-wrap") as HTMLElement;
-  const bg = ov.querySelector(".t-overlay-bg") as HTMLElement;
-
-  wrap.getAnimations().forEach((a) => a.cancel());
-  wrap.animate(
-    [
-      { transform: "scale(1.14)", opacity: 1 },
-      { transform: "scale(0.24)", opacity: 0 },
-    ],
-    { duration: 340, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" },
-  );
-  bg.animate([{ opacity: 1 }, { opacity: 0 }], {
-    duration: 380,
-    delay: 60,
-    easing: "ease",
-    fill: "forwards",
-  });
-
-  await wait(520);
-  if (my !== token) return;
-  ov.classList.remove("is-active", "is-inverted");
-  html().classList.remove("is-tx");
 }
 
 /* ── L0 · series drift ── */
@@ -203,11 +127,10 @@ function onClick(e: MouseEvent) {
   if (url.pathname === window.location.pathname) return; // same-page / hash
 
   const tier = a.dataset.transition as Tier;
-  if (reduced() || (tier !== "series" && tier !== "enter" && tier !== "section")) return;
+  if (reduced() || (tier !== "series" && tier !== "enter")) return;
 
   e.preventDefault();
-  if (tier === "section") void playSection(a.href);
-  else if (tier === "series") void playSeries(a.href, a.dataset.dir === "prev" ? "prev" : "next");
+  if (tier === "series") void playSeries(a.href, a.dataset.dir === "prev" ? "prev" : "next");
   else playEnter(a.href, a);
 }
 
@@ -222,13 +145,6 @@ function onBeforePreparation(e: Event) {
 }
 
 function onAfterSwap() {
-  if (pendingOutro) {
-    pendingOutro = false;
-    managed = false;
-    void outroSection();
-    return;
-  }
-
   if (pendingL0) {
     const dir = pendingL0;
     pendingL0 = null;

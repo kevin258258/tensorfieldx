@@ -23,34 +23,35 @@ const completeCount = seriesList.length - ongoingCount;
 ---
 
 <BaseLayout title="Notes">
-    <div class="relative max-w-6xl mx-auto px-6 py-14 md:py-20 min-h-screen" style="overflow-x: clip;">
+    <div class="max-w-4xl mx-auto px-6 py-16 min-h-screen">
 
-        <div class="shelf-backdrop" aria-hidden="true">NOTES</div>
-
-        <header class="relative flex flex-wrap items-end justify-between gap-4" data-animate="fade-up">
-            <h1 class="font-display text-4xl md:text-6xl font-bold text-primary tracking-tight leading-[0.95]">
-                Notes<span class="text-accent-warm">.</span>
+        <header class="mb-10" data-animate="fade-up">
+            <h1 class="text-4xl md:text-5xl font-display font-bold text-primary tracking-tight mb-4">
+                Notes
             </h1>
-            <div class="flex gap-2 font-sans text-xs" id="shelf-filters">
-                <button data-filter="all" class="shelf-filter is-active">全部 {allNotes.length}</button>
-                <button data-filter="ongoing" class="shelf-filter">连载中 {ongoingCount}</button>
-                <button data-filter="complete" class="shelf-filter">已完结 {completeCount}</button>
-            </div>
+            <p class="text-secondary font-body text-base max-w-xl leading-relaxed">
+                Technical derivations and structured course notes in physics, mathematics, and computer science.
+            </p>
         </header>
-        <p class="relative mt-3 font-mono text-[11px] tracking-[0.2em] text-accent-warm">
-            STRUCTURED COURSE NOTES — READ IN ORDER ▸▸
-        </p>
 
-        <div class="shelf-grid relative mt-10" data-animate="fade-up">
+        <div class="flex justify-end mb-6 border-b border-edge pb-3">
+            <div class="flex flex-wrap gap-1 font-sans text-xs" id="shelf-filters">
+                <button data-filter="all" class="shelf-filter is-active">All {allNotes.length}</button>
+                <button data-filter="ongoing" class="shelf-filter">Ongoing {ongoingCount}</button>
+                <button data-filter="complete" class="shelf-filter">Complete {completeCount}</button>
+            </div>
+        </div>
+
+        <div class="shelf-grid" data-animate="stagger-fade-up">
             {seriesList.map((s, i) => (
-                <SeriesCard series={s} index={i} lead={i === 0} />
+                <SeriesCard series={s} index={i} />
             ))}
         </div>
 
         {singles.length > 0 && (
-            <section class="relative mt-14">
-                <h2 class="font-mono text-[10px] tracking-[0.2em] text-muted border-t-2 border-primary pt-4">
-                    SINGLES — 单篇
+            <section class="mt-14">
+                <h2 class="font-mono text-[10px] uppercase tracking-widest text-muted border-b border-edge pb-3">
+                    Single Notes
                 </h2>
                 <div class="mt-3 divide-y divide-edge">
                     {singles.map((n) => (

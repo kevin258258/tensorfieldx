@@ -1,177 +1,115 @@
-/* ─────────────────────────────────────────────
-   Shelf cards — series cards with hover inversion.
-   Used by /notes (shelf) and the home page featured row.
-   ───────────────────────────────────────────── */
-
+/* Series-first information architecture in the quieter 094b30b card language. */
 .shelf-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
-@media (min-width: 768px) {
-  .shelf-grid {
-    grid-template-columns: 1.35fr 1fr;
-  }
-  .shelf-card--lead {
-    grid-row: span 2;
-  }
+
+@media (min-width: 720px) {
+  .shelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .shelf-card {
-  --c-bg: rgb(var(--color-surface));
-  --c-fg: rgb(var(--color-primary));
-  --c-sub: rgb(var(--color-secondary));
-  --c-meta: rgb(var(--color-muted));
-  --c-edge: rgb(var(--color-border));
-  --c-num: rgb(var(--color-lav));
-  --c-track: rgb(30 42 94 / 0.12);
-  --c-pill-bg: rgb(var(--color-primary));
-  --c-pill-fg: rgb(var(--color-paper));
-
-  display: block;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 190px;
   overflow: hidden;
-  background: var(--c-bg);
-  border: 1px solid var(--c-edge);
-  border-radius: 0.5rem;
-  padding: 1rem 1.2rem 1.1rem;
-  transition:
-    background-color 220ms ease,
-    border-color 220ms ease,
-    transform 220ms ease;
+  padding: 1.2rem 1.25rem 1.1rem;
+  border: 1px solid rgb(var(--color-border));
+  border-radius: 0.55rem;
+  background: rgb(var(--color-surface) / 0.42);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.28) inset;
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
 }
 
 .shelf-card:hover {
-  --c-bg: rgb(var(--color-primary));
-  --c-fg: rgb(var(--color-paper));
-  --c-sub: rgb(var(--color-lav));
-  --c-meta: rgb(var(--color-accent-warm));
-  --c-edge: rgb(var(--color-primary));
-  --c-num: rgb(var(--color-accent-warm));
-  --c-track: rgb(250 251 254 / 0.25);
-  --c-pill-bg: rgb(var(--color-paper));
-  --c-pill-fg: rgb(var(--color-primary));
+  border-color: rgb(var(--color-accent) / 0.3);
+  background: rgb(var(--color-accent) / 0.035);
+  box-shadow: 0 8px 24px rgb(55 45 35 / 0.045);
+}
 
-  transform: translateY(-2px);
+.dark .shelf-card {
+  background: rgb(var(--color-surface) / 0.58);
+  box-shadow: none;
 }
 
 .shelf-num {
-  position: absolute;
-  top: -0.55rem;
-  right: 0.4rem;
-  font-family: "Playfair Display", Georgia, serif;
-  font-weight: 700;
-  font-size: 2.4rem;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--c-num);
-  pointer-events: none;
-}
-.shelf-card--lead .shelf-num {
-  top: auto;
-  bottom: -1.4rem;
-  right: -0.3rem;
-  font-size: 5.5rem;
-  -webkit-text-stroke-width: 1.2px;
+  display: none;
 }
 
 .shelf-label {
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
-  color: var(--c-meta);
+  padding-right: 0.5rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: rgb(var(--color-muted));
 }
 
 .shelf-title {
+  margin-top: 0.72rem;
+  padding-right: 1rem;
   font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: var(--c-fg);
-  font-size: 1.05rem;
-  line-height: 1.15;
-  margin-top: 0.4rem;
+  line-height: 1.18;
+  color: rgb(var(--color-primary));
+  transition: color 180ms ease;
 }
-.shelf-card--lead .shelf-title {
-  font-size: 1.6rem;
-  margin-top: 0.7rem;
-}
+
+.shelf-card:hover .shelf-title { color: rgb(var(--color-accent)); }
 
 .shelf-desc {
-  font-size: 0.72rem;
-  line-height: 1.6;
-  color: var(--c-sub);
-  margin-top: 0.35rem;
-  max-width: 92%;
-}
-.shelf-card--lead .shelf-desc {
-  font-size: 0.78rem;
-  margin-top: 0.5rem;
+  margin-top: 0.45rem;
+  max-width: 95%;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: rgb(var(--color-secondary));
 }
 
-.shelf-meta-row {
-  margin-top: 0.8rem;
-}
-.shelf-card--lead .shelf-meta-row {
-  margin-top: 1.4rem;
-}
-
+.shelf-meta-row { margin-top: auto; padding-top: 1rem; }
 .shelf-track {
-  height: 5px;
-  border-radius: 3px;
-  background: var(--c-track);
+  height: 3px;
   overflow: hidden;
+  border-radius: 2px;
+  background: rgb(var(--color-primary) / 0.08);
 }
 .shelf-fill {
   height: 100%;
-  border-radius: 3px;
-  background: linear-gradient(90deg, rgb(var(--color-lav)), rgb(var(--color-accent-warm)));
+  border-radius: 2px;
+  background: rgb(var(--color-accent) / 0.62);
 }
-
 .shelf-meta {
-  margin-top: 0.3rem;
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  color: var(--c-meta);
+  margin-top: 0.4rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.07em;
+  color: rgb(var(--color-muted));
 }
 
 .shelf-pill {
-  font-size: 0.62rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 3px;
+  flex: none;
+  padding: 0.14rem 0.46rem;
+  border-radius: 999px;
+  font-size: 0.58rem;
   white-space: nowrap;
 }
 .shelf-pill--complete {
-  background: var(--c-pill-bg);
-  color: var(--c-pill-fg);
+  color: rgb(var(--color-secondary));
+  background: rgb(var(--color-primary) / 0.055);
 }
 .shelf-pill--ongoing {
-  border: 1px solid rgb(var(--color-lav));
-  color: var(--c-meta);
-}
-
-.shelf-backdrop {
-  position: absolute;
-  top: -1.5rem;
-  right: -1rem;
-  font-family: "Playfair Display", Georgia, serif;
-  font-weight: 700;
-  font-size: clamp(5rem, 16vw, 11rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: transparent;
-  -webkit-text-stroke: 1.5px rgb(var(--color-lav));
-  opacity: 0.5;
-  pointer-events: none;
-  user-select: none;
+  color: rgb(var(--color-accent));
+  background: rgb(var(--color-accent) / 0.07);
+  border: 1px solid rgb(var(--color-accent) / 0.14);
 }
 
 .shelf-filter {
-  padding: 0.3rem 0.75rem;
-  border-radius: 3px;
-  border: 1px solid rgb(var(--color-lav));
-  color: rgb(var(--color-secondary));
-  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+  padding: 0.34rem 0.72rem;
+  border-radius: 0.35rem;
+  color: rgb(var(--color-muted));
+  transition: color 160ms ease, background-color 160ms ease;
 }
+.shelf-filter:hover { color: rgb(var(--color-primary)); }
 .shelf-filter.is-active {
-  background: rgb(var(--color-primary));
-  border-color: rgb(var(--color-primary));
-  color: rgb(var(--color-paper));
+  color: rgb(var(--color-accent));
+  background: rgb(var(--color-accent) / 0.08);
 }
