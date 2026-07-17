@@ -24,7 +24,11 @@
   --color-border: 55 53 50;
 }
 
-html { touch-action: manipulation; }
+html {
+  touch-action: manipulation;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
 a, button, input, [role="button"] { touch-action: manipulation; }
 
 body { background: transparent; }
@@ -69,13 +73,6 @@ body { background: transparent; }
 ::selection {
   background: rgb(var(--color-accent) / 0.2);
   color: rgb(var(--color-primary));
-}
-
-.theme-switching *,
-.theme-switching *::before,
-.theme-switching *::after {
-  transition: none !important;
-  animation: none !important;
 }
 
 /* Quiet chrome: the old version changed color rather than shifting geometry. */
@@ -178,19 +175,64 @@ dialog.lightbox .lightbox-close {
 }
 dialog.lightbox .lightbox-close:hover { opacity: 1; }
 
-.katex-display {
+.reading-prose {
+  min-width: 0;
+  max-width: 100%;
+  contain: inline-size;
+  overflow-wrap: anywhere;
+}
+
+.reading-prose :where(img, video, iframe) {
+  max-width: 100%;
+  height: auto;
+}
+
+.reading-prose :where(pre, .katex-display) {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.reading-prose .katex-display {
+  width: 100%;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
+  overscroll-behavior-inline: contain;
   padding: 1rem 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.katex-display::-webkit-scrollbar { display: none; }
+.reading-prose .katex-display::-webkit-scrollbar { display: none; }
 .dark .katex { color: rgb(var(--color-primary)); }
 
+@media (max-width: 1279px) {
+  .reading-prose { overflow-x: clip; }
+  .reading-prose table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 @media (max-width: 640px) {
-  .katex-display .katex { font-size: 0.9em; }
+  .transition-colors,
+  .transition-all,
+  .ui-brand-link,
+  .ui-nav-link,
+  .ui-text-link,
+  .ui-icon-btn { transition: none !important; }
+  .page-shell { animation: none; }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .reading-prose .katex-display { padding: 0.75rem 0; }
+  .reading-prose .katex-display .katex { font-size: 0.86em; }
 }
 
 @media (prefers-reduced-motion: reduce) {

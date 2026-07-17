@@ -27,31 +27,31 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
 
 <BaseLayout title={post.data.title} needsKatex>
 
-    <article class="max-w-3xl mx-auto px-6 py-16">
+    <article class="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16 min-w-0">
 
-        <nav class="flex items-center gap-1.5 font-sans text-[11px] text-muted mb-6" aria-label="Breadcrumb">
+        <nav class="flex items-center gap-1.5 font-sans text-[11px] text-muted mb-5 sm:mb-6 min-w-0 overflow-hidden whitespace-nowrap" aria-label="Breadcrumb">
             <a href="/" class="hover:text-accent transition-colors">Home</a>
             <span>/</span>
             <a href="/blog" class="hover:text-accent transition-colors">Blog</a>
-            <span>/</span>
-            <span class="text-primary truncate max-w-[200px]">{post.data.title}</span>
+            <span class="hidden sm:inline">/</span>
+            <span class="hidden sm:block text-primary truncate max-w-[200px]">{post.data.title}</span>
         </nav>
 
-        <header class="mb-10" data-animate="fade-up">
+        <header class="mb-8 sm:mb-10" data-animate="fade-up">
             <div class="flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted mb-5">
                 <span>{post.data.pubDate.toLocaleDateString('en-CA')}</span>
                 <span>·</span>
                 <span>{readTime} min read</span>
             </div>
 
-            <h1 data-article-title class="text-3xl md:text-5xl font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
+            <h1 data-article-title class="text-[1.75rem] sm:text-3xl md:text-5xl font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
                 {post.data.title}
             </h1>
 
             {post.data.tags && (
                 <div class="flex flex-wrap gap-2">
                     {post.data.tags.map((tag: string) => (
-                        <a href={`/tags/${tag}`} class="text-xs font-sans text-muted border border-edge px-2.5 py-1.5 md:px-2 md:py-0.5 rounded hover:text-accent hover:border-accent/30 transition-colors">
+                        <a href={`/tags/${tag}`} class="min-h-[36px] inline-flex items-center text-xs font-sans text-secondary border border-edge px-2.5 py-1.5 md:px-2 md:py-0.5 rounded hover:text-accent hover:border-accent/30 transition-colors">
                             {tag}
                         </a>
                     ))}
@@ -59,8 +59,9 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
             )}
         </header>
 
-        <div class="prose prose-lg max-w-none
+        <div class="reading-prose prose prose-base md:prose-lg max-w-none
             prose-headings:font-display prose-headings:font-bold prose-headings:text-primary
+            prose-h1:text-3xl md:prose-h1:text-4xl prose-h2:text-2xl md:prose-h2:text-3xl prose-h3:text-xl md:prose-h3:text-2xl
             prose-p:font-body prose-p:text-primary/85 prose-p:leading-[1.85]
             prose-strong:text-primary
             prose-a:text-accent prose-a:no-underline prose-a:border-b prose-a:border-accent/30 hover:prose-a:border-accent prose-a:transition-colors

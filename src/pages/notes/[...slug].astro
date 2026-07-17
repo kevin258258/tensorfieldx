@@ -45,7 +45,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
         <div class="h-full bg-accent/60 w-[0%] transition-[width] duration-100" id="progress-bar"></div>
     </div>
 
-    <article class="max-w-[90rem] mx-auto mt-8 lg:mt-16 grid grid-cols-1 lg:grid-cols-[220px_1fr_220px] gap-8 px-4 lg:px-8 pb-24">
+    <article class="max-w-[90rem] mx-auto mt-6 sm:mt-8 lg:mt-16 grid grid-cols-1 lg:grid-cols-[220px_1fr_220px] gap-6 lg:gap-8 px-4 lg:px-8 pb-24 min-w-0">
 
         <aside class="hidden lg:block h-full relative">
             <div class="sticky top-24 py-2" id="toc-sidebar">
@@ -78,26 +78,26 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
 
         <div class="min-w-0 relative">
 
-            <nav class="flex items-center gap-1.5 font-sans text-[11px] text-muted mb-6 max-w-[68ch] mx-auto" aria-label="Breadcrumb">
+            <nav class="flex items-center gap-1.5 font-sans text-[11px] text-muted mb-5 sm:mb-6 max-w-[68ch] mx-auto min-w-0 overflow-hidden whitespace-nowrap" aria-label="Breadcrumb">
                 <a href="/" class="hover:text-accent transition-colors">Home</a>
                 <span>/</span>
                 <a href="/notes" class="hover:text-accent transition-colors">Notes</a>
                 {post.data.series && (
                     <Fragment>
                         <span>/</span>
-                        <a href={`/notes/series/${post.data.series}`} class="text-secondary hover:text-accent transition-colors">
+                        <a href={`/notes/series/${post.data.series}`} class="text-secondary hover:text-accent transition-colors truncate max-w-[9rem] sm:max-w-none">
                             {seriesEntry?.data.title ?? post.data.series}
                         </a>
                     </Fragment>
                 )}
-                <span>/</span>
-                <span class="text-primary truncate max-w-[200px]">{post.data.title}</span>
+                <span class="hidden sm:inline">/</span>
+                <span class="hidden sm:block text-primary truncate max-w-[200px]">{post.data.title}</span>
             </nav>
 
             <header class="mb-10 max-w-[68ch] mx-auto" data-animate="fade-up">
                 <div class="flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted mb-5">
                     {post.data.series && (
-                        <a href={`/notes/series/${post.data.series}`} class="text-accent bg-accent/8 px-2 py-0.5 rounded font-sans font-medium text-[11px] hover:bg-accent/15 transition-colors">
+                        <a href={`/notes/series/${post.data.series}`} class="min-h-[36px] inline-flex items-center text-accent bg-accent/8 px-2.5 py-1.5 sm:px-2 sm:py-0.5 rounded font-sans font-medium text-[11px] hover:bg-accent/15 transition-colors">
                             {seriesEntry?.data.title ?? post.data.series}
                         </a>
                     )}
@@ -106,14 +106,14 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                     <span>{readTime} min read</span>
                 </div>
 
-                <h1 data-article-title class="text-3xl md:text-5xl lg:text-[3.25rem] font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
+                <h1 data-article-title class="text-[1.75rem] sm:text-3xl md:text-5xl lg:text-[3.25rem] font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
                     {post.data.title}
                 </h1>
 
                 {post.data.tags && (
                     <div class="flex flex-wrap gap-2">
                         {post.data.tags.map((tag: string) => (
-                            <a href={`/tags/${tag}`} class="text-xs font-sans text-muted border border-edge px-2.5 py-1.5 md:px-2 md:py-0.5 rounded hover:text-accent hover:border-accent/30 transition-colors">
+                            <a href={`/tags/${tag}`} class="min-h-[36px] inline-flex items-center text-xs font-sans text-secondary border border-edge px-2.5 py-1.5 md:px-2 md:py-0.5 rounded hover:text-accent hover:border-accent/30 transition-colors">
                                 {tag}
                             </a>
                         ))}
@@ -121,8 +121,9 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                 )}
             </header>
 
-            <div class="prose prose-lg max-w-[68ch] mx-auto
+            <div class="reading-prose prose prose-base md:prose-lg max-w-[68ch] mx-auto
                 prose-headings:font-display prose-headings:font-bold prose-headings:text-primary prose-headings:scroll-mt-24
+                prose-h1:text-3xl md:prose-h1:text-4xl prose-h2:text-2xl md:prose-h2:text-3xl prose-h3:text-xl md:prose-h3:text-2xl
                 prose-p:font-body prose-p:text-primary/85 prose-p:leading-[1.85]
                 prose-strong:text-primary prose-strong:font-bold
                 prose-a:text-accent prose-a:no-underline prose-a:border-b prose-a:border-accent/30 hover:prose-a:border-accent prose-a:transition-colors
@@ -132,7 +133,7 @@ const mobileHeadingsJson = JSON.stringify(headings.map((heading) => ({
                 prose-pre:bg-surface prose-pre:border prose-pre:border-edge prose-pre:rounded-lg
                 prose-img:rounded prose-img:border prose-img:border-edge
                 prose-hr:border-edge
-                overflow-visible relative">
+                relative">
 
                 <Content components={{ Sidenote }} />
 

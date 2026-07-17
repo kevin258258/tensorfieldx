@@ -106,11 +106,9 @@ const navLinks = [
       };
       syncThemeToggle();
       themeToggle.onclick = () => {
-        root.classList.add('theme-switching');
         const isDark = root.classList.toggle('dark');
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
         syncThemeToggle();
-        requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('theme-switching')));
       };
     }
 

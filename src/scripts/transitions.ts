@@ -14,7 +14,10 @@ type Tier = "series" | "enter";
 type Dir = "next" | "prev";
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduced = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+  window.matchMedia("(max-width: 640px)").matches ||
+  window.matchMedia("(pointer: coarse)").matches;
 
 let managed = false; // true while this engine drives a navigation
 let pendingL0: Dir | null = null;
