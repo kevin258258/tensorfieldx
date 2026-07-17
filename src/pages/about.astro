@@ -1,25 +1,59 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-const contacts = [
-    { label: "GitHub", value: "@kevin258258", url: "https://github.com/kevin258258" },
-    { label: "X", value: "@Feixiang_Tao", url: "https://x.com/Feixiang_Tao" },
-    { label: "Zhihu", value: "Three-23-89", url: "https://www.zhihu.com/people/three-23-89" },
-    { label: "Email", value: "12512619@mail.sustech.edu.cn", url: "mailto:12512619@mail.sustech.edu.cn" }
+const researchInterests = [
+    {
+        title: 'Agentic Reinforcement Learning',
+        description: 'How autonomous agents learn to reason, plan, use tools, and coordinate through interaction and feedback, especially in long-horizon and multi-agent settings.',
+        icon: 'agent',
+    },
+    {
+        title: 'Learning Theory',
+        description: 'The principles behind modern learning systems, including optimization, generalization, interpretability, and reliable decision-making.',
+        icon: 'theory',
+    },
 ];
 
-const interests = [
-    "Differential Geometry",
-    "Statistical Mechanics",
-    "Deep Learning",
-    "Matrix Calculus",
-    "System Architecture",
+const experiences = [
+    {
+        title: 'My-minimind',
+        meta: 'LLM pre-training / post-training',
+        description: 'Reproduced the MiniMind training pipeline and traced the full path from data loading and sample organization to model pre-training and post-training.',
+        href: 'https://github.com/kevin258258/My-minimind',
+    },
+    {
+        title: 'CS336: Language Modeling from Scratch',
+        meta: 'LLM architecture · ML systems',
+        description: 'Studied the Stanford course and implemented core language-model components from scratch, including a BPE tokenizer, training loop, and experiment configuration.',
+        href: 'https://github.com/kevin258258/cs336',
+    },
+    {
+        title: 'CS224N: Natural Language Processing with Deep Learning',
+        meta: 'NLP fundamentals',
+        description: 'Completed course assignments spanning word2vec, recurrent networks, attention, and Transformers.',
+        href: 'https://github.com/kevin258258/cs224n',
+    },
+    {
+        title: 'CS285: Deep Reinforcement Learning',
+        meta: 'Reinforcement learning',
+        description: 'Completed assignments and studied policy gradients, model-based RL, and modern alignment methods including PPO, DPO, TRPO, and GRPO.',
+        href: 'https://github.com/kevin258258/cs285',
+    },
+    {
+        title: 'MIT 6.S184: Flow Matching and Diffusion Models',
+        meta: 'Generative models',
+        description: 'Studied the foundations and implementation of diffusion models and flow matching.',
+        href: 'https://github.com/kevin258258/MIT-6.S184',
+    },
+    {
+        title: 'ASC Student Supercomputer Challenge',
+        meta: 'Second Prize',
+        description: 'Participated in the student supercomputing challenge as part of a team and received the second-prize award.',
+    },
 ];
 ---
 
 <BaseLayout title="About">
-
-    <!-- Hero banner with photo -->
     <div class="relative h-48 md:h-72 overflow-hidden" data-animate="fade-in">
         <img
             src="/images/IMG_0511.webp"
@@ -30,90 +64,175 @@ const interests = [
         />
         <div class="absolute inset-0 bg-gradient-to-t from-paper via-paper/40 to-transparent"></div>
         <div class="absolute inset-0 flex items-end">
-            <div class="max-w-4xl mx-auto px-6 pb-8 w-full">
+            <div class="max-w-5xl mx-auto px-6 pb-8 w-full">
                 <h1 class="font-display text-4xl md:text-5xl font-bold text-primary tracking-tight">About</h1>
             </div>
         </div>
     </div>
 
-    <div class="max-w-4xl mx-auto px-6 py-16">
-        <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-16 items-start">
-
-            <aside data-animate="slide-right">
-                <div class="w-20 h-20 bg-accent text-white flex items-center justify-center text-4xl font-display italic font-bold rounded-xl mb-6">
+    <div class="max-w-5xl mx-auto px-6 py-14 md:py-20">
+        <div class="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-12 md:gap-16 items-start">
+            <aside class="md:sticky md:top-24" data-animate="slide-right">
+                <div class="w-20 h-20 bg-accent text-white flex items-center justify-center text-4xl font-display italic font-bold rounded-xl mb-5" aria-hidden="true">
                     T
                 </div>
 
                 <h2 class="font-display text-2xl font-bold text-primary mb-1">Feixiang Tao</h2>
-                <p class="font-sans text-sm text-accent font-medium mb-6">Freshman @ SUSTech</p>
+                <p class="font-sans text-sm text-accent font-medium">Undergraduate @ SUSTech</p>
 
-                <div class="space-y-3 font-sans text-sm border-t border-edge pt-6">
-                    <div class="flex justify-between">
-                        <span class="text-muted">Major</span>
-                        <span class="text-secondary">TBD</span>
+                <div class="flex items-center gap-1 mt-5" aria-label="Contact links">
+                    <a
+                        href="mailto:12512619@mail.sustech.edu.cn"
+                        aria-label="Email"
+                        title="Email"
+                        class="ui-icon-btn w-11 h-11 inline-flex items-center justify-center rounded-md text-primary hover:text-accent hover:bg-accent/5"
+                    >
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/>
+                        </svg>
+                    </a>
+                    <a
+                        href="https://github.com/kevin258258"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="GitHub"
+                        title="GitHub"
+                        class="ui-icon-btn w-11 h-11 inline-flex items-center justify-center rounded-md text-primary hover:text-accent hover:bg-accent/5"
+                    >
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 2C6.477 2 2 6.588 2 12.253c0 4.532 2.865 8.376 6.839 9.733.5.095.682-.222.682-.493 0-.243-.009-.888-.014-1.743-2.782.619-3.369-1.374-3.369-1.374-.455-1.184-1.11-1.499-1.11-1.499-.908-.636.069-.623.069-.623 1.004.072 1.532 1.057 1.532 1.057.892 1.566 2.341 1.114 2.91.852.091-.663.349-1.114.635-1.37-2.221-.259-4.556-1.139-4.556-5.069 0-1.12.389-2.035 1.029-2.752-.103-.26-.446-1.303.098-2.714 0 0 .84-.276 2.75 1.051A9.334 9.334 0 0 1 12 6.982a9.33 9.33 0 0 1 2.504.346c1.91-1.327 2.748-1.051 2.748-1.051.546 1.411.203 2.454.1 2.714.64.717 1.027 1.632 1.027 2.752 0 3.94-2.339 4.807-4.567 5.061.359.317.679.944.679 1.903 0 1.374-.012 2.482-.012 2.82 0 .274.18.593.688.492C19.138 20.625 22 16.784 22 12.253 22 6.588 17.523 2 12 2Z"/>
+                        </svg>
+                    </a>
+                    <a
+                        href="https://www.zhihu.com/people/three-23-89"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Zhihu"
+                        title="Zhihu"
+                        class="ui-icon-btn w-11 h-11 inline-flex items-center justify-center rounded-md text-primary hover:text-accent hover:bg-accent/5 font-sans text-xl font-bold"
+                    >
+                        知
+                    </a>
+                    <a
+                        href="https://x.com/Feixiang_Tao"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="X"
+                        title="X"
+                        class="ui-icon-btn w-11 h-11 inline-flex items-center justify-center rounded-md text-primary hover:text-accent hover:bg-accent/5"
+                    >
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div data-contact-invite class="mt-4 border border-accent/20 border-l-2 border-l-accent bg-accent/[0.05] rounded-lg p-3.5">
+                    <p class="font-sans text-sm font-semibold text-accent">Always happy to connect.</p>
+                    <p class="font-body text-xs text-secondary leading-relaxed mt-1.5">Welcome to reach out about research, projects, or anything interesting.</p>
+                </div>
+
+                <div class="space-y-3 font-sans text-sm border-t border-edge pt-6 mt-7">
+                    <div class="flex justify-between gap-4">
+                        <span class="text-muted">Academic Focus</span>
+                        <span class="text-secondary text-right">Artificial Intelligence</span>
                     </div>
-                    <div class="flex justify-between">
+                    <div class="flex justify-between gap-4">
                         <span class="text-muted">Focus</span>
-                        <span class="text-secondary">Physics / Math / AI</span>
+                        <span class="text-secondary text-right">Agentic RL · Learning Theory</span>
                     </div>
-                    <div class="flex justify-between">
+                    <div class="flex justify-between gap-4">
                         <span class="text-muted">Location</span>
-                        <span class="text-secondary">Shenzhen, CN</span>
+                        <span class="text-secondary text-right">Shenzhen, CN</span>
                     </div>
                 </div>
             </aside>
 
-            <main data-animate="slide-left">
-                <div class="mb-12">
-                    <p class="font-body text-xl text-primary leading-relaxed mb-6">
-                        Hi, I'm Feixiang. A freshman undergraduate student at
-                        <span class="text-accent font-medium">SUSTech</span>.
+            <div class="min-w-0" data-animate="slide-left">
+                <section class="mb-14">
+                    <p class="font-body text-xl md:text-2xl text-primary leading-relaxed">
+                        Hi, I'm Feixiang, an undergraduate focusing on
+                        <span class="text-accent font-medium">Artificial Intelligence</span> at SUSTech.
                     </p>
-
-                    <div class="font-body text-base text-secondary leading-[1.85] space-y-4">
+                    <div class="font-body text-base text-secondary leading-[1.85] space-y-4 mt-5">
                         <p>
-                            I am currently building my foundational knowledge in Computer Science,
-                            Physics and Mathematics.
+                            I am interested in how learning agents make reliable decisions: from
+                            reinforcement learning and long-horizon planning to the theory that explains
+                            why modern learning systems work.
                         </p>
                         <p>
-                            This website serves as a personal archive for my undergraduate studies.
-                            I use it to document course notes, lab experiments, and my understanding
-                            of fundamental theories.
-                        </p>
-                        <p class="text-primary font-medium">
-                            Always learning, always exploring.
+                            This site is my working archive for notes, implementations, and ideas developed
+                            along the way. For more details, see my
+                            <a
+                                href="/cv/Feixiang-Tao-CV.pdf"
+                                class="text-accent font-medium hover:underline underline-offset-4"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >CV</a>.
                         </p>
                     </div>
-                </div>
+                </section>
 
-                <div class="mb-12" data-animate="stagger-fade-up">
-                    <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-4">Interests</h3>
-                    <div class="flex flex-wrap gap-2">
-                        {interests.map(interest => (
-                            <span class="font-sans text-xs text-secondary border border-edge px-3 py-1.5 rounded-md">
-                                {interest}
-                            </span>
+                <section class="mb-16" data-animate="stagger-fade-up">
+                    <h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-5">Research Interests</h2>
+                    <div class="space-y-4">
+                        {researchInterests.map((interest) => (
+                            <article data-research-interest class="border border-edge border-l-4 border-l-accent rounded-lg bg-surface/45 p-5 md:p-6">
+                                <div class="flex items-start gap-4">
+                                    <div class="text-accent shrink-0 mt-0.5" aria-hidden="true">
+                                        {interest.icon === 'agent' ? (
+                                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                                                <path d="M12 3 9.5 8.5 4 11l5.5 2.5L12 19l2.5-5.5L20 11l-5.5-2.5L12 3Z"/><path d="m18.5 3 .7 1.6L21 5.3l-1.8.8-.7 1.6-.8-1.6-1.7-.8 1.7-.7.8-1.6Z"/>
+                                            </svg>
+                                        ) : (
+                                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                                                <circle cx="5" cy="17" r="2"/><circle cx="12" cy="7" r="2"/><circle cx="19" cy="14" r="2"/><path d="m6.5 15.5 4-7M13.7 8.2l3.6 4.6M7 17h10"/>
+                                            </svg>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <h3 class="font-sans text-lg md:text-xl font-bold text-primary">{interest.title}</h3>
+                                        <p class="font-body text-sm md:text-base text-secondary leading-relaxed mt-2">{interest.description}</p>
+                                    </div>
+                                </div>
+                            </article>
                         ))}
                     </div>
-                </div>
+                </section>
 
-                <div>
-                    <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-4">Connect</h3>
-                    <div data-animate="stagger-fade-up">
-                        {contacts.map(contact => (
-                            <a href={contact.url} target="_blank" class="flex items-center justify-between group py-2.5 px-3 hover:bg-accent/5 transition-colors rounded-md" data-tilt="4">
-                                <span class="font-body text-base text-primary group-hover:text-accent transition-colors">
-                                    {contact.label}
-                                </span>
-                                <span class="font-mono text-xs text-muted group-hover:text-secondary transition-colors">
-                                    {contact.value}
-                                    <svg class="inline w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7m0 0H7m10 0v10"/></svg>
-                                </span>
-                            </a>
+                <section class="mb-16" data-animate="fade-up">
+                    <h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-5 pb-2 border-b border-edge">Education</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 sm:gap-5">
+                        <div>
+                            <h3 class="font-body text-lg font-semibold text-primary">Southern University of Science and Technology</h3>
+                            <p class="font-sans text-sm text-secondary mt-1">Undergraduate · Academic focus in Artificial Intelligence</p>
+                            <p class="font-sans text-xs text-secondary mt-2">Freshman Fall GPA: 3.91 · Rank: 60 / 1363</p>
+                        </div>
+                        <span class="font-mono text-[11px] text-secondary sm:text-right">2025 – Present</span>
+                    </div>
+                </section>
+
+                <section data-animate="fade-up">
+                    <h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-2 pb-2 border-b border-edge">Research &amp; Experience</h2>
+                    <div class="divide-y divide-edge">
+                        {experiences.map((experience) => (
+                            <article class="py-5 first:pt-4">
+                                <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-5">
+                                    <h3 class="font-body text-base font-semibold text-primary">
+                                        {experience.href ? (
+                                            <a href={experience.href} target="_blank" rel="noopener noreferrer" class="hover:text-accent transition-colors">
+                                                {experience.title}
+                                            </a>
+                                        ) : experience.title}
+                                    </h3>
+                                    <span class="font-mono text-[10px] text-accent shrink-0">{experience.meta}</span>
+                                </div>
+                                <p class="font-body text-sm text-secondary leading-relaxed mt-2">{experience.description}</p>
+                            </article>
                         ))}
                     </div>
-                </div>
-            </main>
+                </section>
+            </div>
         </div>
     </div>
 </BaseLayout>
