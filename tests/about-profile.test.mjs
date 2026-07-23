@@ -29,14 +29,16 @@ test("About replaces the old interest chips with two focused research directions
   );
 });
 
-test("About keeps education concise and reserves research experience for lab roles", async () => {
+test("About keeps education concise and lists the THU lab internship", async () => {
   const about = await readSrc("src/pages/about.astro");
 
   assert.match(about, />Education</);
   assert.match(about, />Research &amp; Experience</);
   assert.doesNotMatch(about, /GPA|3\.91|60\s*\/\s*1363/);
   assert.doesNotMatch(about, /My-minimind|CS336|CS224N|CS285|MIT 6\.S184|ASC Student/);
-  assert.match(about, /<div data-research-experience><\/div>/);
+  assert.match(about, /data-research-experience/);
+  assert.match(about, /Intern @ thu\.ΔI Lab/);
+  assert.match(about, /2026\.7\s*[–—-]\s*Present/);
 });
 
 test("About provides the CV and welcoming contact details", async () => {
