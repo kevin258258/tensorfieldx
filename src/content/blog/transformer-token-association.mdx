@@ -1,11 +1,11 @@
 ---
 title: 从一个 toy model 出发的 Transformer 机制解释性
 description: 从梯度的学习率阶数出发，看 Transformer 如何依次学会统计、搬运信息与按需路由，并用 TinyStories 三层模型复现实验验证。
-summary: 从训练初期的梯度展开出发，理解 Output、Value 与 QK 的功能如何从语料统计中依次形成。
 pubDate: 2026-08-11
 updatedDate: 2026-08-11
 tags: ["Transformer", "Mechanistic Interpretability", "Training Dynamics", "TinyStories", "Attention"]
 image: /images/transformer-token-association/semantic_basis_atlas.png
+draft: false
 ---
 
 > Transformer 最开始并不会“理解上下文”。它先学会一个 bigram 统计表，然后学会把远处 token 携带的信息搬到当前位置，最后才学会：**当前预测需要什么信息，以及应该向前文中的谁索取。**
