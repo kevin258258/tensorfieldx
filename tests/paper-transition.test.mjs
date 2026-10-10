@@ -47,7 +47,7 @@ function harness(paperMotion = true) {
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
-test('touch navigation only waits for its loader and skips the new article snapshot', async () => {
+test('reduced motion only waits for its loader and skips the new article snapshot', async () => {
   const h = harness(false);
   const signal = new AbortController().signal;
   const next = h.dispatch('astro:before-preparation', { signal, loader: async () => {} });
@@ -145,22 +145,51 @@ test('reduced motion uses an immediate cover without starting animation or graph
   assert.equal(element.style.opacity, '0');
 });
 
-test('phone and tablet covers do not load textures, allocate graphics, read styles or animate', async () => {
+test('phone and tablet retain the paper renderer and animated fallback', async () => {
   const source = await readFile(new URL('../src/scripts/paperCover.ts', import.meta.url), 'utf8');
   for (const width of [390, 820]) {
     const module = { exports: {} };
-    const element = { style: { opacity: '0' }, querySelector: () => ({}), animate() { throw new Error('No touch animation'); } };
+    let textures = 0;
+    let animation;
+    const element = {
+      style: { opacity: '0' }, querySelector: () => ({}),
+      animate() { animation = { cancel() {} }; return animation; },
+    };
     vm.runInNewContext(transformSync(source, { loader: 'ts', format: 'cjs' }).code, {
       module, exports: module.exports, require: () => '', innerWidth: width, innerHeight: 1180,
       window: { addEventListener() {} }, document: { addEventListener() {} },
       matchMedia: () => ({ matches: false }),
-      getComputedStyle() { throw new Error('Touch cover must not force style calculation'); },
+      getComputedStyle: () => ({ opacity: element.style.opacity }),
       cancelAnimationFrame() {}, performance: { now: () => 0 },
-      Image: class { constructor() { throw new Error('No touch texture request'); } },
+      Image: class { constructor() { textures++; } },
     });
     const cover = new module.exports.PaperCover(element);
-    await cover.transition(true, 420);
-    await cover.transition(false, 780);
+    assert.equal(textures, 3, 'Touch devices prepare the paper renderer');
+    const covering = cover.transition(true, 420);
+    assert.ok(animation, 'A loading renderer still supplies a smooth fade');
+    animation.onfinish();
+    await covering;
+    assert.equal(element.style.opacity, '1');
+    const uncovering = cover.transition(false, 780);
+    animation.onfinish();
+    await uncovering;
     assert.equal(element.style.opacity, '0');
   }
+});
+
+test('touch navigation retains cover timing and the persisted cover snapshot', async () => {
+  const h = harness();
+  const signal = new AbortController().signal;
+  const next = h.dispatch('astro:before-preparation', { signal, loader: async () => {} });
+  let complete = false;
+  const loading = next.loader().then(() => complete = true);
+  await flush();
+  assert.equal(complete, false);
+  h.covers[0].resolve();
+  await loading;
+  let skipped = 0;
+  h.dispatch('astro:before-swap', { signal, viewTransition: { skipTransition() { skipped++; } } });
+  h.dispatch('astro:page-load');
+  assert.equal(skipped, 0);
+  assert.deepEqual(h.calls, [{ visible: true, duration: 420 }, { visible: false, duration: 780 }]);
 });

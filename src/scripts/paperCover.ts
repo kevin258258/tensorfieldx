@@ -3,8 +3,8 @@ import fragmentSource from '../shaders/paper-cover.frag?raw';
 
 const grainPositions = [[0, 0], [10, 10], [150, 20], [125, 125], [40, 170], [125, 125], [90, 10], [60, 100], [20, 70], [120, 80], [0, 250]];
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-// Touch navigation must not wait on a full-screen graphics effect.
-export const usesPaperMotion = () => !reduced() && matchMedia('(hover: hover) and (pointer: fine)').matches;
+// Paper motion is available on touch devices as well as desktops.
+export const usesPaperMotion = () => !reduced();
 
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {

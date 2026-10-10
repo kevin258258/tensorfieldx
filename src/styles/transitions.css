@@ -17,7 +17,3 @@
 .paper-cover.is-webgl::after { display: none; }
 /* The paper supplies the transition; browser snapshots must not add a crossfade. */
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-@media (hover: none), (pointer: coarse) {
-  :root, [data-astro-transition-scope] { view-transition-name: none !important; }
-  .paper-cover { display: none; }
-}

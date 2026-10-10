@@ -92,14 +92,16 @@ try {
   if (!process.argv.includes('--measure')) {
     for (const sample of measurements) {
       // Software WebKit and deliberately throttled Chromium have separate budgets.
-      // Both budgets catch the original 3.5–5.7s regression; neither is a device-speed claim.
-      const navigationBudget = sample.engine === 'chromium' ? 2500 : 2000;
+      // Includes the deliberately restored 420ms cover + 780ms reveal.
+      // Budgets still catch the original slow article rendering.
+      const navigationBudget = sample.engine === 'chromium' ? 4000 : 3200;
       assert(sample.navigation.ms < navigationBudget, `${sample.width}px article remains obscured for ${sample.navigation.ms.toFixed()}ms`);
       assert(sample.search.ms < 450, `${sample.width}px search takes ${sample.search.ms.toFixed()}ms to settle`);
       for (const [path, ms] of Object.entries(sample.otherSearch)) {
         assert(ms < 450, `${sample.width}px search on ${path} takes ${ms.toFixed()}ms`);
       }
-      assert.equal(sample.effects.graphics, 0, 'Touch navigation must not allocate WebGL');
+      assert.equal(sample.effects.graphics, 1, 'Touch navigation retains one persisted paper renderer');
+      assert(sample.navigation.draws > 0, 'Touch navigation must draw the paper transition');
       assert.equal(sample.effects.grain, 'none', 'Touch grain must not continuously repaint');
       assert.equal(sample.search.backdrop, 'none', 'Touch search must not blur the long article');
     }

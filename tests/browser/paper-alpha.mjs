@@ -48,9 +48,8 @@ export async function verifyPaperAlpha(browser, baseURL) {
     bundle: true, write: false, format: 'iife', globalName: 'CoverFixture',
     loader: { '.frag': 'text', '.vert': 'text' },
   });
-  // Exercise the retained desktop renderer at phone-sized canvas dimensions.
-  // Touch devices now bypass the graphics cover entirely.
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: false });
+  // Exercise the actual touch renderer, including Apple canvas compositing.
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   try {
     await page.addInitScript(() => {
       const getContext = HTMLCanvasElement.prototype.getContext;
