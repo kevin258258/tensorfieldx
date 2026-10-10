@@ -1,6 +1,7 @@
 ---
 import type { ArchiveEntry } from '../lib/archive';
 import ScatteredLogo from './ScatteredLogo.astro';
+import { DEFAULT_COVER } from '../lib/covers';
 interface Props { entries: ArchiveEntry[]; title?: string; description?: string; filters?: boolean; }
 const { entries, title = 'Archive', description = 'Writing, projects, and experiments.', filters = false } = Astro.props;
 const categories = ['All', ...['Blog', 'Notes', 'Projects'].filter(category => entries.some(entry => entry.category === category))];
@@ -24,9 +25,10 @@ const hasNotes = entries.some(entry => entry.category === 'Notes');
     </a>)}
     {entries.length === 0 && <p class="archive-empty">No entries yet.</p>}
   </section>
-  {filters && <aside class="archive-preview" aria-label="Selected entry preview"><div class="archive-preview-inner"><ScatteredLogo /><img src={entries[0]?.image || '/images/hero.webp'} alt="" data-archive-preview-image /><p data-archive-preview-title>{entries[0]?.title}</p></div></aside>}
+  {filters && <aside class="archive-preview" aria-label="Selected entry preview"><div class="archive-preview-inner"><ScatteredLogo /><img src={entries[0]?.image || DEFAULT_COVER} alt="" data-archive-preview-image /><p data-archive-preview-title>{entries[0]?.title}</p></div></aside>}
 </div>
 <script>
+  import { DEFAULT_COVER } from '../lib/covers';
   function initArchive() {
     document.querySelectorAll<HTMLElement>('[data-archive]').forEach(archive => {
       const buttons = archive.querySelectorAll<HTMLButtonElement>('[data-archive-filter]');
@@ -37,7 +39,7 @@ const hasNotes = entries.some(entry => entry.category === 'Notes');
       entries.forEach(entry => {
         const showEntry = () => {
           const image = entry.querySelector<HTMLImageElement>('img');
-          if (previewImage) previewImage.src = image?.getAttribute('src') || '/images/hero.webp';
+          if (previewImage) previewImage.src = image?.getAttribute('src') || DEFAULT_COVER;
           if (previewTitle) previewTitle.textContent = entry.querySelector('h2')?.textContent || '';
         };
         entry.onpointerenter = showEntry;

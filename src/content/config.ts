@@ -1,4 +1,5 @@
 import { defineCollection, z } from 'astro:content';
+import { DEFAULT_COVER } from '../lib/covers';
 
 const notesCollection = defineCollection({
     type: 'content',
@@ -11,7 +12,7 @@ const notesCollection = defineCollection({
         tags: z.array(z.string()).optional(),
         series: z.string().optional(),
         seriesOrder: z.number().optional(),
-        image: z.string().optional(),
+        image: z.string().default(DEFAULT_COVER),
     }),
 });
 
@@ -25,7 +26,7 @@ const projectsCollection = defineCollection({
         status: z.enum(['dev', 'stable', 'archived']).default('stable'),
         github: z.string().optional(),
         demo: z.string().optional(),
-        image: z.string().optional(),
+        image: z.string().default(DEFAULT_COVER),
     }),
 });
 
@@ -37,7 +38,7 @@ const blogCollection = defineCollection({
         pubDate: z.date(),
         updatedDate: z.date().optional(),
         tags: z.array(z.string()).optional(),
-        image: z.string().optional(),
+        image: z.string().default(DEFAULT_COVER),
         draft: z.boolean().default(false),
         lang: z.enum(['zh', 'en']).default('zh'),
         translationKey: z.string().optional(),
@@ -54,6 +55,7 @@ const publicationsCollection = defineCollection({
         doi: z.string().optional(),
         pdf: z.string().optional(),
         abstract: z.string().optional(),
+        image: z.string().default(DEFAULT_COVER),
         tags: z.array(z.string()).optional(),
     }),
 });

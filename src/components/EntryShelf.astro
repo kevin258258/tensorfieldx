@@ -1,6 +1,6 @@
 ---
 import type { ShelfEntry } from '../scripts/entryShelf';
-import ScatteredLogo from './ScatteredLogo.astro';
+import { DEFAULT_COVER } from '../lib/covers';
 interface Props {
   entries: ShelfEntry[];
   title: string;
@@ -36,7 +36,7 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
             {entry.meta && <span>{entry.meta}</span>}
             {entry.href && <span class="blog-shelf-entry-arrow" aria-hidden="true">↗</span>}
           </div>
-          {entry.image && <img class="blog-shelf-mobile-image" src={entry.image} alt="" loading={index === 0 ? 'eager' : 'lazy'} />}
+          <img class="blog-shelf-mobile-image" src={entry.image || DEFAULT_COVER} alt="" loading={index === 0 ? 'eager' : 'lazy'} />
           <p class="blog-shelf-mobile-description">{entry.description}</p>
         </div>
       </EntryTag>})}
@@ -50,10 +50,10 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
           return <PreviewTag class="blog-shelf-image-link" href={initial.href} data-shelf-preview-link={initial.href ? true : undefined} aria-label={initial.href ? `${linkLabel}: ${initial.title}` : undefined}>
           <div class="blog-shelf-image-frame">
             {entries.map((entry, index) => <div class:list={['blog-shelf-visual', { 'is-active': index === 0 }]} data-shelf-visual={index} aria-hidden={index !== 0 ? 'true' : undefined}>
-              {entry.image ? <img src={entry.image} alt={`Figure from ${entry.title}`} loading={index === 0 ? 'eager' : 'lazy'} /> : <ScatteredLogo />}
+              <img src={entry.image || DEFAULT_COVER} alt="" loading={index === 0 ? 'eager' : 'lazy'} />
             </div>)}
           </div>
-        </PreviewTag>})() : <div class="blog-shelf-image-link" aria-hidden="true"><div class="blog-shelf-image-frame"><div class="blog-shelf-visual is-active"><ScatteredLogo /></div></div></div>}
+        </PreviewTag>})() : <div class="blog-shelf-image-link" aria-hidden="true"><div class="blog-shelf-image-frame"><div class="blog-shelf-visual is-active"><img src={DEFAULT_COVER} alt="" /></div></div></div>}
         <div class="blog-shelf-preview-copy">
           <ul data-shelf-preview-tags>{initial?.tags.map(tag => <li>{tag}</li>)}</ul>
           <p data-shelf-preview-description>{initial?.description ?? emptyText}</p>
