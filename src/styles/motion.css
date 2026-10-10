@@ -64,6 +64,9 @@ a.blog-shelf-entry:is(:hover,:focus-visible) .blog-shelf-entry-text { translate:
   .reference-pointer { display: none; }
   .blog-shelf-entry-text { translate: none; transform: none; }
   .blog-shelf-image-frame { transform: none; }
+  .reader-header, .reader-sidebar-sticky { opacity: 1; transform: none; transition: none; }
+  .archive-search[open], .archive-search[open]::backdrop { animation: none; }
+  .archive-search::backdrop { backdrop-filter: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

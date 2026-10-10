@@ -1,5 +1,5 @@
 import type { TransitionBeforePreparationEvent, TransitionBeforeSwapEvent } from 'astro:transitions/client';
-import { PaperCover } from './paperCover';
+import { PaperCover, usesPaperMotion } from './paperCover';
 
 let bound = false;
 
@@ -51,6 +51,7 @@ export function initTransitions() {
   });
   document.addEventListener('astro:before-swap', event => {
     const swap = event as TransitionBeforeSwapEvent;
+    if (!usesPaperMotion()) swap.viewTransition?.skipTransition();
     if (swap.signal === preparationSignal && !swap.signal.aborted) swappedNavigation = navigation;
   });
   document.addEventListener('astro:page-load', () => {

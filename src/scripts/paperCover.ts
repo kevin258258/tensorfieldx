@@ -3,6 +3,8 @@ import fragmentSource from '../shaders/paper-cover.frag?raw';
 
 const grainPositions = [[0, 0], [10, 10], [150, 20], [125, 125], [40, 170], [125, 125], [90, 10], [60, 100], [20, 70], [120, 80], [0, 250]];
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Touch navigation must not wait on a full-screen graphics effect.
+export const usesPaperMotion = () => !reduced() && matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -29,7 +31,7 @@ export class PaperCover {
 
   constructor(private element: HTMLElement) {
     this.canvas = element.querySelector('canvas')!;
-    if (!reduced()) void this.prepare();
+    if (usesPaperMotion()) void this.prepare();
     window.addEventListener('resize', () => this.resize());
     document.addEventListener('astro:after-swap', () => this.updateInk());
     document.addEventListener('reference:palette', () => this.updateInk());
@@ -48,15 +50,16 @@ export class PaperCover {
   }
 
   transition(visible: boolean, duration: number): Promise<void> {
+    if (!usesPaperMotion()) {
+      this.cancel();
+      this.targetVisible = visible;
+      this.progress = visible ? 1 : 0;
+      this.element.style.opacity = visible ? '1' : '0';
+      return Promise.resolve();
+    }
     const fromOpacity = getComputedStyle(this.element).opacity;
     this.cancel();
     this.targetVisible = visible;
-    if (reduced()) {
-      this.progress = visible ? 1 : 0;
-      this.element.style.opacity = visible ? '1' : '0';
-      this.draw(performance.now());
-      return Promise.resolve();
-    }
     this.animating = true;
     return new Promise(resolve => {
       this.finish = resolve;

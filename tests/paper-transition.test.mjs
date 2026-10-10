@@ -15,7 +15,7 @@ const deferred = () => {
   return { promise, resolve };
 };
 
-function harness() {
+function harness(paperMotion = true) {
   const events = new EventTarget();
   events.querySelector = () => ({});
   const calls = [];
@@ -25,7 +25,7 @@ function harness() {
     coverImmediately() { calls.push('cover'); }
     transition(visible, duration) {
       calls.push({ visible, duration });
-      if (!visible) return Promise.resolve();
+      if (!visible || !paperMotion) return Promise.resolve();
       const pending = deferred();
       covers.push(pending);
       return pending.promise;
@@ -33,7 +33,7 @@ function harness() {
   }
   const exports = {};
   const module = { exports };
-  vm.runInNewContext(compiled, { module, exports, document: events, queueMicrotask, require: () => ({ PaperCover }) });
+  vm.runInNewContext(compiled, { module, exports, document: events, queueMicrotask, require: () => ({ PaperCover, usesPaperMotion: () => paperMotion }) });
   module.exports.initTransitions();
   module.exports.initTransitions(); // Repeated page setup must not bind twice.
   const dispatch = (name, fields = {}) => {
@@ -46,6 +46,18 @@ function harness() {
 }
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
+
+test('touch navigation only waits for its loader and skips the new article snapshot', async () => {
+  const h = harness(false);
+  const signal = new AbortController().signal;
+  const next = h.dispatch('astro:before-preparation', { signal, loader: async () => {} });
+  await next.loader();
+  let skipped = 0;
+  h.dispatch('astro:before-swap', { signal, viewTransition: { skipTransition() { skipped++; } } });
+  h.dispatch('astro:page-load');
+  assert.equal(skipped, 1);
+  assert.equal(h.covers.length, 0);
+});
 
 test('navigation waits for both page loading and paper coverage before the swap', async () => {
   const h = harness();
@@ -131,4 +143,24 @@ test('reduced motion uses an immediate cover without starting animation or graph
   assert.equal(element.style.opacity, '1');
   await cover.transition(false, 1800);
   assert.equal(element.style.opacity, '0');
+});
+
+test('phone and tablet covers do not load textures, allocate graphics, read styles or animate', async () => {
+  const source = await readFile(new URL('../src/scripts/paperCover.ts', import.meta.url), 'utf8');
+  for (const width of [390, 820]) {
+    const module = { exports: {} };
+    const element = { style: { opacity: '0' }, querySelector: () => ({}), animate() { throw new Error('No touch animation'); } };
+    vm.runInNewContext(transformSync(source, { loader: 'ts', format: 'cjs' }).code, {
+      module, exports: module.exports, require: () => '', innerWidth: width, innerHeight: 1180,
+      window: { addEventListener() {} }, document: { addEventListener() {} },
+      matchMedia: () => ({ matches: false }),
+      getComputedStyle() { throw new Error('Touch cover must not force style calculation'); },
+      cancelAnimationFrame() {}, performance: { now: () => 0 },
+      Image: class { constructor() { throw new Error('No touch texture request'); } },
+    });
+    const cover = new module.exports.PaperCover(element);
+    await cover.transition(true, 420);
+    await cover.transition(false, 780);
+    assert.equal(element.style.opacity, '0');
+  }
 });

@@ -205,6 +205,10 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
   body::after, .contact-track { animation: none !important; }
   .logo-glyph, .featured-entry-title, .featured-entry-preview, .home-profile img { transition: none; }
 }
+/* Keep the paper grain, without repainting every touch-device frame. */
+@media (hover: none), (pointer: coarse) {
+  body::after, .contact-track { animation: none; }
+}
 /* The archive keeps the same 242px editorial rail as the home composition. */
 .archive-layout { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); }
 .archive-sidebar { border-right: 2px solid var(--ink); padding: 40px 20px; }

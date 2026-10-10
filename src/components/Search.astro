@@ -32,14 +32,22 @@
     if (!modal || !input || !results || !count) return;
     let trigger: HTMLElement | null = null;
     let request = 0;
+    let viewportFrame = 0;
+    let viewportTop = '', viewportHeight = '';
     const fitViewport = () => {
       const viewport = window.visualViewport;
       if (!viewport || !modal.open) return;
-      modal.style.setProperty('--search-top', `${viewport.offsetTop + 16}px`);
-      modal.style.setProperty('--search-height', `${Math.max(0, viewport.height - 32)}px`);
+      const top = `${Math.round(viewport.offsetTop + 16)}px`;
+      const height = `${Math.max(0, Math.round(viewport.height - 32))}px`;
+      if (top !== viewportTop) modal.style.setProperty('--search-top', viewportTop = top);
+      if (height !== viewportHeight) modal.style.setProperty('--search-height', viewportHeight = height);
     };
-    window.visualViewport?.addEventListener('resize', fitViewport, { signal });
-    window.visualViewport?.addEventListener('scroll', fitViewport, { signal });
+    const scheduleViewport = () => {
+      if (!viewportFrame && modal.open) viewportFrame = requestAnimationFrame(() => { viewportFrame = 0; fitViewport(); });
+    };
+    window.visualViewport?.addEventListener('resize', scheduleViewport, { signal });
+    window.visualViewport?.addEventListener('scroll', scheduleViewport, { signal });
+    signal.addEventListener('abort', () => cancelAnimationFrame(viewportFrame), { once: true });
 
     function message(text: string) {
       const paragraph = document.createElement('p');
@@ -80,7 +88,7 @@
       trigger = document.activeElement as HTMLElement;
       if (!modal.open) modal.showModal();
       fitViewport();
-      input.focus();
+      input.focus({ preventScroll: true });
       void search();
     };
     document.querySelectorAll<HTMLElement>('[data-search-trigger]').forEach(button => button.addEventListener('click', open, { signal }));

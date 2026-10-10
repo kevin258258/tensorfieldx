@@ -10,8 +10,16 @@ test("article shells use compact, bounded mobile reading layouts", async () => {
     const page = await readSrc(path);
 
     assert.match(page, /reading-prose/);
-    assert.match(page, /prose-base\s+md:prose-lg/);
-    assert.match(page, /prose-h1:text-3xl/);
+    if (path.includes('/blog/')) {
+      assert.match(page, /class="reading-prose"/);
+      assert.doesNotMatch(page, /prose-(?:headings|p|h1):/);
+      const reading = await readSrc('src/styles/reading.css');
+      assert.match(reading, /\.reader-article \.reading-prose[^}]*font-size: 17px/);
+      assert.match(reading, /@media \(max-width: 799px\)[\s\S]*font-size: 16px/);
+    } else {
+      assert.match(page, /prose-base\s+md:prose-lg/);
+      assert.match(page, /prose-h1:text-3xl/);
+    }
     assert.match(page, /text-\[1\.75rem\]\s+sm:text-3xl/);
     assert.match(page, /<nav[^>]*class="[^"]*overflow-hidden[^"]*"[^>]*aria-label="Breadcrumb"/);
     assert.match(page, /min-h-\[36px\]/);

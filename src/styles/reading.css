@@ -34,6 +34,21 @@
 .reader-header a[href^='/tags/']:hover { text-decoration: underline; text-underline-offset: 4px; }
 .reader-mobile-contents { display: none; }
 .reader-article .reading-prose { color: var(--reading-text); font-size: 17px; line-height: 1.95; }
+/* Simple tag selectors keep the formula tree out of typography-wide selectors. */
+.reading-prose a { color: var(--ink); border-bottom: 1px solid rgb(var(--color-border) / .3); text-decoration: none; }
+.reading-prose a:hover { border-bottom-color: var(--ink); }
+.reading-prose strong { font-weight: 700; }
+.reading-prose em { font-style: italic; }
+.reading-prose :is(ul,ol) { padding-left: 1.6em; margin-block: 1.35em; }
+.reading-prose ul { list-style-type: disc; }
+.reading-prose ol { list-style-type: decimal; }
+.reading-prose li { margin-block: .4em; padding-left: .3em; }
+.reading-prose li::marker { color: var(--ink); }
+.reading-prose li > p { margin-block: .6em; }
+.reading-prose figure { margin-block: 2em; }
+.reading-prose img { margin-inline: auto; }
+.reading-prose :is(sup,sub) { font-size: .75em; }
+.reading-prose hr { border: 0; border-top: 1px solid rgb(var(--color-border) / .35); }
 .reader-article .reading-prose :is(p,li,strong,blockquote) { color: inherit; }
 .reader-article .reading-prose p { line-height: inherit; margin-block: 1.35em; }
 .reader-article .reading-prose :is(h1,h2,h3,h4) { font-family: Quincy, 'Noto Serif CJK SC', 'Songti SC', serif; color: var(--ink); font-weight: 600; line-height: 1.5; scroll-margin-top: 25px; }
@@ -52,6 +67,7 @@
 .code-block pre code, .code-block pre code span { background: transparent; border: 0; border-radius: 0; padding: 0; box-shadow: none; font-size: inherit; line-height: inherit; }
 .code-block pre code { display: block; color: inherit; font-weight: 400; width: max-content; min-width: 100%; }
 .reader-article .reading-prose table { font-size: 13px; line-height: 1.75; border-collapse: collapse; margin-block: 2em; }
+.reading-prose :is(th,td) { text-align: left; vertical-align: top; }
 .reader-article .reading-prose th { color: var(--reading-text); border-bottom: 1px solid rgb(var(--color-border) / .6); font-weight: 600; }
 .reader-article .reading-prose td { color: var(--reading-text); border-bottom: 1px solid rgb(var(--color-border) / .18); }
 .reader-article .reading-prose :is(th,td) { padding: 12px 14px; }
