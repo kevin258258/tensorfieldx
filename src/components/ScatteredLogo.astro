@@ -2,6 +2,8 @@
 import mark from '../assets/tensorfieldx-mark.svg?raw';
 interface Props { class?: string; }
 const { class: className = '' } = Astro.props;
-const glyphs = mark.slice(mark.indexOf('>') + 1, mark.lastIndexOf('</svg>'));
+const glyphs = mark.slice(mark.indexOf('>') + 1, mark.lastIndexOf('</svg>'))
+  .replaceAll('<g class="logo-interaction">', '<g class="logo-interaction"><g class="logo-arrival"><g class="logo-rotation">')
+  .replaceAll('</g></g>', '</g></g></g></g>');
 ---
 <svg class:list={['scattered-logo', className]} viewBox="0 0 1942 1054" fill="currentColor" aria-hidden="true" set:html={glyphs} />

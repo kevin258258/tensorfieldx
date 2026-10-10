@@ -25,8 +25,9 @@ The six theme colors are `#7d97b8`, `#dfb255`, `#52a47e`, `#9eaf92`, `#a7b6b0`, 
 ## Implementation
 
 - Shared frame, desktop/mobile navigation, palette persistence, sound entrance and sound control.
-- SVG glyph composition, staggered arrival, 20-unit per-glyph pointer attraction, outlined titles, and 50/80px circular pointer feedback.
+- SVG glyph composition with randomized 100ms entrance staggering after one second, 1.4s reveal / 2s scale / 3s rotation, 20-unit per-glyph pointer attraction, outlined titles, and 50/80px circular pointer feedback. Hero captions first appear after five seconds, then cycle every seven seconds.
 - WebGL image reveals use the reference noise texture, per-pixel delay, sine easing, a 1.8× corner reach, and 800/600ms enter/exit timings. Reduced-motion and unavailable graphics keep the static image behavior.
+- A persisted WebGL paper cover uses the reference transition shader, its JPEG paper texture, 500/250px texture tiles, 50ms grain offsets and a 2× corner reach. Navigation loads alongside the one-second cover, swaps once covered, then uncovers over 1.8 seconds. Unsupported graphics use the reference 400ms fade; reduced motion swaps immediately. Superseded and failed loads release the cover safely.
 - Selected home entries from the existing blog/notes collections.
 - `/archive` with category controls, a desktop image preview, and all existing notes, published posts, and projects. `/blog` and `/projects` use the same listing vocabulary.
 - Profile typography/photo composition with the existing academic profile, internship, CV and contact links.
@@ -38,9 +39,9 @@ Verified in this worktree:
 
 - `npm run build`: 118 generated pages, success.
 - `tsc --noEmit`: success.
-- Reveal shaders: compiled and linked with `glslangValidator`; rendered in a surfaceless GLES2 context (Mesa llvmpipe). At progress 0/0.5/1, alpha was respectively all 0 / 256 graded values / all 255, and the completed image color matched the input.
-- `npm test`: all four test files passed; the detailed TAP run passed 30 assertions.
-- Built-output audit: 118 pages, 3,150 root-relative links/assets, zero missing paths.
+- Image and paper-cover shaders: compiled and linked with `glslangValidator`; rendered in a surfaceless GLES2 context (Mesa llvmpipe). At progress 0/0.5/1, alpha was respectively all 0 / 256 graded values / all 255, and the completed image color matched the input. Paper cover progress 0/0.5/1 produced alpha all 0 / 256 graded values / all 255, with the opaque paper matching the fixture.
+- `npm test`: all five test files passed; the detailed TAP run passed 34 assertions. Runtime transition tests cover load/coverage sequencing, superseding navigation, failed and cancelled loading, and reduced motion.
+- Built-output audit: 124 HTML files (118 generated pages and six copied public HTML documents), 3,150 root-relative links/assets, zero missing paths.
 - Local preview HTTP responses: home, archive, profile, and the Transformer article all returned 200. The archive contains 33 notes, two published blog posts, and one project.
 
 A successful build or source test does **not** prove complete visual fidelity.
@@ -49,7 +50,7 @@ Still required before marking the goal complete:
 
 1. Side-by-side browser captures of the reference and local pages at desktop and mobile sizes, including 1440×900, 800px, 799px and 390×844.
 2. Verify entrance, sound on/off, all palettes, keyboard navigation, category filtering, hover previews, client navigation and reduced motion in the browser.
-3. Compare animated letter motion, cursor behavior, image reveal and page transitions with the reference's WebGL effects. Image reveal now uses the reference WebGL algorithm. Letter arrival and page transitions still require comparison with the original WebGL effects; full motion fidelity remains unproven.
+3. Compare animated letter motion, cursor behavior, image reveal and page transitions with the reference's WebGL effects. Image reveal now uses the reference WebGL algorithm. Paper transitions now also use the reference WebGL formula and timing. Vector letter movement follows the reference timing and transform geometry, but its alpha reveal is an SVG clip rather than the original texture noise/channel mask. This difference and the final motion appearance require browser comparison; full fidelity remains unproven.
 4. Correct discrepancies found in those captures and interaction checks.
 
 The browser connector reported no available browsers during implementation. Full fidelity is pending this verification; the goal is active.

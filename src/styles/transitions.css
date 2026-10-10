@@ -1,54 +1,19 @@
-/* ─────────────────────────────────────────────
-   Lightweight transition system (driven by src/scripts/transitions.ts)
-   L0 series: horizontal drift + crossfade (~300ms)
-   L1 enter:  clicked title flies to article title (FLIP, ~400ms)
-   ───────────────────────────────────────────── */
-
-/* While any managed transition runs, suppress the default page-rise
-   so entrances are choreographed by the engine instead. */
-html.is-tx .page-shell {
-  animation: none !important;
-}
-
-/* ── L0 series drift ── */
-main.t0-exit-next,
-main.t0-exit-prev {
-  opacity: 0;
-  transition: opacity 130ms ease-in, transform 130ms ease-in;
-}
-main.t0-exit-next { transform: translateX(-16px); }
-main.t0-exit-prev { transform: translateX(16px); }
-
-main.t0-enter-next { animation: t0-in-next 260ms cubic-bezier(0.16, 1, 0.3, 1); }
-main.t0-enter-prev { animation: t0-in-prev 260ms cubic-bezier(0.16, 1, 0.3, 1); }
-
-@keyframes t0-in-next {
-  from { opacity: 0; transform: translateX(16px); }
-  to   { opacity: 1; transform: none; }
-}
-@keyframes t0-in-prev {
-  from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: none; }
-}
-
-/* ── L1 flying title clone ── */
-.fly-title-clone {
+.paper-cover {
   position: fixed;
-  z-index: 9995;
-  margin: 0;
+  inset: 0;
+  z-index: 85;
   pointer-events: none;
-  transform-origin: left top;
-  will-change: transform, opacity;
+  opacity: 0;
+  background: var(--paper) url('/design/kazuki/paper.webp') 0 0 / 500px 500px;
 }
-
-/* ── Degrade: reduced motion ── */
-@media (prefers-reduced-motion: reduce) {
-  main.t0-exit-next,
-  main.t0-exit-prev {
-    transition: none;
-  }
-  main.t0-enter-next,
-  main.t0-enter-prev {
-    animation-duration: 1ms;
-  }
+.paper-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/design/kazuki/noise.png') 0 0 / 250px 250px;
 }
+.paper-cover canvas { display: block; width: 100%; height: 100%; }
+.paper-cover.is-webgl { background: transparent; }
+.paper-cover.is-webgl::after { display: none; }
+/* The paper supplies the transition; browser snapshots must not add a crossfade. */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }

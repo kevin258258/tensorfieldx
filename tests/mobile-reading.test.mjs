@@ -63,11 +63,3 @@ test("math styles load deterministically and theme switching avoids a full-DOM s
   assert.doesNotMatch(katex, /font-display:block/);
   assert.match(katex, /font-display:swap/);
 });
-
-test("custom page motion is bypassed on narrow or coarse-pointer devices", async () => {
-  const transitions = await readSrc("src/scripts/transitions.ts");
-
-  assert.match(transitions, /max-width:\s*640px/);
-  assert.match(transitions, /pointer:\s*coarse/);
-  assert.match(transitions, /reduced\(\)/);
-});

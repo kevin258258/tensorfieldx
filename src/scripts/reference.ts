@@ -1,4 +1,5 @@
 import { initNoiseReveals } from './noiseReveal';
+import { initHeroMotion } from './heroMotion';
 
 const palette = ['125 151 184', '223 178 85', '82 164 126', '158 175 146', '167 182 176', '42 41 39'];
 let audio: HTMLAudioElement | undefined;
@@ -47,6 +48,7 @@ export function initReferenceUi() {
       root.style.setProperty('--ink', `rgb(${color})`);
       ['primary', 'secondary', 'muted', 'accent', 'border'].forEach(name => root.style.setProperty(`--color-${name}`, color));
       save('palette', String(index));
+      document.dispatchEvent(new Event('reference:palette'));
       buttons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
     }, { signal });
   });
@@ -73,6 +75,7 @@ export function initReferenceUi() {
       gate.close();
       document.body.classList.remove('entry-open');
       root.dataset.entered = 'true';
+      document.dispatchEvent(new Event('reference:entered'));
       void setSound(enabled);
     };
     if (!enteredSite) {
@@ -87,11 +90,14 @@ export function initReferenceUi() {
     }
   }
 
+  initHeroMotion(signal);
+
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches && matchMedia('(hover: hover)').matches) {
     initNoiseReveals(signal);
     const hero = document.querySelector<HTMLElement>('.hero-art');
     const logo = hero?.querySelector<SVGSVGElement>('.scattered-logo');
     const glyphs = hero?.querySelectorAll<SVGGElement>('.logo-interaction');
+    const captions = hero?.querySelectorAll<HTMLElement>('.hero-caption');
     hero?.addEventListener('pointermove', event => {
       if (!logo) return;
       const box = logo.getBoundingClientRect();
@@ -99,14 +105,22 @@ export function initReferenceUi() {
       const y = (event.clientY - box.top) / box.height * 1054;
       glyphs?.forEach(glyph => {
         const bounds = glyph.getBBox();
-        const dx = x - bounds.x - bounds.width / 2;
-        const dy = y - bounds.y - bounds.height / 2;
+        const dx = x - Number(glyph.dataset.centerX ?? bounds.x + bounds.width / 2);
+        const dy = y - Number(glyph.dataset.centerY ?? bounds.y + bounds.height / 2);
         const attraction = Math.min(1, 20 / Math.max(Math.hypot(dx, dy), .001));
         glyph.style.transform = `translate(${dx * attraction}px, ${dy * attraction}px)`;
+      });
+      const heroBox = hero.getBoundingClientRect();
+      captions?.forEach(caption => {
+        const dx = event.clientX - heroBox.left - caption.offsetLeft - caption.offsetWidth / 2;
+        const dy = event.clientY - heroBox.top - caption.offsetTop - caption.offsetHeight / 2;
+        const attraction = Math.min(1, 20 / Math.max(Math.hypot(dx, dy), .001));
+        caption.style.transform = `translate(${dx * attraction}px, ${dy * attraction}px)`;
       });
     }, { signal });
     hero?.addEventListener('pointerleave', () => {
       glyphs?.forEach(glyph => glyph.style.transform = 'translate(0, 0)');
+      captions?.forEach(caption => caption.style.transform = 'translate(0, 0)');
     }, { signal });
     document.querySelectorAll<HTMLElement>('.featured-entry').forEach(entry => {
       entry.addEventListener('pointermove', event => {
