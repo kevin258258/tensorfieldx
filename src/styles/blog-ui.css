@@ -115,15 +115,13 @@
 .blog-shelf-heading p { font-size: 11px; line-height: 1.7; }
 .blog-shelf-heading > span { margin-left: auto; font-size: 11px; flex-shrink: 0; }
 .blog-shelf-filters { display: flex; align-items: stretch; min-height: 62px; border-bottom: 2px solid var(--ink); position: sticky; top: 124px; z-index: 20; background: var(--paper) url('/design/kazuki/paper.webp') 0 0 / 500px; }
-.blog-shelf-filters button { padding: 16px 24px; font-size: 12px; }
-.blog-shelf-filters button:hover { background: rgb(var(--color-accent) / .06); }
-.blog-shelf-filters button[aria-pressed='true'] { text-decoration: underline; text-underline-offset: 6px; font-weight: 700; }
-.blog-shelf-category { margin-left: auto; display: flex; align-items: center; padding: 0 26px; border-left: 2px solid var(--ink); font: italic 700 21px Quincy, serif; }
+.blog-shelf-all { display: flex; align-items: center; padding: 16px 24px; font-size: 12px; text-decoration: underline; text-underline-offset: 6px; font-weight: 700; }
 .blog-shelf-columns { display: grid; grid-template-columns: 52% minmax(0, 1fr); min-height: max(680px, calc(100dvh - 276px)); }
 .blog-shelf-list { display: flex; flex-direction: column; border-right: 2px solid var(--ink); min-width: 0; }
 .blog-shelf .blog-shelf-entry { flex: 1; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 20px; align-items: center; padding: 48px 38px; min-height: 330px; overflow: visible; }
 .blog-shelf .blog-shelf-entry[hidden] { display: none; }
 .blog-shelf-entry:last-child { border-bottom: 0; }
+.blog-shelf-empty { border-bottom: 0; }
 .blog-shelf-year { font: italic 700 13px Quincy, serif; }
 .blog-shelf .blog-shelf-entry h2 { color: transparent; -webkit-text-stroke: 1px var(--ink); font: 500 clamp(30px, 2.7vw, 52px)/1.5 Quincy, 'Noto Serif CJK SC', 'Songti SC', serif; padding: 0; min-height: 0; letter-spacing: .01em; overflow-wrap: anywhere; }
 .blog-shelf .blog-shelf-entry:hover h2, .blog-shelf .blog-shelf-entry:focus-visible h2 { color: var(--ink); }
@@ -154,8 +152,7 @@
   .site-body .page-shell .blog-shelf-heading h1 { font-size: 36px; }
   .blog-shelf-heading p { display: none; }
   .blog-shelf-filters { top: 25px; min-height: 52px; }
-  .blog-shelf-filters button { padding: 14px 17px; font-size: 11px; }
-  .blog-shelf-category { padding: 0 14px; font-size: 16px; }
+  .blog-shelf-all { padding: 14px 17px; font-size: 11px; }
   .blog-shelf-columns { display: block; min-height: 0; }
   .blog-shelf-list { border-right: 0; }
   .blog-shelf .blog-shelf-entry { display: block; min-height: 0; padding: 28px 22px 34px; }
@@ -168,4 +165,10 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .blog-shelf-visual, .blog-shelf-entry-arrow { transition: none; }
+}
+@media (max-width: 799px) {
+  .blog-navigation .nav-page { flex: 1 1 auto; padding-inline: 7px; }
+  .blog-navigation .nav-page > span { font-size: 10px; }
+  .blog-navigation .nav-archive { flex-basis: 48px; }
+  .blog-shelf .blog-shelf-empty { min-height: 260px; }
 }

@@ -1,0 +1,70 @@
+---
+import type { ShelfEntry } from '../scripts/entryShelf';
+import ScatteredLogo from './ScatteredLogo.astro';
+interface Props {
+  entries: ShelfEntry[];
+  title: string;
+  description: string;
+  previewLabel: string;
+  linkLabel: string;
+  emptyText?: string;
+}
+const { entries, title, description, previewLabel, linkLabel, emptyText = 'tbd' } = Astro.props;
+const initial = entries[0];
+const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0, 10);
+---
+<section class="blog-shelf" data-entry-shelf data-link-label={linkLabel} data-entries={JSON.stringify(entries)} aria-labelledby="entry-shelf-title">
+  <header class="blog-shelf-heading">
+    <h1 id="entry-shelf-title">{title}</h1>
+    <p>{description}</p>
+    {entries.length > 0 && <span>{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</span>}
+  </header>
+  <div class="blog-shelf-filters">
+    <span class="blog-shelf-all">All</span>
+  </div>
+  <div class="blog-shelf-columns">
+    <div class="blog-shelf-list" aria-label={title}>
+      {entries.map((entry, index) => {
+        const EntryTag = entry.href ? 'a' : 'article';
+        return <EntryTag href={entry.href} class:list={['blog-shelf-entry', { 'archive-entry': !!entry.href }]} data-shelf-entry={index} data-astro-prefetch={entry.href ? 'hover' : undefined}>
+        <span class="blog-shelf-year">{entry.year ?? '—'}</span>
+        <div class="blog-shelf-entry-text">
+          <h2>{entry.title}</h2>
+          <div class="blog-shelf-entry-meta">
+            {entry.date !== undefined && <time datetime={date(entry)}>{date(entry)}</time>}
+            {entry.min !== undefined && <span>{entry.min} min read</span>}
+            {entry.meta && <span>{entry.meta}</span>}
+            {entry.href && <span class="blog-shelf-entry-arrow" aria-hidden="true">↗</span>}
+          </div>
+          {entry.image && <img class="blog-shelf-mobile-image" src={entry.image} alt="" loading={index === 0 ? 'eager' : 'lazy'} />}
+          <p class="blog-shelf-mobile-description">{entry.description}</p>
+        </div>
+      </EntryTag>})}
+      {!initial && <div class="blog-shelf-entry blog-shelf-empty"><span></span><h2>{emptyText}</h2></div>}
+    </div>
+    <aside class="blog-shelf-preview" aria-label={`${title} preview`}>
+      <div class="blog-shelf-preview-sticky">
+        <div class="blog-shelf-preview-number"><span>{previewLabel}</span>{initial && <span data-shelf-preview-index>01 / {String(entries.length).padStart(2, '0')}</span>}</div>
+        {initial ? (() => {
+          const PreviewTag = initial.href ? 'a' : 'div';
+          return <PreviewTag class="blog-shelf-image-link" href={initial.href} data-shelf-preview-link={initial.href ? true : undefined} aria-label={initial.href ? `${linkLabel}: ${initial.title}` : undefined}>
+          <div class="blog-shelf-image-frame">
+            {entries.map((entry, index) => <div class:list={['blog-shelf-visual', { 'is-active': index === 0 }]} data-shelf-visual={index} aria-hidden={index !== 0 ? 'true' : undefined}>
+              {entry.image ? <img src={entry.image} alt={`Figure from ${entry.title}`} loading={index === 0 ? 'eager' : 'lazy'} /> : <ScatteredLogo />}
+            </div>)}
+          </div>
+        </PreviewTag>})() : <div class="blog-shelf-image-link" aria-hidden="true"><div class="blog-shelf-image-frame"><div class="blog-shelf-visual is-active"><ScatteredLogo /></div></div></div>}
+        <div class="blog-shelf-preview-copy">
+          <ul data-shelf-preview-tags>{initial?.tags.map(tag => <li>{tag}</li>)}</ul>
+          <p data-shelf-preview-description>{initial?.description ?? emptyText}</p>
+          {initial?.href && <a href={initial.href} data-shelf-preview-link aria-label={`${linkLabel}: ${initial.title}`} class="blog-shelf-read">{linkLabel} <span aria-hidden="true">↗</span></a>}
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+<script>
+  import { initEntryShelf } from '../scripts/entryShelf';
+  document.addEventListener('astro:page-load', initEntryShelf);
+  initEntryShelf();
+</script>
