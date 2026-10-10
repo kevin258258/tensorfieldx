@@ -1,0 +1,12 @@
+---
+interface Props {
+  english: boolean;
+  href: string;
+  sections: string[];
+}
+const { english, href, sections } = Astro.props;
+---
+{href && <nav class="reader-language" aria-label={english ? 'Article language' : '文章语言'}>
+  <span aria-current="true">{english ? 'EN' : '中文'}</span>
+  <a href={href} hreflang={english ? 'zh-CN' : 'en'} lang={english ? 'zh-CN' : 'en'} data-language-alternate data-base-href={href} data-sections={JSON.stringify(sections)}>{english ? '中文' : 'EN'} ↗</a>
+</nav>}

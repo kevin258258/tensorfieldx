@@ -1,0 +1,377 @@
+---
+title: "Why FLOPs Are Not Enough for Low-Precision Arithmetic Intensity"
+description: "A circuit-level derivation of low-precision arithmetic intensity, compared with the conventional FLOP/Byte view and experiments on an RTX 5060."
+pubDate: 2026-06-15
+updatedDate: 2026-06-15
+tags: ["GPU", "Roofline", "FP16", "Performance", "CS336"]
+lang: en
+translationKey: flops-is-a-lie
+---
+
+<figure>
+  <img src="/images/blog/cs336-fp16-ai-slide.png" alt="CS336 Lecture 6 slide: FP16 doubles arithmetic intensity" style="width: 100%;" />
+  <figcaption>CS336 Lecture 6 slide. The conventional conclusion: switching from FP32 to FP16 doubles arithmetic intensity, making the workload more compute-bound.</figcaption>
+</figure>
+
+---
+
+# 1. Background
+
+I remembered that I had not finished CS336. While reviewing the course, I came across this slide, but something felt off. The course defines arithmetic intensity as:
+$$
+AI_{\text{std}} = \frac{\text{FLOPs}}{\text{Bytes moved}}
+$$
+
+This measures how many abstract floating-point operations can be performed for each byte moved from memory.
+
+For example, consider matrix multiplication $C = AB$, where $A \in \mathbb{R}^{M \times K}$, $B \in \mathbb{R}^{K \times N}$, and $C \in \mathbb{R}^{M \times N}$. The conventional FLOP count is approximately $2MKN$.
+
+Switching from FP32 to FP16 leaves the FLOP count of the same matrix multiplication unchanged. Each element, however, shrinks from 32 bits to 16 bits, roughly halving data movement:
+
+$$
+AI_{\text{std}, \text{fp16}} \approx 2 AI_{\text{std}, \text{fp32}}
+$$
+
+This is the conclusion on the opening slide: **lower precision increases arithmetic intensity, making it easier to overcome the memory-bound limit.**
+
+But this conclusion depends on an abstraction: **an FP16 floating-point operation and an FP32 floating-point operation are both counted as the same FLOP.**
+
+If we care about underlying circuit cost, energy, area, and physical computation, this abstraction starts to leak. FP16 addition ≠ FP32 addition; FP16 multiplication ≠ FP32 multiplication. They differ in gate count, transistor switching, capacitive charging and discharging, and the number of units that can operate in parallel.
+
+FLOP count measures operations at the algorithm level, not computation cost at the physical level.
+
+---
+
+# 2. The abstraction behind FLOP/Byte
+
+Conventional AI_std implicitly treats floating-point addition, multiplication, or FMA as a common unit of “operation.” For the same GEMM $C = AB$, the FLOP count is therefore $2MKN$ in either FP32 or FP16. Only data movement in the denominator changes:
+
+$$
+\frac{AI_{\text{std}, \text{fp16}}}{AI_{\text{std}, \text{fp32}}} = \frac{B_{\text{fp32}}}{B_{\text{fp16}}} \approx 2
+$$
+
+This conclusion is correct at the level of FLOP-count abstraction. It nevertheless ignores one fact: **a single FP16 operation is itself cheaper than an FP32 operation.**
+
+---
+
+# 3. A circuit-level computation model
+
+Let us introduce a rough but informative bit-level compute model.
+
+Let $b$ denote the total bit width of a floating-point number, and $p$ its effective significand precision:
+
+- FP32: 1 sign bit, 8 exponent bits, 23 fraction bits → $p_{32} = 24$, including the hidden leading bit.
+- FP16: 1 sign bit, 5 exponent bits, 10 fraction bits → $p_{16} = 11$.
+
+### Addition
+
+The cost of a $p$-bit adder scales approximately linearly: $C_{\text{add}}(p) \sim O(p)$. Floating-point addition also involves exponent comparison, significand alignment, shifting, normalization, and rounding. The main intuition remains that greater bit width costs more.
+
+### Multiplication
+
+A $p$-bit multiplier must generate and reduce many partial products, so its cost scales approximately quadratically: $C_{\text{mul}}(p) \sim O(p^2)$. This is the key point: the circuit cost of low-precision multiplication falls faster than the data width.
+
+### FMA
+
+For $a \times b + c$, use the simplified model:
+
+$$
+C_{\text{FMA}}(p) \approx p^2 + p
+$$
+
+$p^2$ represents multiplication, and $p$ addition or accumulation. This is not an exact hardware energy model, but it captures how circuit complexity scales.
+
+---
+
+# 4. A new metric: Bit-Circuit Intensity
+
+Define:
+
+$$
+I_{\text{circuit}} = \frac{C_{\text{circuit}}}{B_{\text{moved}}}
+$$
+
+Here, $C_{\text{circuit}}$ is circuit-level computational work, such as gate-equivalent or partial-product work, and $B_{\text{moved}}$ is the number of bits transferred.
+
+Comparing FP16 with FP32:
+
+$$
+\frac{I_{16}}{I_{32}} = \frac{C_{16}}{C_{32}} \cdot \frac{B_{32}}{B_{16}}
+$$
+
+When all data changes from FP32 to FP16, $B_{32} / B_{16} \approx 2$. The key is therefore $C_{16} / C_{32}$.
+
+The conventional FLOP/Byte perspective effectively assumes $C_{16} = C_{32}$, giving $2\times$. At the circuit level, however, $C_{16}$ is much smaller than $C_{32}$, especially for multiplication and FMA.
+
+---
+
+# 5. Addition-dominated workloads
+
+For simple addition, approximating cost using bit width ($C \sim b$):
+
+$$
+\frac{C_{\text{add}, 16}}{C_{\text{add}, 32}} = \frac{16}{32} = \frac{1}{2}
+$$
+
+$$
+\frac{I_{\text{add}, 16}}{I_{\text{add}, 32}} \approx 2 \cdot \frac{1}{2} = 1
+$$
+
+For addition, $I_{\text{circuit}}$ is roughly equal in FP16 and FP32, rather than the conventional $2\times$.
+
+Approximating cost using significand precision $p$ instead ($C \sim p$):
+
+$$
+\frac{C_{16}}{C_{32}} = \frac{11}{24} \approx 0.458,\quad \frac{I_{16}}{I_{32}} \approx 2 \cdot 0.458 \approx 0.917
+$$
+
+Neither estimate reaches $2\times$.
+
+---
+
+# 6. Multiplication-dominated workloads
+
+Multiplication is the more important case. Estimating cost using significand precision:
+
+$$
+C_{\text{mul}}(p) \sim p^2
+$$
+
+$$
+\frac{C_{\text{mul}, 16}}{C_{\text{mul}, 32}} = \left(\frac{11}{24}\right)^2 = \frac{121}{576} \approx 0.210
+$$
+
+Multiplying by the factor from halving data transfer:
+
+$$
+\frac{I_{\text{mul}, 16}}{I_{\text{mul}, 32}} \approx 2 \cdot 0.210 = 0.420
+$$
+
+For multiplication-dominated workloads:
+
+$$
+I_{\text{circuit}, \text{fp16}} \approx 0.42 \, I_{\text{circuit}, \text{fp32}}
+$$
+
+This goes **in the opposite direction** to the conventional conclusion. The conventional perspective gives $2\times$; the circuit-level perspective gives $0.42\times$. The difference comes from the fact that an FP16 multiplier occupies roughly a quarter of the area of an FP32 multiplier.
+
+---
+
+# 7. FMA- and GEMM-dominated workloads
+
+FMA is more typical in deep learning. Substituting $C_{\text{FMA}}(p) \approx p^2 + p$:
+
+$$
+C_{\text{FMA}, 32} \approx 24^2 + 24 = 600
+$$
+$$
+C_{\text{FMA}, 16} \approx 11^2 + 11 = 132
+$$
+
+$$
+\frac{C_{\text{FMA}, 16}}{C_{\text{FMA}, 32}} = \frac{132}{600} = 0.22
+$$
+
+Multiplying by the factor from halving data transfer:
+
+$$
+\frac{I_{\text{FMA}, 16}}{I_{\text{FMA}, 32}} \approx 2 \cdot 0.22 = 0.44
+$$
+
+For FMA- and GEMM-dominated workloads:
+
+$$
+I_{\text{circuit}, \text{fp16}} \approx 0.44 \, I_{\text{circuit}, \text{fp32}}
+$$
+
+**When intensity is defined as circuit-level computation per transferred bit, FP16 decreases intensity rather than increasing it.**
+
+---
+
+# 8. An explicit derivation for matrix multiplication
+
+For $A \in \mathbb{R}^{M \times K}$ and $B \in \mathbb{R}^{K \times N}$, let the circuit work per multiply-accumulate be $C_{\text{FMA}}(p) = p^2 + p$:
+
+$$
+I_{\text{circuit}}(b, p) = \frac{MKN \cdot C_{\text{FMA}}(p)}{b(MK + KN + MN)}
+$$
+
+FP32：
+
+$$
+I_{\text{circuit}, 32} = \frac{MKN \cdot 600}{32(MK + KN + MN)}
+$$
+
+FP16：
+
+$$
+I_{\text{circuit}, 16} = \frac{MKN \cdot 132}{16(MK + KN + MN)}
+$$
+
+Taking the ratio:
+
+$$
+\frac{I_{\text{circuit}, 16}}{I_{\text{circuit}, 32}} = \frac{132/16}{600/32} = \frac{8.25}{18.75} = 0.44
+$$
+
+This agrees with Section 7.
+
+---
+
+# 9. Mixed precision
+
+Real hardware often uses **FP16/BF16 multiplication with FP32 accumulation**, rather than pure FP16 FMA:
+
+$$
+C_{\text{mixed}} \approx p_{16}^2 + p_{32} = 11^2 + 24 = 145
+$$
+
+Compared with the FP32 FMA cost of 600:
+
+$$
+\frac{C_{\text{mixed}}}{C_{\text{FMA}, 32}} = \frac{145}{600} \approx 0.242
+$$
+
+If A and B use FP16 and C uses FP32, for a square GEMM ($M=N=K=n$):
+
+$$
+B_{\text{mixed}} = 16n^2 + 16n^2 + 32n^2 = 64n^2,\quad B_{32} = 96n^2
+$$
+
+$$
+\frac{B_{32}}{B_{\text{mixed}}} = \frac{96}{64} = 1.5
+$$
+
+$$
+\frac{I_{\text{mixed}}}{I_{32}} \approx 1.5 \cdot 0.242 = 0.363
+$$
+
+Under mixed precision, $I_{\text{circuit}}$ is approximately in the range $0.35 \sim 0.50$.
+
+---
+
+# 10. Experimental validation
+
+Environment: RTX 5060 Laptop GPU (Blackwell), CUDA 12.8, and PyTorch cu128. Measured HBM bandwidth: 267.3 GB/s.
+
+### Peak throughput
+
+| dtype | Peak TFLOP/s |
+|-------|-------------|
+| FP32  | 9.71        |
+| FP16  | 25.00       |
+| BF16  | 35.07       |
+
+FP16 peak throughput is 2.58 times FP32, and BF16 is 3.61 times FP32.
+
+### Compute utilization: the decisive metric
+
+ρ tells you how far the workload is from the ridge point. But there is a more direct metric: **compute-unit utilization**.
+
+$$
+U_d(n) = \frac{\text{measured } \text{TFLOP/s}_d(n)}{\text{peak } \text{TFLOP/s}_d}
+$$
+
+$U$ directly measures the percentage of hardware peak throughput used by your kernel.
+
+Measuring $U$ at different matrix sizes:
+
+| n | AI_std | $U_{\text{FP32}}$ | $U_{\text{FP16}}$ | $U_{\text{BF16}}$ | $U_{\text{FP16}} / U_{\text{FP32}}$ |
+|----|--------|--------|--------|--------|------|
+| 128 | 21 | 8.0% | 3.9% | 2.7% | 0.49 |
+| 256 | 43 | 34.1% | 27.8% | 19.0% | 0.81 |
+| 512 | 85 | 79.1% | 63.5% | 43.0% | 0.80 |
+| 1024 | 171 | 97.4% | 88.8% | 64.7% | 0.91 |
+| 2048 | 341 | 99.9% | 105.6% | 91.8% | 1.06 |
+| 4096 | 683 | 87.5% | 122.3% | 99.6% | 1.40 |
+
+(Measurements are noisier at n ≥ 2048, where both sides are essentially near saturation. Focus on n = 256, 512, and 1024.)
+
+**At the critical size n = 512, FP32 reaches 79% of peak throughput, whereas FP16 reaches only 63%: a gap of 16 percentage points.**
+
+On the roofline, at n = 512, AI_FP32 = 85 > ridge_32 = 36, and AI_FP16 = 171 > ridge_16 = 94. Under the conventional model, both should be near saturation. Yet FP16 falls short by 16 percentage points.
+
+Why? Because the ridge moves right farther than AI does. FP32's AI is 2.4 times its ridge point, while FP16's is only 1.8 times. A smaller margin makes saturation harder.
+
+This gap applies to any GPU with $r_P > 2$. For memory-bound kernels, the theoretical lower bound is:
+
+$$
+\frac{U_{\text{FP16}}}{U_{\text{FP32}}} = \frac{2}{r_P}
+$$
+
+For this GPU, $r_P = 2.58$, giving a theoretical lower bound of 0.78. The measured ratio at n = 256 is 0.81, close to that bound.
+
+**Conclusion: for any kernel size that has not fully saturated, FP16 compute utilization remains below FP32. Lower precision has not helped you cross the memory wall; it has simply left your compute units less busy.**
+
+### Across GPU generations
+
+| GPU | Generation | $r_P = P_{\text{FP16}} / P_{\text{FP32}}$ | $U_{\text{FP16}} / U_{\text{FP32}}$ lower bound |
+|-----|-----|------|------|
+| V100 | Volta | 8.0 | 0.25 |
+| A100 | Ampere | 16.0 | **0.12** |
+| H100 | Hopper | 14.8 | 0.14 |
+| RTX 4090 | Ada | 4.0 | 0.50 |
+| RTX 5060 | Blackwell | 2.58 | 0.78 (measured: 0.81) |
+
+The stronger a GPU's Tensor Cores, the lower its FP16 compute utilization. On an A100, FP16 utilization reaches at most 12% of FP32 utilization, not because it is slow, but because it is so fast that memory cannot keep it fed.
+
+---
+
+# 11. The relationship to memory-bound workloads
+
+The conventional roofline:
+
+$$
+P_{\text{attainable}} = \min(P_{\text{peak}}, AI_{\text{std}} \cdot B_{\text{mem}})
+$$
+
+Switching from FP32 to FP16 changes two things simultaneously:
+
+- $AI_{\text{std}}$ increases because bytes moved decrease.
+- $P_{\text{peak}}$ increases even more: FP16 compute units are smaller and denser, and Tensor Cores are available.
+
+The key: **$P_{\text{peak}}$ grows faster than $AI_{\text{std}}$.**
+
+Define $\rho = AI / R = AI \cdot B_{\text{mem}} / P_{\text{peak}}$:
+
+$$
+\frac{\rho_{\text{FP16}}}{\rho_{\text{FP32}}} = \frac{2}{r_P},\quad r_P = \frac{P_{\text{FP16}}}{P_{\text{FP32}}}
+$$
+
+**When $r_P > 2$, $\rho$ necessarily decreases, and $U$ necessarily decreases as well.**
+
+---
+
+# 12. Summary
+
+Under the conventional FLOP/Byte metric, $AI_{\text{std}, \text{fp16}} \approx 2 AI_{\text{std}, \text{fp32}}$, because the FLOP count stays constant while data movement halves.
+
+Under the circuit-level $I_{\text{circuit}}$ metric, the result is entirely different:
+
+| Workload | $I_{\text{circuit}, \text{fp16}} / I_{\text{circuit}, \text{fp32}}$ |
+|----------|-----|
+| Addition-dominated | $\sim 0.9 \sim 1.0$ |
+| Multiplication-dominated | $\sim 0.42$ |
+| FMA/GEMM | $\sim 0.44$ |
+| Mixed Precision GEMM | $\sim 0.35 \sim 0.50$ |
+
+The distinction:
+
+- **FLOP/Byte perspective**: lower precision makes data smaller, so intensity increases.
+- **Circuit/Bit perspective**: lower precision makes computation cheaper, and its cost falls faster, so intensity decreases.
+
+The system-level effect of lower precision is more than simply crossing the memory-bound limit:
+
+1. Reduce data movement.
+2. Reduce the circuit cost of each arithmetic operation.
+3. Increase hardware peak throughput.
+4. Make computation cheaper, placing greater importance on data supply, locality, and the memory hierarchy.
+
+$$I_{\text{circuit}} = \frac{\text{bit-level compute work}}{\text{transferred bits}}$$
+
+
+---
+
+## Experiment code
+
+[roofline_dtype_experiment.ipynb](/notebooks/cs336/roofline_dtype_experiment.ipynb) — the complete reproducible RTX 5060 experiment.

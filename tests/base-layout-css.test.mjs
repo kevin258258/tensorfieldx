@@ -118,7 +118,7 @@ test("math-heavy detail pages opt in to katex explicitly", async () => {
   const blogSource = await readSrc("src/pages/blog/[...slug].astro");
 
   assert.match(noteSource, /<BaseLayout title={post\.data\.title} needsKatex>/);
-  assert.match(blogSource, /<BaseLayout title={post\.data\.title} needsKatex>/);
+  assert.match(blogSource, /<BaseLayout title={post\.data\.title} needsKatex(?:\s[^>]*)?>/);
 });
 
 test("base layout no longer injects a redundant custom link prefetch script", async () => {

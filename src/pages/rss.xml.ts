@@ -7,12 +7,12 @@ export async function GET(context: APIContext) {
   let blog: any[] = [];
   try { blog = await getCollection('blog'); } catch (e) {}
 
-  const allItems = [...notes, ...blog.filter(p => !p.data.draft)]
+  const allItems = [...notes, ...blog.filter(p => !p.data.draft && p.data.lang !== 'en')]
     .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
   return rss({
     title: 'TensorFieldX',
-    description: 'Notes and writings by Feixiang Tao on physics, mathematics, and computer science.',
+    description: 'Research and writing by Feixiang Tao on physics, mathematics, and computer science.',
     site: context.site!,
     items: allItems.map((item) => ({
       title: item.data.title,

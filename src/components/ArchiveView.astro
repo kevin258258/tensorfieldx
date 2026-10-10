@@ -2,23 +2,25 @@
 import type { ArchiveEntry } from '../lib/archive';
 import ScatteredLogo from './ScatteredLogo.astro';
 interface Props { entries: ArchiveEntry[]; title?: string; description?: string; filters?: boolean; }
-const { entries, title = 'Archive', description = 'Notes, writing, and experiments.', filters = false } = Astro.props;
-const categories = ['All', 'Blog', 'Notes', 'Projects'];
+const { entries, title = 'Archive', description = 'Writing, projects, and experiments.', filters = false } = Astro.props;
+const categories = ['All', ...['Blog', 'Notes', 'Projects'].filter(category => entries.some(entry => entry.category === category))];
+const hasNotes = entries.some(entry => entry.category === 'Notes');
 ---
-<div class:list={['archive-layout', { 'archive-layout--all': filters }]} data-archive>
+<div class:list={['archive-layout', 'archive-readable', { 'archive-layout--all': filters }]} data-archive>
   <aside class="archive-sidebar">
     <h1>{title}</h1>
     <p>{description}</p>
     {filters ? <div class="archive-filters" role="group" aria-label="Filter archive">
       {categories.map(category => <button type="button" data-archive-filter={category} aria-pressed={category === 'All'}>{category}<span>({category === 'All' ? entries.length : entries.filter(entry => entry.category === category).length})</span></button>)}
-    </div> : <div class="archive-section-links"><a href="/archive">All entries ↗</a><a href="/notes">Notes ↗</a><a href="/blog">Blog ↗</a><a href="/projects">Projects ↗</a></div>}
+    </div> : <div class="archive-section-links"><a href="/archive">All entries ↗</a>{hasNotes && <a href="/notes">Notes ↗</a>}<a href="/blog">Blog ↗</a><a href="/projects">Projects ↗</a></div>}
   </aside>
   <section class="archive-list" aria-label={title}>
     <div class="archive-list-heading"><span>{title}</span><span data-archive-count aria-live="polite">{entries.length} entries</span></div>
     {entries.map(entry => <a href={entry.href} class="archive-entry" data-category={entry.category} data-astro-prefetch="hover">
       {entry.image && <div class="archive-entry-preview" aria-hidden="true"><img src={entry.image} alt="" loading="lazy" /></div>}
       <h2>{entry.title}</h2>
-      <div class="archive-entry-info"><time>{entry.year}</time><span>{entry.category}</span><ul>{entry.tags.slice(0, 4).map(tag => <li>{tag}</li>)}</ul><span class="entry-arrow" aria-hidden="true">↗</span></div>
+      <p class="archive-entry-description">{entry.description}</p>
+      <div class="archive-entry-info"><time datetime={new Date(entry.date).toISOString()}>{new Date(entry.date).toISOString().slice(0, 10)}</time><span>{entry.category}</span>{entry.min && <span>{entry.min} min read</span>}<ul>{entry.tags.slice(0, 3).map(tag => <li>{tag}</li>)}</ul><span class="entry-arrow" aria-hidden="true">↗</span></div>
     </a>)}
     {entries.length === 0 && <p class="archive-empty">No entries yet.</p>}
   </section>

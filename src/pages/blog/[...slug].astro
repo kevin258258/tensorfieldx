@@ -3,31 +3,59 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Sidenote from '../../components/Sidenote.astro';
 import Giscus from '../../components/Giscus.astro';
+import ReaderContents from '../../components/ReaderContents.astro';
+import ReaderLanguage from '../../components/ReaderLanguage.astro';
+import { readerHeadings } from '../../lib/readerHeadings';
 
 export async function getStaticPaths() {
     const allPosts = await getCollection('blog');
     const sorted = allPosts
         .filter(post => !post.data.draft)
         .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
-    return sorted.map((post, i) => ({
-        params: { slug: post.slug },
-        props: {
-            post,
-            prev: i > 0 ? { slug: sorted[i - 1].slug, title: sorted[i - 1].data.title } : null,
-            next: i < sorted.length - 1 ? { slug: sorted[i + 1].slug, title: sorted[i + 1].data.title } : null,
-        },
-    }));
+    return sorted.map(post => {
+        const siblings = sorted.filter(item => item.data.lang === post.data.lang);
+        const i = siblings.findIndex(item => item.slug === post.slug);
+        const key = post.data.translationKey || post.slug;
+        const alternate = sorted.find(item => item.data.lang !== post.data.lang && (item.data.translationKey || item.slug) === key);
+        return {
+            params: { slug: post.slug },
+            props: { post, alternate,
+                prev: i > 0 ? siblings[i - 1] : null,
+                next: i < siblings.length - 1 ? siblings[i + 1] : null,
+            },
+        };
+    });
 }
 
-const { post, prev, next } = Astro.props;
+const { post, prev, next, alternate } = Astro.props;
 const { Content, headings } = await post.render();
 
-const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
+const english = post.data.lang === 'en';
+const label = english
+    ? { contents: 'On this page', read: 'min read', progress: 'Reading progress', top: 'Back to top ↑', prev: 'Previous', next: 'Next', all: 'All posts' }
+    : { contents: '本页目录', read: '分钟阅读', progress: '阅读进度', top: '回到顶部 ↑', prev: '上一篇', next: '下一篇', all: '全部文章' };
+const toc = readerHeadings(post.body, headings);
+const alternateHeadings = alternate ? (await alternate.render()).headings.filter(heading => heading.depth <= 3) : [];
+const alternateHref = alternate ? `/blog/${alternate.slug}` : '';
+const readTime = Math.max(1, Math.round(english ? (post.body?.split(/\s+/).length || 0) / 220 : (post.body?.length || 0) / 1000));
+const alternates = [post, alternate].filter(Boolean).map(item => ({ lang: item!.data.lang === 'zh' ? 'zh-CN' : 'en', href: `/blog/${item!.slug}` }));
 ---
 
-<BaseLayout title={post.data.title} needsKatex>
+<BaseLayout title={post.data.title} needsKatex lang={english ? 'en' : 'zh-CN'} alternates={alternates}>
 
-    <article class="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16 min-w-0">
+    <div class="article-reader" data-article-reader>
+      <aside class="reader-sidebar">
+        <div class="reader-sidebar-sticky">
+          <a class="reader-back" href="/blog">← {label.all}</a>
+          <ReaderLanguage english={english} href={alternateHref} sections={alternateHeadings.map(heading => heading.slug)} />
+          <p class="reader-eyebrow">{label.contents}</p>
+          <ReaderContents headings={toc} label={label.contents} />
+          <div class="reader-progress-label"><span>{label.progress}</span><span data-reading-percent>0%</span></div>
+          <div class="reader-progress" data-reading-progress aria-hidden="true"></div>
+          <a class="reader-top" href="#article-top">{label.top}</a>
+        </div>
+      </aside>
+      <article class="reader-article min-w-0" id="article-top">
 
         <nav class="flex items-center gap-1.5 font-sans text-[11px] text-muted mb-5 sm:mb-6 min-w-0 overflow-hidden whitespace-nowrap" aria-label="Breadcrumb">
             <a href="/" class="hover:text-accent transition-colors">Home</a>
@@ -37,11 +65,14 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
             <span class="hidden sm:block text-primary truncate max-w-[200px]">{post.data.title}</span>
         </nav>
 
-        <header class="mb-8 sm:mb-10" data-animate="fade-up">
+        <header class="reader-header mb-8 sm:mb-10">
+            <div class="reader-topline"><span class="reader-eyebrow">Writing / TensorFieldX</span>
+              <ReaderLanguage english={english} href={alternateHref} sections={alternateHeadings.map(heading => heading.slug)} />
+            </div>
             <div class="flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted mb-5">
                 <span>{post.data.pubDate.toLocaleDateString('en-CA')}</span>
                 <span>·</span>
-                <span>{readTime} min read</span>
+                <span>{readTime} {label.read}</span>
             </div>
 
             <h1 data-article-title class="text-[1.75rem] sm:text-3xl md:text-5xl font-display font-bold mb-6 leading-[1.15] text-primary tracking-tight">
@@ -59,6 +90,11 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
             )}
         </header>
 
+        {toc.length > 0 && <details class="reader-mobile-contents">
+          <summary>{label.contents}<span>↓</span></summary>
+          <ReaderContents headings={toc} label={label.contents} />
+        </details>}
+
         <div class="reading-prose prose prose-base md:prose-lg max-w-none
             prose-headings:font-display prose-headings:font-bold prose-headings:text-primary
             prose-h1:text-3xl md:prose-h1:text-4xl prose-h2:text-2xl md:prose-h2:text-3xl prose-h3:text-xl md:prose-h3:text-2xl
@@ -67,7 +103,7 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
             prose-a:text-accent prose-a:no-underline prose-a:border-b prose-a:border-accent/30 hover:prose-a:border-accent prose-a:transition-colors
             prose-li:text-primary/80 prose-li:marker:text-accent
             prose-blockquote:border-accent/30 prose-blockquote:text-secondary prose-blockquote:not-italic
-            prose-code:font-mono prose-code:text-sm prose-code:bg-surface prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:border prose-code:border-edge prose-code:before:content-none prose-code:after:content-none
+            prose-code:font-mono prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
             prose-pre:bg-surface prose-pre:border prose-pre:border-edge prose-pre:rounded-lg
             prose-hr:border-edge">
 
@@ -78,24 +114,25 @@ const readTime = Math.max(1, Math.round((post.body?.length || 0) / 1000));
         <nav class="mt-16 pt-8 border-t border-edge grid grid-cols-1 sm:grid-cols-2 gap-4" data-animate="fade-up">
             {prev ? (
                 <a href={`/blog/${prev.slug}`} data-transition="series" data-dir="prev" class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
-                    <span class="font-mono text-[10px] text-muted mb-1">&larr; Previous</span>
-                    <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{prev.title}</span>
+                    <span class="font-mono text-[10px] text-muted mb-1">&larr; {label.prev}</span>
+                    <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{prev.data.title}</span>
                 </a>
             ) : (
                 <a href="/blog" class="group flex flex-col p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
                     <span class="font-mono text-[10px] text-muted mb-1">&larr;</span>
-                    <span class="font-body text-sm text-primary group-hover:text-accent transition-colors">All Posts</span>
+                    <span class="font-body text-sm text-primary group-hover:text-accent transition-colors">{label.all}</span>
                 </a>
             )}
             {next ? (
                 <a href={`/blog/${next.slug}`} data-transition="series" data-dir="next" class="group flex flex-col items-end text-right p-4 border border-edge rounded-lg hover:border-accent/30 hover:bg-accent/3 transition-all">
-                    <span class="font-mono text-[10px] text-muted mb-1">Next &rarr;</span>
-                    <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{next.title}</span>
+                    <span class="font-mono text-[10px] text-muted mb-1">{label.next} &rarr;</span>
+                    <span class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-1">{next.data.title}</span>
                 </a>
             ) : <div />}
         </nav>
 
-        <Giscus />
+        <Giscus lang={english ? 'en' : 'zh-CN'} />
 
-    </article>
+      </article>
+    </div>
 </BaseLayout>

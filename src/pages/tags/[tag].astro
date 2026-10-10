@@ -5,7 +5,7 @@ import { getCollection } from 'astro:content';
 export async function getStaticPaths() {
     const allNotes = await getCollection('notes');
     let allBlog: any[] = [];
-    try { allBlog = await getCollection('blog'); } catch (e) {}
+    try { allBlog = await getCollection('blog', ({ data }) => !data.draft && data.lang !== 'en'); } catch (e) {}
 
     const allContent = [...allNotes, ...allBlog];
     const tagSet = new Set<string>();

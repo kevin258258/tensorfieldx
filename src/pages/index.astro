@@ -1,32 +1,20 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ScatteredLogo from '../components/ScatteredLogo.astro';
-import FeaturedEntry from '../components/FeaturedEntry.astro';
 import PatternBand from '../components/PatternBand.astro';
-import { getCollection } from 'astro:content';
-const allNotes = await getCollection('notes');
-const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 2);
-const recentNotes = allNotes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 1);
-const featured = [
-  ...recentPosts.map(post => ({ ...post.data, href: `/blog/${post.slug}`, category: 'Blog' })),
-  ...recentNotes.map(note => ({ ...note.data, href: `/notes/${note.slug}`, category: 'Note' })),
-];
-const exploreLinks = [
-  { href: '/notes', title: 'Notes', description: 'Course notes, series, and technical derivations.' },
-  { href: '/blog', title: 'Blog', description: 'Essays, reflections, and longer-form writing.' },
-  { href: '/projects', title: 'Projects', description: 'Experiments, implementations, and coursework.' },
-  { href: '/publications', title: 'Research', description: 'Research papers, preprints, and selected work.' },
-];
+import ProfileDetails from '../components/ProfileDetails.astro';
 ---
-<BaseLayout title="Home">
-  <section class="hero-composition" aria-labelledby="home-title">
+<BaseLayout title="Feixiang Tao">
+  <section class="hero-composition home-introduction" aria-labelledby="home-title">
     <header class="hero-intro">
-      <h1 id="home-title">Feixiang Tao<small>TensorFieldX</small></h1>
+      <p class="intro-kicker">TensorFieldX / About me</p>
+      <h1 id="home-title">Hi, I’m<br /><span>Feixiang Tao.</span></h1>
+      <p class="intro-affiliation">Artificial Intelligence · SUSTech · Shenzhen</p>
       <div class="hero-copy">
-        <p>Hello, I’m Feixiang Tao, an Artificial Intelligence student at SUSTech, exploring Agentic RL and Learning Theory.</p>
-        <p>This is my personal archive of physics, mathematics, and computer science. Notes, experiments, and questions along the way.</p>
+        <p>I’m an undergraduate at Southern University of Science and Technology, interested in how learning agents reason, plan, and make reliable decisions.</p>
+        <p>I am interested in reinforcement learning and long-horizon planning, and in the theory that explains why modern learning systems work.</p>
       </div>
+      <div class="intro-contact" aria-label="Profile and contact links"><a href="#profile-details">More about me ↓</a><a href="/cv/Feixiang-Tao-CV.pdf" target="_blank" rel="noopener noreferrer">CV ↗</a><a href="mailto:12512619@mail.sustech.edu.cn">Email ↗</a><a href="https://github.com/kevin258258" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div>
     </header>
     <div class="hero-art"><ScatteredLogo />
       <span class="hero-caption hero-caption--1">Learning to reason, plan, and act.</span>
@@ -35,12 +23,8 @@ const exploreLinks = [
       <span class="hero-caption hero-caption--4">A space for ideas and questions.</span>
     </div>
   </section>
-  <section aria-labelledby="selected-title">
-    <div class="reference-section-heading"><h2 id="selected-title">Selected</h2><PatternBand /></div>
-    {featured.map((entry, index) => <FeaturedEntry title={entry.title} href={entry.href} year={entry.pubDate.getFullYear()} category={entry.category} description={entry.description} tags={entry.tags} image={entry.image} reverse={index === 1} pattern={index === 2 ? 'cross' : 'stripe'} />)}
+  <section aria-labelledby="about-title">
+    <div class="reference-section-heading"><h2 id="about-title">About</h2><PatternBand /></div>
+    <ProfileDetails />
   </section>
-  <section class="home-links" aria-label="Explore the archive">
-    {exploreLinks.map(link => <a href={link.href}><h3>{link.title}</h3><p>{link.description}</p><span class="entry-arrow" aria-hidden="true">↗</span></a>)}
-  </section>
-  <a class="home-profile" href="/about" aria-label="About Feixiang Tao"><img src="/images/IMG_0511.webp" alt="" loading="lazy" /><span>profile</span></a>
 </BaseLayout>

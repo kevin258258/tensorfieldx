@@ -4,12 +4,17 @@ import { getCollection } from 'astro:content';
 interface Props { currentPath: string; }
 const { currentPath } = Astro.props;
 const notes = await getCollection('notes');
-const posts = await getCollection('blog', ({ data }) => !data.draft);
+const posts = await getCollection('blog', ({ data }) => !data.draft && data.lang !== 'en');
 const projects = await getCollection('projects');
 const count = notes.length + posts.length + projects.length;
 const isHome = currentPath === '/';
-const isProfile = currentPath.startsWith('/about');
 const isArchive = currentPath.startsWith('/archive');
+const links = [
+  { href: '/', label: 'Home', detail: 'About me', active: isHome },
+  { href: '/blog', label: 'Blog', detail: 'Writing', active: currentPath.startsWith('/blog') },
+  ...(notes.length ? [{ href: '/notes', label: 'Notes', detail: 'Learning', active: currentPath.startsWith('/notes') }] : []),
+  { href: '/projects', label: 'Projects', detail: 'Experiments', active: currentPath.startsWith('/projects') },
+];
 ---
 <a class="skip-link" href="#main-content">Skip to content</a>
 <div class="viewport-frame" aria-hidden="true"></div>
@@ -17,10 +22,10 @@ const isArchive = currentPath.startsWith('/archive');
 <div class="color-palette" aria-label="Color palette">
   <span>color palette:</span>
   {['#7d97b8', '#dfb255', '#52a47e', '#9eaf92', '#a7b6b0', '#2a2927'].map((color, index) => (
-    <button type="button" data-palette={index} style={`--swatch: ${color}`} aria-label={`Color ${index + 1}`} aria-pressed={index === 0}></button>
+    <button type="button" data-palette={index} style={`--swatch: ${color}`} aria-label={`Color: ${['Blue', 'Ochre', 'Green', 'Sage', 'Mist', 'Black'][index]}`} aria-pressed={index === 5}></button>
   ))}
 </div>
-<nav class:list={['reference-nav', { 'is-home': isHome, 'is-profile': isProfile, 'is-archive': isArchive }]} aria-label="Main navigation">
+<nav class:list={['reference-nav', 'blog-navigation', { 'is-home': isHome, 'is-archive': isArchive }]} aria-label="Main navigation">
   <a href="/" class:list={['nav-logo', { 'nav-logo--pattern': isHome }]} aria-label="TensorFieldX home">
     {isHome ? <span class="nav-dot-pattern" aria-hidden="true" /> : <ScatteredLogo />}
   </a>
@@ -28,14 +33,10 @@ const isArchive = currentPath.startsWith('/archive');
     <span>Sound</span>
     <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12" fill="currentColor" /><circle cx="14" cy="14" r="3.2" fill="var(--paper)" /><path d="M15 12 24 3" stroke="var(--paper)" stroke-width="3" /></svg>
   </button>
-  <a href="/" class:list={['nav-page', 'nav-home', { 'is-active': isHome }]} aria-current={isHome ? 'page' : undefined}><span>Home</span></a>
-  <a href="/about" class:list={['nav-page', 'nav-profile', { 'is-active': isProfile }]} aria-current={isProfile ? 'page' : undefined}><span>Profile</span></a>
+  {links.map(link => <a href={link.href} class:list={['nav-page', { 'is-active': link.active }]} aria-current={link.active ? 'page' : undefined}><span>{link.label}</span><small>{link.detail}</small></a>)}
   <a href="/archive" class="nav-archive" aria-label={`Browse archive, ${count} entries`} aria-current={isArchive ? 'page' : undefined}>
     <span>Archive</span><svg viewBox="0 0 26 26" aria-hidden="true"><path fill="currentColor" d="M0 0h5.2v5.2H0zm10.4 0h5.2v5.2h-5.2zm10.4 0H26v5.2h-5.2zM0 10.4h5.2v5.2H0zm10.4 0h5.2v5.2h-5.2zm10.4 0H26v5.2h-5.2zM0 20.8h5.2V26H0zm10.4 0h5.2V26h-5.2zm10.4 0H26V26h-5.2z" /></svg>
     <small>({count})</small>
   </a>
-  {isArchive && <>
-    <label class="nav-category-select"><span>Category Select</span><select data-archive-select aria-label="Select archive category">{['All', 'Blog', 'Notes', 'Projects'].map(category => <option value={category}>{category}</option>)}</select><span class="nav-category-arrow" aria-hidden="true">⌄</span></label>
-    <a href="/" class="nav-close" aria-label="Close archive and go home"><em>Archive</em><span>Close</span><b aria-hidden="true">×</b></a>
-  </>}
+  <button type="button" class="nav-search" data-search-trigger aria-label="Search the blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg><span>Search</span></button>
 </nav>

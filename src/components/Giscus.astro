@@ -1,8 +1,11 @@
+---
+const { lang = 'zh-CN' } = Astro.props;
+---
 <section class="mt-16 pt-8 border-t border-edge" id="comments">
     <h3 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-6">
-        Comments
+        {lang === 'en' ? 'Comments' : '评论'}
     </h3>
-    <div class="giscus"></div>
+    <div class="giscus" data-lang={lang}></div>
 </section>
 
 <script>
@@ -38,7 +41,7 @@
         script.setAttribute('data-emit-metadata', '0');
         script.setAttribute('data-input-position', 'bottom');
         script.setAttribute('data-theme', isDark ? 'noborder_dark' : 'noborder_light');
-        script.setAttribute('data-lang', 'zh-CN');
+        script.setAttribute('data-lang', container.getAttribute('data-lang') || 'zh-CN');
         script.setAttribute('data-loading', 'lazy');
         script.crossOrigin = 'anonymous';
         script.async = true;

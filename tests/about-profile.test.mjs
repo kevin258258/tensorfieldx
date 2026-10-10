@@ -6,7 +6,7 @@ const root = new URL("../", import.meta.url);
 const readSrc = (path) => readFile(new URL(path, root), "utf8");
 
 test("About replaces the old interest chips with two focused research directions", async () => {
-  const about = await readSrc("src/pages/about.astro");
+  const about = await readSrc("src/components/ProfileDetails.astro");
 
   assert.match(about, /Artificial Intelligence/);
   assert.match(about, /Agentic Reinforcement Learning/);
@@ -30,7 +30,7 @@ test("About replaces the old interest chips with two focused research directions
 });
 
 test("About keeps education concise and lists the THU lab internship", async () => {
-  const about = await readSrc("src/pages/about.astro");
+  const about = await readSrc("src/components/ProfileDetails.astro");
 
   assert.match(about, />Education</);
   assert.match(about, />Research &amp; Experience</);
@@ -42,13 +42,13 @@ test("About keeps education concise and lists the THU lab internship", async () 
 });
 
 test("About provides the CV and welcoming contact details", async () => {
-  const about = await readSrc("src/pages/about.astro");
+  const about = await readSrc("src/components/ProfileDetails.astro");
+  const home = await readSrc("src/pages/index.astro");
 
   assert.match(
-    about,
-    /href="\/cv\/Feixiang-Tao-CV\.pdf"[^>]*class="[^"]*text-accent[^"]*"/,
+    home,
+    /href="\/cv\/Feixiang-Tao-CV\.pdf"/,
   );
-  assert.match(about, /For more details,\s*see my[\s\S]*?>CV<\/a>/);
   assert.match(about, /Welcome to reach out|Always happy to connect/i);
   assert.match(about, /data-contact-invite[\s\S]*bg-accent\/[\[\]\.0-9]+[\s\S]*text-accent/);
 
@@ -69,16 +69,19 @@ test("standalone CV navigation is removed and the supplied PDF is published", as
 
 test("homepage profile points to the new AI research identity", async () => {
   const home = await readSrc("src/pages/index.astro");
+  const profile = await readSrc("src/components/ProfileDetails.astro");
 
   assert.match(home, /Artificial Intelligence/);
-  assert.match(home, /Agentic RL/);
-  assert.match(home, /Learning Theory/);
+  assert.match(home, /<ProfileDetails\s*\/>/);
+  assert.match(profile, /Agentic RL/);
+  assert.match(profile, /Learning Theory/);
   assert.doesNotMatch(home, /Physics\s*\/\s*Math\s*\/\s*AI/);
 });
 
-test("homepage exposes every primary destination", async () => {
+test("homepage merges About without article feeds or a second profile page", async () => {
   const home = await readSrc("src/pages/index.astro");
-  for (const href of ["/notes", "/blog", "/projects", "/publications", "/about"]) {
-    assert.ok(home.includes(href), `homepage should expose ${href}`);
-  }
+  const about = await readSrc("src/pages/about.astro");
+  assert.match(about, /Astro\.redirect\('\/', 301\)/);
+  assert.match(home, /id="about-title"/);
+  assert.doesNotMatch(home, /home-latest|selected-title|series-title|FeaturedEntry|href="\/about"/);
 });

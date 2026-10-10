@@ -3,12 +3,12 @@
   color-scheme: light;
   --color-paper: 237 231 220;
   --color-surface: 237 231 220;
-  --color-primary: 125 151 184;
-  --color-secondary: 125 151 184;
-  --color-muted: 125 151 184;
-  --color-accent: 125 151 184;
+  --color-primary: 42 41 39;
+  --color-secondary: 42 41 39;
+  --color-muted: 42 41 39;
+  --color-accent: 42 41 39;
   --color-accent-warm: 223 178 85;
-  --color-border: 125 151 184;
+  --color-border: 42 41 39;
 }
 
 html {
@@ -96,7 +96,7 @@ body { background: transparent; }
 .reveal[data-animate="slide-left"] { transform: translateX(-20px); }
 .reveal[data-animate="slide-right"] { transform: translateX(20px); }
 .reveal[data-animate="scale-in"] { transform: scale(0.96); }
-.reveal-visible { opacity: 1; transform: none; }
+.reveal.reveal-visible { opacity: 1; transform: none; }
 
 /* Shiki and local KaTeX remain self-hosted. */
 :root pre[class*="astro-code"],

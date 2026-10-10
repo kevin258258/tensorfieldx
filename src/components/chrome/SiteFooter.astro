@@ -1,15 +1,21 @@
 ---
 import ScatteredLogo from '../ScatteredLogo.astro';
+import { getCollection } from 'astro:content';
+const hasNotes = (await getCollection('notes')).length > 0;
+const isHome = Astro.url.pathname === '/';
 ---
-<footer class="reference-footer">
+<footer class:list={['reference-footer', { 'reference-footer--home': isHome }]}>
   <div class="contact-band">
     <a class="contact-logo" href="/" aria-label="TensorFieldX home"><ScatteredLogo /></a>
+    <div class="contact-content">
     <a class="contact-marquee" href="mailto:12512619@mail.sustech.edu.cn" aria-label="Email Feixiang Tao">
       <span class="contact-track"><span>@sustech.edu.cn</span><span aria-hidden="true">@sustech.edu.cn</span></span>
     </a>
+    <div class="contact-meta"><a href="mailto:12512619@mail.sustech.edu.cn">12512619@mail.sustech.edu.cn ↗</a><button type="button" data-copy-email aria-label="Copy email address" aria-live="polite">Copy email</button></div>
+    </div>
   </div>
-  <div class="footer-modules">
-    <a href="/about" class="footer-profile"><span class="footer-profile-title">Profile</span><p>This is the personal archive of Feixiang Tao, an Artificial Intelligence student at SUSTech.<br />Notes, experiments, and ideas in physics, mathematics, and computer science.</p><span class="large-arrow" aria-hidden="true">↗</span></a>
+  <div class:list={['footer-modules', { 'footer-modules--home': isHome }]}>
+    {!isHome && <a href="/" class="footer-profile"><span class="footer-profile-title">Profile</span><p>This is the personal website of Feixiang Tao, an Artificial Intelligence student at SUSTech.<br />Research, experiments, and ideas in physics, mathematics, and computer science.</p><span class="large-arrow" aria-hidden="true">↗</span></a>}
     <div class="footer-social">
       <p>I use the following social media platforms:</p>
       <div class="social-links">
@@ -18,7 +24,7 @@ import ScatteredLogo from '../ScatteredLogo.astro';
         <a href="https://www.zhihu.com/people/three-23-89" target="_blank" rel="noopener noreferrer">知乎 ↗</a>
       </div>
       <span class="footer-copyright">© feixiang tao</span>
-      <div class="footer-utility"><a href="/notes">Notes</a><a href="/blog">Blog</a><a href="/projects">Projects</a><a href="/publications">Publications</a><a href="/tags">Tags</a><a href="/rss.xml">RSS</a><button id="search-trigger" type="button" aria-label="Search the archive">Search ⌘K</button></div>
+      <div class="footer-utility">{hasNotes && <a href="/notes">Notes</a>}<a href="/blog">Blog</a><a href="/projects">Projects</a><a href="/publications">Publications</a><a href="/tags">Tags</a><a href="/rss.xml">RSS</a><button data-search-trigger type="button" aria-label="Search the archive">Search ⌘K</button></div>
     </div>
   </div>
 </footer>

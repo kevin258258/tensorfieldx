@@ -6,16 +6,16 @@
 @font-face { font-family: Lato; src: url('/design/kazuki/fonts/Lato-Black.ttf') format('truetype'); font-weight: 900; font-display: swap; }
 :root {
   --paper: #ede7dc;
-  --ink: #7d97b8;
+  --ink: #2a2927;
   --frame-inset: 20px;
   --rail: 242px;
   --color-paper: 237 231 220;
   --color-surface: 237 231 220;
-  --color-primary: 125 151 184;
-  --color-secondary: 125 151 184;
-  --color-muted: 125 151 184;
-  --color-accent: 125 151 184;
-  --color-border: 125 151 184;
+  --color-primary: 42 41 39;
+  --color-secondary: 42 41 39;
+  --color-muted: 42 41 39;
+  --color-accent: 42 41 39;
+  --color-border: 42 41 39;
   color-scheme: light;
 }
 html { background: var(--paper); scroll-padding-top: 145px; }

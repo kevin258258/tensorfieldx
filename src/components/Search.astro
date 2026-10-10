@@ -1,170 +1,90 @@
-<div id="search-modal" class="fixed inset-0 z-[999] bg-primary/20 backdrop-blur-md hidden flex items-start justify-center pt-[18vh] opacity-0 transition-all duration-300">
-
-    <div class="w-full max-w-xl bg-paper border border-edge shadow-xl rounded-lg transform scale-95 translate-y-4 transition-all duration-300 mx-4 overflow-hidden" id="search-panel">
-
-        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/45 to-transparent"></div>
-
-        <div class="flex items-center gap-3 border-b border-edge p-4">
-            <svg class="w-4 h-4 text-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-            </svg>
-            <input type="text" id="search-input" placeholder="Search notes..."
-                   class="bg-transparent border-none outline-none text-primary font-body text-base w-full placeholder-muted focus:ring-0" autocomplete="off" />
-            <kbd class="hidden md:block text-[10px] text-muted font-mono border border-edge px-1.5 py-0.5 rounded">ESC</kbd>
-        </div>
-
-        <div id="search-results" class="max-h-[60vh] overflow-y-auto p-2 space-y-0.5">
-            <div class="p-8 text-center text-muted font-sans text-sm" id="empty-state">
-                Type to search...
-            </div>
-        </div>
-
-        <div class="border-t border-edge px-4 py-2 text-[11px] font-mono text-muted flex justify-between">
-             <span id="result-count">0 results</span>
-        </div>
-    </div>
-</div>
+<dialog id="search-modal" class="archive-search" aria-labelledby="search-title">
+  <div class="search-heading"><h2 id="search-title">Search the archive</h2><button type="button" data-search-close aria-label="Close search">Close ×</button></div>
+  <label class="search-input-wrap"><span class="sr-only">Search posts and topics</span><input type="search" id="search-input" placeholder="Search articles or topics…" autocomplete="off" /></label>
+  <div id="search-results" aria-live="polite"><p class="search-message">Type to search titles, descriptions, and topics.</p></div>
+  <div class="search-footer"><span id="result-count">0 results</span><span>Ctrl / ⌘ K · Esc to close</span></div>
+</dialog>
 
 <script>
-    interface SearchItem {
-        url: string;
-        title: string;
-        description?: string;
-        tags: string[];
-        date: string;
+  interface SearchItem { url: string; title: string; description: string; tags: string[]; date: string; }
+  let indexPromise: Promise<SearchItem[]> | undefined;
+  let controller: AbortController | undefined;
+
+  function loadIndex() {
+    indexPromise ??= fetch('/link-preview.json').then(response => {
+      if (!response.ok) throw new Error('Search index unavailable');
+      return response.json();
+    }).then(data => Object.entries(data).map(([url, meta]) => ({ url, ...(meta as Omit<SearchItem, 'url'>) }))).catch(error => {
+      indexPromise = undefined;
+      throw error;
+    });
+    return indexPromise;
+  }
+
+  function initSearchSystem() {
+    controller?.abort();
+    controller = new AbortController();
+    const { signal } = controller;
+    const modal = document.querySelector<HTMLDialogElement>('#search-modal');
+    const input = document.querySelector<HTMLInputElement>('#search-input');
+    const results = document.querySelector<HTMLElement>('#search-results');
+    const count = document.querySelector<HTMLElement>('#result-count');
+    if (!modal || !input || !results || !count) return;
+    let trigger: HTMLElement | null = null;
+    let request = 0;
+
+    function message(text: string) {
+      const paragraph = document.createElement('p');
+      paragraph.className = 'search-message';
+      paragraph.textContent = text;
+      results!.replaceChildren(paragraph);
+      count!.textContent = '0 results';
     }
-
-    let searchIndex: SearchItem[] = [];
-    let isDataLoaded = false;
-
-    function getSearchElements() {
-        return {
-            modal: document.getElementById('search-modal'),
-            panel: document.getElementById('search-panel'),
-            input: document.getElementById('search-input') as HTMLInputElement | null,
-            resultsContainer: document.getElementById('search-results'),
-            emptyState: document.getElementById('empty-state'),
-            resultCount: document.getElementById('result-count'),
-            triggers: document.querySelectorAll('#search-trigger'),
-        };
-    }
-
-    async function loadIndex() {
-        if (isDataLoaded) return;
-        try {
-            const res = await fetch('/link-preview.json');
-            const data = await res.json();
-            searchIndex = Object.entries(data).map(([url, meta]: [string, any]) => ({
-                url,
-                ...meta
-            }));
-            isDataLoaded = true;
-        } catch (e) {
-            console.error("Index Load Failed", e);
-        }
-    }
-
-    function renderResults(hits: SearchItem[]) {
-        const { resultsContainer, resultCount } = getSearchElements();
-        if (!resultsContainer) return;
-
-        resultsContainer.innerHTML = '';
-        if(resultCount) resultCount.innerText = `${hits.length} result${hits.length !== 1 ? 's' : ''}`;
-
-        if (hits.length === 0) {
-            resultsContainer.innerHTML = '<div class="p-6 text-center text-muted font-sans text-sm">No results found</div>';
-            return;
-        }
-
+    async function search() {
+      const id = ++request;
+      const query = input!.value.trim().toLocaleLowerCase();
+      if (!query) { message('Type to search titles, descriptions, and topics.'); return; }
+      try {
+        const index = await loadIndex();
+        if (signal.aborted || id !== request) return;
+        const terms = query.split(/\s+/);
+        const hits = index.filter(item => terms.every(term => `${item.title} ${item.description} ${item.tags.join(' ')}`.toLocaleLowerCase().includes(term))).sort((a, b) => b.date.localeCompare(a.date));
+        if (!hits.length) { message('No results. Try another title or topic.'); return; }
+        results!.replaceChildren();
+        count!.textContent = `${hits.length} result${hits.length === 1 ? '' : 's'}`;
         hits.forEach(item => {
-            const el = document.createElement('a');
-            el.href = item.url;
-            el.className = 'block px-3 py-2.5 rounded-md hover:bg-accent/8 group transition-all';
-            el.innerHTML = `
-                <div class="flex justify-between items-baseline mb-0.5">
-                    <span class="font-body text-base text-primary group-hover:text-accent transition-colors">${item.title}</span>
-                    <span class="font-mono text-[10px] text-muted ml-4 shrink-0">${item.date}</span>
-                </div>
-                <div class="font-mono text-[10px] text-muted flex gap-2 mt-1">
-                    ${item.tags.slice(0, 3).map((t: string) => `<span>#${t}</span>`).join('')}
-                </div>
-            `;
-            resultsContainer.appendChild(el);
+          const link = document.createElement('a');
+          link.href = item.url;
+          const title = document.createElement('strong');
+          title.textContent = item.title;
+          const description = document.createElement('p');
+          description.textContent = item.description;
+          const meta = document.createElement('small');
+          meta.textContent = `${item.date} · ${item.url.startsWith('/notes/') ? 'Notes' : 'Blog'} · ${item.tags.slice(0, 3).join(' / ')}`;
+          link.append(title, description, meta);
+          results!.append(link);
         });
+      } catch {
+        if (!signal.aborted && id === request) message('Search could not load. Please try again.');
+      }
     }
-
-    function performSearch(query: string) {
-        const { resultsContainer, emptyState, resultCount } = getSearchElements();
-        if (!resultsContainer) return;
-
-        if (!query) {
-            resultsContainer.innerHTML = '';
-            if(emptyState) resultsContainer.appendChild(emptyState);
-            if(resultCount) resultCount.innerText = '0 results';
-            return;
-        }
-
-        const lowerQuery = query.toLowerCase();
-        const hits = searchIndex.filter(item =>
-            item.title.toLowerCase().includes(lowerQuery) ||
-            item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
-        );
-
-        renderResults(hits);
-    }
-
-    function openModal() {
-        const { modal, panel, input } = getSearchElements();
-        if (!modal || !panel || !input) return;
-
-        loadIndex();
-        modal.classList.remove('hidden');
-        requestAnimationFrame(() => {
-            modal.classList.remove('opacity-0');
-            panel.classList.remove('scale-95', 'translate-y-4');
-        });
-        setTimeout(() => input.focus(), 50);
-    }
-
-    function closeModal() {
-        const { modal, panel, input } = getSearchElements();
-        if (!modal || !panel) return;
-
-        modal.classList.add('opacity-0');
-        panel.classList.add('scale-95', 'translate-y-4');
-        setTimeout(() => modal.classList.add('hidden'), 200);
-        if(input) input.value = '';
-        performSearch('');
-    }
-
-    function handleSearchHotkeys(e: KeyboardEvent) {
-        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-            e.preventDefault();
-            openModal();
-        }
-
-        if (e.key === 'Escape') {
-            closeModal();
-        }
-    }
-
-    function initSearchSystem() {
-        const { modal, input, triggers } = getSearchElements();
-
-        if (!modal || !input) return;
-
-        triggers.forEach((t) => {
-            // @ts-ignore
-            t.onclick = (e) => { e.preventDefault(); openModal(); };
-        });
-
-        document.removeEventListener('keydown', handleSearchHotkeys);
-        document.addEventListener('keydown', handleSearchHotkeys);
-
-        modal.onclick = (e) => { if (e.target === modal) closeModal(); };
-        input.oninput = (e) => { performSearch((e.target as HTMLInputElement).value); };
-    }
-
-    document.addEventListener('astro:page-load', initSearchSystem);
-    initSearchSystem();
+    const open = () => {
+      trigger = document.activeElement as HTMLElement;
+      if (!modal.open) modal.showModal();
+      input.focus();
+      void search();
+    };
+    document.querySelectorAll<HTMLElement>('[data-search-trigger]').forEach(button => button.addEventListener('click', open, { signal }));
+    modal.querySelector('[data-search-close]')?.addEventListener('click', () => modal.close(), { signal });
+    modal.addEventListener('click', event => { if (event.target === modal) modal.close(); }, { signal });
+    modal.addEventListener('close', () => { request++; input.value = ''; message('Type to search titles, descriptions, and topics.'); trigger?.focus(); }, { signal });
+    input.addEventListener('input', () => void search(), { signal });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && modal.open) { event.preventDefault(); modal.close(); }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); modal.open ? modal.close() : open(); }
+    }, { signal });
+    document.addEventListener('astro:before-swap', () => { if (modal.open) modal.close(); controller?.abort(); }, { once: true, signal });
+  }
+  document.addEventListener('astro:page-load', initSearchSystem);
+  initSearchSystem();
 </script>

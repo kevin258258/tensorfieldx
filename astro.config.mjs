@@ -10,7 +10,9 @@ export default defineConfig({
 	base: '/',
 	integrations: [
 		mdx(),
-		sitemap(),
+		sitemap({
+			filter: (page) => !['/about', '/notes'].includes(new URL(page).pathname.replace(/\/$/, '')),
+		}),
 		tailwind(),
 	],
 	prefetch: {

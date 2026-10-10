@@ -4,7 +4,6 @@ import { initHeroMotion } from './heroMotion';
 const palette = ['125 151 184', '223 178 85', '82 164 126', '158 175 146', '167 182 176', '42 41 39'];
 let audio: HTMLAudioElement | undefined;
 let soundOn = false;
-let enteredSite = false;
 let clockTimer: ReturnType<typeof setInterval> | undefined;
 let pageController: AbortController | undefined;
 
@@ -37,7 +36,7 @@ export function initReferenceUi() {
   pageController = new AbortController();
   const { signal } = pageController;
   const root = document.documentElement;
-  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-palette]');
+  const buttons = document.querySelectorAll<HTMLButtonElement>('button[data-palette]');
   buttons.forEach(button => {
     button.setAttribute('aria-pressed', String(button.dataset.palette === root.dataset.palette));
     button.addEventListener('click', () => {
@@ -50,6 +49,26 @@ export function initReferenceUi() {
       save('palette', String(index));
       document.dispatchEvent(new Event('reference:palette'));
       buttons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    }, { signal });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-copy-email]').forEach(button => {
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText('12512619@mail.sustech.edu.cn');
+        button.textContent = 'Copied';
+      } catch {
+        button.textContent = 'Select address to copy';
+        const address = button.previousElementSibling;
+        if (address) {
+          const range = document.createRange();
+          range.selectNodeContents(address);
+          const selection = window.getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+        }
+      }
+      window.setTimeout(() => { if (button.isConnected) button.textContent = 'Copy email'; }, 2000);
     }, { signal });
   });
 
@@ -68,28 +87,8 @@ export function initReferenceUi() {
     button.addEventListener('click', () => void setSound(!soundOn), { signal });
   });
 
-  const gate = document.querySelector<HTMLDialogElement>('#entry-gate');
-  if (gate) {
-    const enter = (enabled: boolean) => {
-      enteredSite = true;
-      gate.close();
-      document.body.classList.remove('entry-open');
-      root.dataset.entered = 'true';
-      document.dispatchEvent(new Event('reference:entered'));
-      void setSound(enabled);
-    };
-    if (!enteredSite) {
-      gate.showModal();
-      document.body.classList.add('entry-open');
-      gate.addEventListener('cancel', event => { event.preventDefault(); enter(false); }, { signal });
-      gate.querySelectorAll<HTMLButtonElement>('[data-enter-sound]').forEach(button => {
-        button.addEventListener('click', () => enter(button.dataset.enterSound === 'on'), { signal });
-      });
-    } else {
-      root.dataset.entered = 'true';
-    }
-  }
-
+  // The introduction is immediately accessible; sound remains an opt-in control.
+  root.dataset.entered = 'true';
   initHeroMotion(signal);
 
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches && matchMedia('(hover: hover)').matches) {

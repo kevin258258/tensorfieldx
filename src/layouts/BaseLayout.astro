@@ -3,12 +3,13 @@ import "../styles/tokens.css";
 import "../styles/transitions.css";
 import "../styles/cards.css";
 import "../styles/reference.css";
+import "../styles/blog-ui.css";
+import "../styles/reading.css";
 import "@fontsource/jetbrains-mono/400.css";
 import Search from "../components/Search.astro";
 import LinkPreview from "../components/LinkPreview.astro";
 import SiteNav from "../components/chrome/SiteNav.astro";
 import SiteFooter from "../components/chrome/SiteFooter.astro";
-import EntryGate from "../components/EntryGate.astro";
 import ReferencePointer from "../components/ReferencePointer.astro";
 import PageCover from "../components/PageCover.astro";
 import Analytics from "@vercel/analytics/astro";
@@ -17,29 +18,32 @@ import { ClientRouter } from "astro:transitions";
 interface Props {
   title: string;
   needsKatex?: boolean;
+  lang?: string;
+  alternates?: { lang: string; href: string }[];
 }
 
-const { title, needsKatex = false } = Astro.props;
+const { title, needsKatex = false, lang = 'en', alternates = [] } = Astro.props;
 const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
-<html lang="en" class="h-full w-full max-w-full" transition:animate="none">
+<html lang={lang} class="h-full w-full max-w-full" transition:animate="none">
   <head>
     <meta charset="UTF-8" />
     <Analytics />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} | Feixiang Tao</title>
+    {alternates.map(alternate => <link rel="alternate" hreflang={alternate.lang} href={new URL(alternate.href, Astro.site)} />)}
     <ClientRouter fallback="swap" />
 
     <script is:inline>
       (function () {
         function applyTheme(root) {
           var colors = ['125 151 184', '223 178 85', '82 164 126', '158 175 146', '167 182 176', '42 41 39'];
-          var index = 0;
-          try { index = Number(localStorage.getItem('palette') || 0); } catch (_) {}
-          if (!colors[index]) index = 0;
+          var index = 5;
+          try { index = Number(localStorage.getItem('palette') ?? 5); } catch (_) {}
+          if (!colors[index]) index = 5;
           var color = colors[index];
           root.dataset.palette = String(index);
           root.style.setProperty('--ink', 'rgb(' + color + ')');
@@ -71,8 +75,6 @@ const currentPath = Astro.url.pathname;
     <ReferencePointer />
     <PageCover />
 
-    <EntryGate />
-
     <div class="site-wrapper relative z-10 min-h-screen flex flex-col">
       <SiteNav currentPath={currentPath} />
 
@@ -89,12 +91,14 @@ const currentPath = Astro.url.pathname;
       import { initLightbox } from "../scripts/lightbox";
       import { initTransitions } from "../scripts/transitions";
       import { initReferenceUi } from "../scripts/reference";
+      import { initArticleReader } from "../scripts/articleReader";
 
       function setupPageUi() {
         initReveal();
         initCopyCode();
         initLightbox();
         initReferenceUi();
+        initArticleReader();
       }
 
       document.addEventListener("astro:page-load", setupPageUi);

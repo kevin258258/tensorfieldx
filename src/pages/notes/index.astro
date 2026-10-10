@@ -5,6 +5,7 @@ import { getCollection } from 'astro:content';
 import { buildSeriesList, readMin } from '../../lib/series';
 
 const allNotes = await getCollection('notes');
+if (!allNotes.length) return Astro.redirect('/blog', 302);
 const seriesEntries = await getCollection('series');
 const seriesList = buildSeriesList(seriesEntries, allNotes);
 
