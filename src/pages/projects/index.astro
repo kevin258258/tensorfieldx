@@ -1,38 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
-import ProjectCard from '../../components/ProjectCard.astro';
-
-const projects = await getCollection('projects');
-const sortedProjects = projects.sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+import ArchiveView from '../../components/ArchiveView.astro';
+import { getArchiveEntries } from '../../lib/archive';
+const entries = (await getArchiveEntries()).filter(entry => entry.category === 'Projects');
 ---
-
-<BaseLayout title="Projects">
-    <div class="max-w-4xl mx-auto px-6 py-16 min-h-screen">
-
-        <header class="mb-14" data-animate="fade-up">
-            <h1 class="text-4xl md:text-5xl font-display font-bold text-primary tracking-tight mb-4">
-                Projects
-            </h1>
-            <p class="text-secondary font-body text-base max-w-xl leading-relaxed">
-                Open-source tools, system architectures, and experimental labs.
-            </p>
-        </header>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" data-animate="stagger-fade-up">
-            {sortedProjects.map(project => (
-                <ProjectCard
-                    title={project.data.title}
-                    description={project.data.description}
-                    tags={project.data.tags}
-                    status={project.data.status}
-                    github={project.data.github}
-                    demo={project.data.demo}
-                />
-            ))}
-        </div>
-
-    </div>
-</BaseLayout>
+<BaseLayout title="Projects"><ArchiveView entries={entries} title="Projects" description="Open-source tools, system architectures, and experimental labs." /></BaseLayout>

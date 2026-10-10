@@ -1,27 +1,14 @@
-/* Visual reference: 094b30b — warm paper, quiet ink and electric-blue links.
-   The implementation stays on the modern lightweight stack. */
+/* Shared reading styles. The reference skin is defined in reference.css. */
 :root {
   color-scheme: light;
-  --color-paper: 244 241 236;
-  --color-surface: 255 254 249;
-  --color-primary: 26 26 26;
-  --color-secondary: 85 82 78;
-  --color-muted: 120 116 110;
-  --color-accent: 43 91 220;
-  --color-accent-warm: 200 90 58;
-  --color-border: 190 185 175;
-}
-
-.dark {
-  color-scheme: dark;
-  --color-paper: 22 22 26;
-  --color-surface: 30 30 35;
-  --color-primary: 235 233 228;
-  --color-secondary: 158 155 148;
-  --color-muted: 100 98 92;
-  --color-accent: 120 165 245;
-  --color-accent-warm: 220 110 78;
-  --color-border: 55 53 50;
+  --color-paper: 237 231 220;
+  --color-surface: 237 231 220;
+  --color-primary: 125 151 184;
+  --color-secondary: 125 151 184;
+  --color-muted: 125 151 184;
+  --color-accent: 125 151 184;
+  --color-accent-warm: 223 178 85;
+  --color-border: 125 151 184;
 }
 
 html {

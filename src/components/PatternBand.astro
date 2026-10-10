@@ -1,0 +1,5 @@
+---
+interface Props { variant?: 'stripe' | 'cross' | 'slash'; class?: string; }
+const { variant = 'stripe', class: className = '' } = Astro.props;
+---
+<span class:list={['pattern-band', `pattern-band--${variant}`, className]} aria-hidden="true"></span>

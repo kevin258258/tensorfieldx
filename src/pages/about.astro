@@ -17,28 +17,15 @@ const researchInterests = [
 ---
 
 <BaseLayout title="About">
-    <div class="relative h-48 md:h-72 overflow-hidden" data-animate="fade-in">
-        <img
-            src="/images/IMG_0511.webp"
-            alt=""
-            class="absolute inset-0 w-full h-full object-cover"
-            loading="eager"
-            decoding="async"
-        />
-        <div class="absolute inset-0 bg-gradient-to-t from-paper via-paper/40 to-transparent"></div>
-        <div class="absolute inset-0 flex items-end">
-            <div class="max-w-5xl mx-auto px-6 pb-8 w-full">
-                <h1 class="font-display text-4xl md:text-5xl font-bold text-primary tracking-tight">About</h1>
-            </div>
-        </div>
-    </div>
+    <section class="profile-composition" aria-label="Profile introduction">
+        <div class="profile-title-rail"><h1>Feixiang Tao<br /><small>Profile</small></h1><p>Artificial Intelligence @ SUSTech<br />Shenzhen, CN</p></div>
+        <div class="profile-typography"><img src="/images/IMG_0511.webp" alt="Landscape from my personal archive" loading="eager" /><p>curiosity<br /><span>and</span> learning<br />go hand<br /><span>in</span> hand</p></div>
+    </section>
 
-    <div class="max-w-5xl mx-auto px-6 py-14 md:py-20">
+    <div class="profile-detail max-w-5xl mx-auto px-6 py-14 md:py-20">
         <div class="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-12 md:gap-16 items-start">
             <aside class="md:sticky md:top-24" data-animate="slide-right">
-                <div class="w-20 h-20 bg-accent text-white flex items-center justify-center text-4xl font-display italic font-bold rounded-xl mb-5" aria-hidden="true">
-                    T
-                </div>
+
 
                 <h2 class="font-display text-2xl font-bold text-primary mb-1">Feixiang Tao</h2>
                 <p class="font-sans text-sm text-accent font-medium">Undergraduate @ SUSTech</p>

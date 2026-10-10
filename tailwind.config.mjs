@@ -16,8 +16,8 @@ export default {
 			},
 			fontFamily: {
 				display: ['"Playfair Display"', 'Georgia', 'serif'],
-				body: ['"Source Serif 4"', 'Georgia', 'serif'],
-				sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+				body: ['Lato', 'system-ui', 'sans-serif'],
+				sans: ['Lato', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
 				mono: ['"JetBrains Mono"', 'monospace'],
 			},
 			typography: {

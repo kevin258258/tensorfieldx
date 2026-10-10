@@ -21,7 +21,8 @@ export function initLightbox() {
     dialog.append(img, close);
     document.body.appendChild(dialog);
 
-    const dismiss = () => dialog.close();
+    const createdDialog = dialog;
+    const dismiss = () => createdDialog.close();
     // clicking the backdrop (the dialog element itself) or the image closes
     dialog.addEventListener('click', (e) => {
       if (e.target === dialog || e.target === img || e.target === close) dismiss();

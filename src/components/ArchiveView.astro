@@ -1,0 +1,64 @@
+---
+import type { ArchiveEntry } from '../lib/archive';
+import ScatteredLogo from './ScatteredLogo.astro';
+interface Props { entries: ArchiveEntry[]; title?: string; description?: string; filters?: boolean; }
+const { entries, title = 'Archive', description = 'Notes, writing, and experiments.', filters = false } = Astro.props;
+const categories = ['All', 'Blog', 'Notes', 'Projects'];
+---
+<div class:list={['archive-layout', { 'archive-layout--all': filters }]} data-archive>
+  <aside class="archive-sidebar">
+    <h1>{title}</h1>
+    <p>{description}</p>
+    {filters ? <div class="archive-filters" role="group" aria-label="Filter archive">
+      {categories.map(category => <button type="button" data-archive-filter={category} aria-pressed={category === 'All'}>{category}<span>({category === 'All' ? entries.length : entries.filter(entry => entry.category === category).length})</span></button>)}
+    </div> : <div class="archive-section-links"><a href="/archive">All entries ↗</a><a href="/notes">Notes ↗</a><a href="/blog">Blog ↗</a><a href="/projects">Projects ↗</a></div>}
+  </aside>
+  <section class="archive-list" aria-label={title}>
+    <div class="archive-list-heading"><span>{title}</span><span data-archive-count aria-live="polite">{entries.length} entries</span></div>
+    {entries.map(entry => <a href={entry.href} class="archive-entry" data-category={entry.category} data-astro-prefetch="hover">
+      {entry.image && <div class="archive-entry-preview" aria-hidden="true"><img src={entry.image} alt="" loading="lazy" /></div>}
+      <h2>{entry.title}</h2>
+      <div class="archive-entry-info"><time>{entry.year}</time><span>{entry.category}</span><ul>{entry.tags.slice(0, 4).map(tag => <li>{tag}</li>)}</ul><span class="entry-arrow" aria-hidden="true">↗</span></div>
+    </a>)}
+    {entries.length === 0 && <p class="archive-empty">No entries yet.</p>}
+  </section>
+  {filters && <aside class="archive-preview" aria-label="Selected entry preview"><div class="archive-preview-inner"><ScatteredLogo /><img src={entries[0]?.image || '/images/hero.webp'} alt="" data-archive-preview-image /><p data-archive-preview-title>{entries[0]?.title}</p></div></aside>}
+</div>
+<script>
+  function initArchive() {
+    document.querySelectorAll<HTMLElement>('[data-archive]').forEach(archive => {
+      const buttons = archive.querySelectorAll<HTMLButtonElement>('[data-archive-filter]');
+      const entries = archive.querySelectorAll<HTMLElement>('[data-category]');
+      const select = document.querySelector<HTMLSelectElement>('[data-archive-select]');
+      const previewImage = archive.querySelector<HTMLImageElement>('[data-archive-preview-image]');
+      const previewTitle = archive.querySelector('[data-archive-preview-title]');
+      entries.forEach(entry => {
+        const showEntry = () => {
+          const image = entry.querySelector<HTMLImageElement>('img');
+          if (previewImage) previewImage.src = image?.getAttribute('src') || '/images/hero.webp';
+          if (previewTitle) previewTitle.textContent = entry.querySelector('h2')?.textContent || '';
+        };
+        entry.onpointerenter = showEntry;
+        entry.onfocus = showEntry;
+      });
+      const applyFilter = (category: string) => {
+          let count = 0;
+          entries.forEach(entry => {
+            const visible = category === 'All' || entry.dataset.category === category;
+            entry.hidden = !visible;
+            if (visible) count++;
+          });
+          buttons.forEach(item => item.setAttribute('aria-pressed', String(item.dataset.archiveFilter === category)));
+          if (select) select.value = category;
+          const label = archive.querySelector('[data-archive-count]');
+          if (label) label.textContent = `${count} entries`;
+      };
+      buttons.forEach(button => {
+        button.onclick = () => applyFilter(button.dataset.archiveFilter || 'All');
+      });
+      if (select) select.onchange = () => applyFilter(select.value);
+    });
+  }
+  document.addEventListener('astro:page-load', initArchive);
+  initArchive();
+</script>

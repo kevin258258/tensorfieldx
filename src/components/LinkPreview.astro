@@ -30,7 +30,7 @@
             tag: document.getElementById('preview-tag')
         };
 
-        const links = document.querySelectorAll('a[href^="/notes/"]');
+        const links = document.querySelectorAll('a[href^="/notes/"]:not(.featured-entry):not(.archive-entry)');
         links.forEach(link => {
             if ((link as HTMLElement).dataset.previewBound === 'true') return;
             (link as HTMLElement).dataset.previewBound = 'true';

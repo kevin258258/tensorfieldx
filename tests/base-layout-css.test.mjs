@@ -58,18 +58,10 @@ test("page background keeps a fixed token-driven warm paper layer", async () => 
   );
 });
 
-test("class-based dark mode is restored without external dependencies", async () => {
+test("palette preference is restored before client navigation swaps", async () => {
   const layout = await readSrc("src/layouts/BaseLayout.astro");
-  const nav = await readSrc("src/components/chrome/SiteNav.astro");
-
-  assert.match(layout, /localStorage\.getItem\(['"]theme['"]\)/,
-    "theme should be applied before paint from the local preference");
-  assert.match(layout, /astro:before-swap[\s\S]*newDocument\.documentElement/,
-    "theme should be applied to the incoming root before Astro swaps its attributes");
-  assert.match(nav, /id="theme-toggle"/,
-    "navigation should expose the restored light\/dark control");
-  assert.match(nav, /classList\.toggle\(['"]dark['"]\)/,
-    "theme control should toggle the dark class without a framework runtime");
+  assert.match(layout, /localStorage\.getItem\(['"]palette['"]\)/);
+  assert.match(layout, /astro:before-swap[\s\S]*newDocument\.documentElement/);
 });
 
 test("typography does not force system-font fallbacks on mobile", async () => {
@@ -84,7 +76,7 @@ test("typography does not force system-font fallbacks on mobile", async () => {
 
   assert.match(
     tailwindSource,
-    /sans:\s*\[\s*'system-ui',\s*'-apple-system',\s*'BlinkMacSystemFont',\s*'"Segoe UI"',\s*'sans-serif'\s*\]/,
+    /sans:\s*\[\s*'Lato',\s*'system-ui',\s*'-apple-system',\s*'BlinkMacSystemFont',\s*'"Segoe UI"',\s*'sans-serif'\s*\]/,
     "sans text should default to the system sans stack",
   );
 });
@@ -100,8 +92,8 @@ test("fonts are self-hosted via fontsource, not Google Fonts", async () => {
 
   assert.match(
     layout,
-    /@fontsource\/playfair-display/,
-    "display font should be self-hosted",
+    /styles\/reference\.css/,
+    "reference fonts should be self-hosted",
   );
 });
 

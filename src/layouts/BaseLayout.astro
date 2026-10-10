@@ -2,16 +2,14 @@
 import "../styles/tokens.css";
 import "../styles/transitions.css";
 import "../styles/cards.css";
-import "@fontsource/playfair-display/400-italic.css";
-import "@fontsource/playfair-display/700.css";
-import "@fontsource/playfair-display/700-italic.css";
-import "@fontsource/source-serif-4/400.css";
-import "@fontsource/source-serif-4/600.css";
+import "../styles/reference.css";
 import "@fontsource/jetbrains-mono/400.css";
 import Search from "../components/Search.astro";
 import LinkPreview from "../components/LinkPreview.astro";
 import SiteNav from "../components/chrome/SiteNav.astro";
 import SiteFooter from "../components/chrome/SiteFooter.astro";
+import EntryGate from "../components/EntryGate.astro";
+import ReferencePointer from "../components/ReferencePointer.astro";
 import Analytics from "@vercel/analytics/astro";
 import { ClientRouter } from "astro:transitions";
 
@@ -37,9 +35,16 @@ const currentPath = Astro.url.pathname;
     <script is:inline>
       (function () {
         function applyTheme(root) {
-          var theme = localStorage.getItem('theme');
-          var isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-          root.classList.toggle('dark', isDark);
+          var colors = ['125 151 184', '223 178 85', '82 164 126', '158 175 146', '167 182 176', '42 41 39'];
+          var index = 0;
+          try { index = Number(localStorage.getItem('palette') || 0); } catch (_) {}
+          if (!colors[index]) index = 0;
+          var color = colors[index];
+          root.dataset.palette = String(index);
+          root.style.setProperty('--ink', 'rgb(' + color + ')');
+          ['primary', 'secondary', 'muted', 'accent', 'border'].forEach(function (name) {
+            root.style.setProperty('--color-' + name, color);
+          });
         }
 
         applyTheme(document.documentElement);
@@ -57,16 +62,19 @@ const currentPath = Astro.url.pathname;
     )}
   </head>
 
-  <body class="text-primary min-h-screen font-body relative w-full max-w-full overflow-x-hidden">
+  <body class="site-body text-primary min-h-screen font-body relative w-full max-w-full overflow-x-hidden">
     <div class="page-background" aria-hidden="true"></div>
 
     <Search />
     <LinkPreview />
+    <ReferencePointer />
 
-    <div class="relative z-10 min-h-screen flex flex-col w-full max-w-full">
+    <EntryGate />
+
+    <div class="site-wrapper relative z-10 min-h-screen flex flex-col">
       <SiteNav currentPath={currentPath} />
 
-      <main class="page-shell flex-1 w-full max-w-full">
+      <main id="main-content" class="page-shell flex-1 w-full max-w-full">
         <slot />
       </main>
 
@@ -78,11 +86,13 @@ const currentPath = Astro.url.pathname;
       import { initCopyCode } from "../scripts/copyCode";
       import { initLightbox } from "../scripts/lightbox";
       import { initTransitions } from "../scripts/transitions";
+      import { initReferenceUi } from "../scripts/reference";
 
       function setupPageUi() {
         initReveal();
         initCopyCode();
         initLightbox();
+        initReferenceUi();
       }
 
       document.addEventListener("astro:page-load", setupPageUi);

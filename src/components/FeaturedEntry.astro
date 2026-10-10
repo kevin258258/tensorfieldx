@@ -1,0 +1,22 @@
+---
+import PatternBand from './PatternBand.astro';
+interface Props {
+  title: string;
+  href: string;
+  year: number;
+  category: string;
+  description: string;
+  tags?: string[];
+  image?: string;
+  reverse?: boolean;
+  pattern?: 'stripe' | 'cross' | 'slash';
+}
+const { title, href, year, category, description, tags = [], image, reverse = false, pattern = 'stripe' } = Astro.props;
+---
+<a href={href} class:list={['featured-entry', { 'featured-entry--reverse': reverse }]} data-astro-prefetch="hover">
+  {image && <div class="featured-entry-preview" aria-hidden="true"><img src={image} alt="" loading="lazy" decoding="async" /></div>}
+  <div class="featured-entry-meta"><div><time>{year}</time><ul><li>{category}</li>{tags.slice(0, 4).map(tag => <li>{tag}</li>)}</ul></div><p>{description}</p></div>
+  <h3 class="featured-entry-title">{title}</h3>
+  <PatternBand class="featured-entry-pattern" variant={pattern} />
+  <span class="featured-entry-view">View {category === 'Project' ? 'Project' : 'Article'}<span class="entry-arrow" aria-hidden="true">↗</span></span>
+</a>

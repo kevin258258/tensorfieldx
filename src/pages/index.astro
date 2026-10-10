@@ -1,148 +1,46 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ScatteredLogo from '../components/ScatteredLogo.astro';
+import FeaturedEntry from '../components/FeaturedEntry.astro';
+import PatternBand from '../components/PatternBand.astro';
 import { getCollection } from 'astro:content';
-
 const allNotes = await getCollection('notes');
-const allPosts = await getCollection('blog');
-
-const exploreLinks = [
-	{ href: '/notes', title: 'Notes', description: 'Course notes, series, and technical derivations.' },
-	{ href: '/blog', title: 'Blog', description: 'Essays, reflections, and longer-form writing.' },
-	{ href: '/projects', title: 'Projects', description: 'Experiments, implementations, and coursework.' },
-	{ href: '/publications', title: 'Publications', description: 'Research papers, preprints, and selected work.' },
-	{ href: '/about', title: 'About', description: 'Profile, interests, and ways to get in touch.' },
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const recentPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 2);
+const recentNotes = allNotes.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 1);
+const featured = [
+  ...recentPosts.map(post => ({ ...post.data, href: `/blog/${post.slug}`, category: 'Blog' })),
+  ...recentNotes.map(note => ({ ...note.data, href: `/notes/${note.slug}`, category: 'Note' })),
 ];
-
-const recentNotes = [...allNotes]
-	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-	.slice(0, 5);
-
-const recentPosts = allPosts
-	.filter((post) => !post.data.draft)
-	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-	.slice(0, 5);
+const exploreLinks = [
+  { href: '/notes', title: 'Notes', description: 'Course notes, series, and technical derivations.' },
+  { href: '/blog', title: 'Blog', description: 'Essays, reflections, and longer-form writing.' },
+  { href: '/projects', title: 'Projects', description: 'Experiments, implementations, and coursework.' },
+  { href: '/publications', title: 'Research', description: 'Research papers, preprints, and selected work.' },
+];
 ---
-
 <BaseLayout title="Home">
-
-	<!-- The image and wordmark are the whole first impression, as in 094b30b. -->
-	<section class="relative min-h-[85vh] flex flex-col justify-end overflow-hidden" id="hero-section">
-		<div class="absolute inset-0 z-0">
-			<img
-				src="/images/hero.webp"
-				alt=""
-				class="absolute inset-0 w-full h-full object-cover"
-				loading="eager"
-				fetchpriority="high"
-				decoding="async"
-			/>
-			<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-		</div>
-
-		<div class="relative z-10 px-6 pb-16 md:pb-24 max-w-6xl mx-auto w-full">
-			<h1 class="font-display text-5xl md:text-8xl lg:text-9xl font-bold leading-[0.9] tracking-tighter text-white">
-				Tensor<span class="italic font-normal opacity-80">Field</span>X
-			</h1>
-			<p class="mt-6 font-sans text-sm md:text-base text-white/70 max-w-md leading-relaxed">
-				A personal archive of physics, mathematics, and computer science.
-			</p>
-		</div>
-
-		<div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-paper to-transparent z-10"></div>
-		<div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 motion-safe:animate-bounce" aria-hidden="true">
-			<svg class="w-5 h-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-				<path d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" />
-			</svg>
-		</div>
-	</section>
-
-	<section class="relative z-20" data-personal-profile>
-		<div class="max-w-4xl mx-auto px-6 py-20 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-12 items-start">
-			<div data-animate="fade-up">
-				<div class="w-16 h-16 bg-accent text-white flex items-center justify-center text-3xl font-display italic font-bold rounded-lg mb-5">
-					T
-				</div>
-				<h2 class="font-display text-2xl font-bold text-primary">Feixiang Tao</h2>
-				<p class="font-sans text-sm text-accent mt-1 font-medium">Artificial Intelligence @ SUSTech</p>
-				<div class="mt-6 space-y-2 font-sans text-xs text-muted">
-					<div class="flex justify-between gap-4">
-						<span>Focus</span>
-						<span class="text-secondary text-right">Agentic RL · Learning Theory</span>
-					</div>
-					<div class="flex justify-between gap-4">
-						<span>Location</span>
-						<span class="text-secondary text-right">Shenzhen, CN</span>
-					</div>
-				</div>
-			</div>
-
-			<div data-animate="fade-up">
-				<p class="font-body text-xl md:text-2xl text-primary leading-relaxed mb-6">
-					I study <span class="text-accent">Artificial Intelligence</span> at SUSTech, with a focus on
-					learning agents that can reason, plan, and make reliable decisions.
-				</p>
-				<p class="font-body text-base text-secondary leading-relaxed">
-					My main interests are Agentic RL and Learning Theory, including optimization,
-					generalization, and interpretability. This site is where I keep the notes,
-					implementations, and questions that emerge along the way.
-				</p>
-			</div>
-		</div>
-	</section>
-
-	<section class="border-t border-edge">
-		<div class="max-w-4xl mx-auto px-6 py-16">
-			<h2 class="font-mono text-[10px] text-muted uppercase tracking-widest mb-8">Explore</h2>
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-animate="stagger-fade-up">
-				{exploreLinks.map((link) => (
-					<a href={link.href} class="group p-6 border border-edge rounded-lg bg-surface/30 hover:border-accent/30 hover:bg-accent/[0.03] transition-all">
-						<h3 class="font-display text-xl font-bold text-primary group-hover:text-accent transition-colors mb-2">{link.title}</h3>
-						<p class="font-sans text-xs text-secondary leading-relaxed">{link.description}</p>
-					</a>
-				))}
-			</div>
-		</div>
-	</section>
-
-	<section class="border-t border-edge">
-		<div class="max-w-4xl mx-auto px-6 py-16">
-			<div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-				<div>
-					<div class="flex items-center justify-between mb-5">
-						<h2 class="font-mono text-[10px] text-muted uppercase tracking-widest">Recent Notes</h2>
-						<a href="/notes" class="font-sans text-xs text-accent hover:underline underline-offset-4">View all</a>
-					</div>
-					<div class="divide-y divide-edge" data-animate="stagger-fade-up">
-						{recentNotes.map((note) => (
-							<a href={`/notes/${note.slug}`} data-transition="enter" class="group flex items-baseline gap-4 py-4 hover:bg-accent/[0.03] -mx-3 px-3 rounded transition-colors">
-								<span class="font-mono text-[10px] text-muted w-20 shrink-0">{note.data.pubDate.toISOString().split('T')[0]}</span>
-								<span data-fly-title class="font-body text-sm text-primary group-hover:text-accent transition-colors line-clamp-2">{note.data.title}</span>
-							</a>
-						))}
-					</div>
-				</div>
-
-				<div>
-					<div class="flex items-center justify-between mb-5">
-						<h2 class="font-mono text-[10px] text-muted uppercase tracking-widest">Recent Blog</h2>
-						<a href="/blog" class="font-sans text-xs text-accent hover:underline underline-offset-4">View all</a>
-					</div>
-					{recentPosts.length > 0 ? (
-						<div class="divide-y divide-edge" data-animate="stagger-fade-up">
-							{recentPosts.map((post) => (
-								<a href={`/blog/${post.slug}`} data-transition="enter" class="group block py-4 hover:bg-accent/[0.03] -mx-3 px-3 rounded transition-colors">
-									<span class="font-mono text-[10px] text-muted">{post.data.pubDate.toISOString().split('T')[0]}</span>
-									<h3 data-fly-title class="mt-1 font-body text-base text-primary group-hover:text-accent transition-colors">{post.data.title}</h3>
-									{post.data.description && <p class="mt-1 font-sans text-xs text-muted line-clamp-2">{post.data.description}</p>}
-								</a>
-							))}
-						</div>
-					) : (
-						<p class="font-body text-sm text-muted italic py-4">No posts yet.</p>
-					)}
-				</div>
-			</div>
-		</div>
-	</section>
-
+  <section class="hero-composition" aria-labelledby="home-title">
+    <header class="hero-intro">
+      <h1 id="home-title">Feixiang Tao<small>TensorFieldX</small></h1>
+      <div class="hero-copy">
+        <p>Hello, I’m Feixiang Tao, an Artificial Intelligence student at SUSTech, exploring Agentic RL and Learning Theory.</p>
+        <p>This is my personal archive of physics, mathematics, and computer science. Notes, experiments, and questions along the way.</p>
+      </div>
+    </header>
+    <div class="hero-art"><ScatteredLogo />
+      <span class="hero-caption hero-caption--1">Learning to reason, plan, and act.</span>
+      <span class="hero-caption hero-caption--2">From first principles to experiments.</span>
+      <span class="hero-caption hero-caption--3">Physics, mathematics, and computer science.</span>
+      <span class="hero-caption hero-caption--4">A space for ideas and questions.</span>
+    </div>
+  </section>
+  <section aria-labelledby="selected-title">
+    <div class="reference-section-heading"><h2 id="selected-title">Selected</h2><PatternBand /></div>
+    {featured.map((entry, index) => <FeaturedEntry title={entry.title} href={entry.href} year={entry.pubDate.getFullYear()} category={entry.category} description={entry.description} tags={entry.tags} image={entry.image} reverse={index === 1} pattern={index === 2 ? 'cross' : 'stripe'} />)}
+  </section>
+  <section class="home-links" aria-label="Explore the archive">
+    {exploreLinks.map(link => <a href={link.href}><h3>{link.title}</h3><p>{link.description}</p><span class="entry-arrow" aria-hidden="true">↗</span></a>)}
+  </section>
+  <a class="home-profile" href="/about" aria-label="About Feixiang Tao"><img src="/images/IMG_0511.webp" alt="" loading="lazy" /><span>profile</span></a>
 </BaseLayout>

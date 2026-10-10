@@ -1,0 +1,7 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArchiveView from '../components/ArchiveView.astro';
+import { getArchiveEntries } from '../lib/archive';
+const entries = await getArchiveEntries();
+---
+<BaseLayout title="Archive"><ArchiveView entries={entries} filters /></BaseLayout>

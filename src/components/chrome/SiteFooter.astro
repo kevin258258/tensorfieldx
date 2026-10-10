@@ -1,9 +1,24 @@
-<footer class="border-t border-edge">
-  <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-sans text-muted">
-    <span>Feixiang Tao · 2026 · Shenzhen</span>
-    <div class="flex items-center gap-4">
-      <a href="/rss.xml" class="ui-text-link hover:text-primary">RSS</a>
-      <a href="https://github.com/kevin258258" target="_blank" rel="noopener noreferrer" class="ui-text-link hover:text-primary">GitHub</a>
+---
+import ScatteredLogo from '../ScatteredLogo.astro';
+---
+<footer class="reference-footer">
+  <div class="contact-band">
+    <a class="contact-logo" href="/" aria-label="TensorFieldX home"><ScatteredLogo /></a>
+    <a class="contact-marquee" href="mailto:12512619@mail.sustech.edu.cn" aria-label="Email Feixiang Tao">
+      <span class="contact-track"><span>@sustech.edu.cn</span><span aria-hidden="true">@sustech.edu.cn</span></span>
+    </a>
+  </div>
+  <div class="footer-modules">
+    <a href="/about" class="footer-profile"><span class="footer-profile-title">Profile</span><p>This is the personal archive of Feixiang Tao, an Artificial Intelligence student at SUSTech.<br />Notes, experiments, and ideas in physics, mathematics, and computer science.</p><span class="large-arrow" aria-hidden="true">↗</span></a>
+    <div class="footer-social">
+      <p>I use the following social media platforms:</p>
+      <div class="social-links">
+        <a href="https://github.com/kevin258258" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        <a href="https://x.com/Feixiang_Tao" target="_blank" rel="noopener noreferrer">X ↗</a>
+        <a href="https://www.zhihu.com/people/three-23-89" target="_blank" rel="noopener noreferrer">知乎 ↗</a>
+      </div>
+      <span class="footer-copyright">© feixiang tao</span>
+      <div class="footer-utility"><a href="/notes">Notes</a><a href="/blog">Blog</a><a href="/projects">Projects</a><a href="/publications">Publications</a><a href="/tags">Tags</a><a href="/rss.xml">RSS</a><button id="search-trigger" type="button" aria-label="Search the archive">Search ⌘K</button></div>
     </div>
   </div>
 </footer>

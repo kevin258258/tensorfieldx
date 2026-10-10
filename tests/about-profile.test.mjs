@@ -76,25 +76,9 @@ test("homepage profile points to the new AI research identity", async () => {
   assert.doesNotMatch(home, /Physics\s*\/\s*Math\s*\/\s*AI/);
 });
 
-test("homepage Explore exposes every primary destination", async () => {
+test("homepage exposes every primary destination", async () => {
   const home = await readSrc("src/pages/index.astro");
-  const exploreLinks = home.match(
-    /const exploreLinks = (\[[\s\S]*?\]);\s*\n\s*const recentNotes/,
-  )?.[1];
-
-  assert.ok(exploreLinks, "homepage should define its Explore destinations once");
-  for (const [href, label] of [
-    ["/notes", "Notes"],
-    ["/blog", "Blog"],
-    ["/projects", "Projects"],
-    ["/publications", "Publications"],
-    ["/about", "About"],
-  ]) {
-    assert.match(
-      exploreLinks,
-      new RegExp(`href:\\s*["']${href}["'][\\s\\S]*?title:\\s*["']${label}["']`),
-    );
+  for (const href of ["/notes", "/blog", "/projects", "/publications", "/about"]) {
+    assert.ok(home.includes(href), `homepage should expose ${href}`);
   }
-  assert.match(home, /exploreLinks\.map/);
-  assert.match(home, /text-xs text-secondary[^>]*>{link\.description}/);
 });
