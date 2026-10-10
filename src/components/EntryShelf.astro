@@ -1,6 +1,7 @@
 ---
 import type { ShelfEntry } from '../scripts/entryShelf';
 import { DEFAULT_COVER } from '../lib/covers';
+import PatternBand from './PatternBand.astro';
 interface Props {
   entries: ShelfEntry[];
   title: string;
@@ -21,6 +22,7 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
   </header>
   <div class="blog-shelf-filters">
     <span class="blog-shelf-all">All</span>
+    <PatternBand class="blog-shelf-filter-pattern" />
   </div>
   <div class="blog-shelf-columns">
     <div class="blog-shelf-list" aria-label={title}>

@@ -82,6 +82,21 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .reference-section-heading h2 { display: flex; align-items: center; justify-content: center; flex: 0 0 var(--rail); border-right: 2px solid var(--ink); font: italic 700 40px Quincy, serif; letter-spacing: .015em; }
 .pattern-band { display: block; flex: 1; min-width: 0; }
 .pattern-band--stripe { background: repeating-linear-gradient(45deg, var(--ink) 0 5px, transparent 5px 12px); }
+.pattern-band--dots { background: radial-gradient(var(--ink) 1px, transparent 1px) 0 0 / 6px 6px; }
+.profile-ink-pattern { flex: none; height: 108px; margin-top: 48px; border: 2px solid var(--ink); }
+.footer-social { position: relative; }
+.footer-ink-pattern { position: absolute; top: 50%; width: 80px; height: 120px; translate: 0 -50%; border: 2px solid var(--ink); pointer-events: none; }
+.footer-ink-pattern--left { left: 38px; }
+.footer-ink-pattern--right { right: 38px; }
+@media (min-width: 1101px) {
+  .footer-modules--home .footer-social { padding-inline: 160px; }
+}
+@media (max-width: 1100px) {
+  .footer-ink-pattern { display: none; }
+}
+@media (max-width: 799px) {
+  .profile-ink-pattern { height: 48px; margin-top: 28px; }
+}
 .pattern-band--slash { position: relative; }
 .pattern-band--slash::after { content: ''; position: absolute; inset: 0; background: var(--ink); clip-path: polygon(0 0, 1px 0, 100% calc(100% - 2px), 100% 100%, calc(100% - 1px) 100%, 0 2px); }
 .pattern-band--cross { background: linear-gradient(to top right, transparent calc(50% - 1px), var(--ink) 50%, transparent calc(50% + 1px)), linear-gradient(to bottom right, transparent calc(50% - 1px), var(--ink) 50%, transparent calc(50% + 1px)); }

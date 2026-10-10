@@ -116,6 +116,7 @@
 .blog-shelf-heading > span { margin-left: auto; font-size: 11px; flex-shrink: 0; }
 .blog-shelf-filters { display: flex; align-items: stretch; min-height: 62px; border-bottom: 2px solid var(--ink); position: sticky; top: 124px; z-index: 20; background: var(--paper) url('/design/kazuki/paper.webp') 0 0 / 500px; }
 .blog-shelf-all { display: flex; align-items: center; padding: 16px 24px; font-size: 12px; text-decoration: underline; text-underline-offset: 6px; font-weight: 700; }
+.blog-shelf-filter-pattern { flex: 0 0 48%; margin-left: auto; border-left: 2px solid var(--ink); }
 .blog-shelf-columns { display: grid; grid-template-columns: 52% minmax(0, 1fr); min-height: max(680px, calc(100dvh - 276px)); }
 .blog-shelf-list { display: flex; flex-direction: column; border-right: 2px solid var(--ink); min-width: 0; }
 .blog-shelf .blog-shelf-entry { flex: 1; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 20px; align-items: center; padding: 48px 38px; min-height: 330px; overflow: visible; }

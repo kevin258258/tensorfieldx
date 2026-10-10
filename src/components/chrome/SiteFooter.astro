@@ -1,5 +1,6 @@
 ---
 import ScatteredLogo from '../ScatteredLogo.astro';
+import PatternBand from '../PatternBand.astro';
 import { getCollection } from 'astro:content';
 const hasNotes = (await getCollection('notes')).length > 0;
 const isHome = Astro.url.pathname === '/';
@@ -16,6 +17,8 @@ const isHome = Astro.url.pathname === '/';
   </div>
   <div class="footer-modules footer-modules--home">
     <div class="footer-social">
+      <PatternBand variant="dots" class="footer-ink-pattern footer-ink-pattern--left" />
+      <PatternBand class="footer-ink-pattern footer-ink-pattern--right" />
       <p>I use the following social media platforms:</p>
       <div class="social-links">
         <a href="https://github.com/kevin258258" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
