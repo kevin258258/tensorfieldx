@@ -14,8 +14,7 @@ const isHome = Astro.url.pathname === '/';
     <div class="contact-meta"><a href="mailto:12512619@mail.sustech.edu.cn">12512619@mail.sustech.edu.cn ↗</a><button type="button" data-copy-email aria-label="Copy email address" aria-live="polite">Copy email</button></div>
     </div>
   </div>
-  <div class:list={['footer-modules', { 'footer-modules--home': isHome }]}>
-    {!isHome && <a href="/" class="footer-profile"><span class="footer-profile-title">Profile</span><p>This is the personal website of Feixiang Tao, an Artificial Intelligence student at SUSTech.<br />Research, experiments, and ideas in physics, mathematics, and computer science.</p><span class="large-arrow" aria-hidden="true">↗</span></a>}
+  <div class="footer-modules footer-modules--home">
     <div class="footer-social">
       <p>I use the following social media platforms:</p>
       <div class="social-links">

@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import ArchiveView from '../../components/ArchiveView.astro';
+import BlogShelf from '../../components/BlogShelf.astro';
 import { getArchiveEntries } from '../../lib/archive';
 const entries = (await getArchiveEntries()).filter(entry => entry.category === 'Blog');
 ---
-<BaseLayout title="Blog"><ArchiveView entries={entries} title="Blog" description="Long-form writing on research ideas, technical explorations, and reflections." /></BaseLayout>
+<BaseLayout title="Blog"><BlogShelf entries={entries} /></BaseLayout>

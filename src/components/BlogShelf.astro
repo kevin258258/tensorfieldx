@@ -1,0 +1,57 @@
+---
+import type { ArchiveEntry } from '../lib/archive';
+import ScatteredLogo from './ScatteredLogo.astro';
+interface Props { entries: ArchiveEntry[]; }
+const { entries } = Astro.props;
+const topics = [...new Set(entries.map(entry => entry.tags[0]).filter(Boolean))];
+const initial = entries[0];
+const date = (entry: ArchiveEntry) => new Date(entry.date).toISOString().slice(0, 10);
+---
+<section class="blog-shelf" data-blog-shelf data-entries={JSON.stringify(entries)} aria-labelledby="blog-shelf-title">
+  <header class="blog-shelf-heading">
+    <h1 id="blog-shelf-title">Blog</h1>
+    <p>Research, experiments & everyday observations.</p>
+    <span data-blog-count aria-live="polite">{entries.length} entries</span>
+  </header>
+  <div class="blog-shelf-filters" role="group" aria-label="Filter articles by topic">
+    <button type="button" data-blog-filter="All" aria-pressed="true">All</button>
+    {topics.map(topic => <button type="button" data-blog-filter={topic} aria-pressed="false">{topic}</button>)}
+    <span class="blog-shelf-category">Topics</span>
+  </div>
+  <div class="blog-shelf-columns">
+    <div class="blog-shelf-list" aria-label="Articles">
+      {entries.map((entry, index) => <a href={entry.href} class="blog-shelf-entry archive-entry" data-blog-entry={index} data-topic={entry.tags[0]} data-astro-prefetch="hover">
+        <span class="blog-shelf-year">{entry.year}</span>
+        <div class="blog-shelf-entry-text">
+          <h2>{entry.title}</h2>
+          <div class="blog-shelf-entry-meta"><time datetime={date(entry)}>{date(entry)}</time><span>{entry.min} min read</span><span class="blog-shelf-entry-arrow" aria-hidden="true">↗</span></div>
+          {entry.image && <img class="blog-shelf-mobile-image" src={entry.image} alt="" loading={index === 0 ? 'eager' : 'lazy'} />}
+          <p class="blog-shelf-mobile-description">{entry.description}</p>
+        </div>
+      </a>)}
+      {entries.length === 0 && <p class="archive-empty">No articles yet.</p>}
+    </div>
+    {initial && <aside class="blog-shelf-preview" aria-label="Selected article preview">
+      <div class="blog-shelf-preview-sticky">
+        <div class="blog-shelf-preview-number"><span>Selected writing</span><span data-blog-preview-index>01 / {String(entries.length).padStart(2, '0')}</span></div>
+        <a class="blog-shelf-image-link" href={initial.href} data-blog-preview-link aria-label={`Read: ${initial.title}`}>
+          <div class="blog-shelf-image-frame">
+            {entries.map((entry, index) => <div class:list={['blog-shelf-visual', { 'is-active': index === 0 }]} data-blog-visual={index} aria-hidden={index !== 0 ? 'true' : undefined}>
+              {entry.image ? <img src={entry.image} alt={`Figure from ${entry.title}`} loading={index === 0 ? 'eager' : 'lazy'} /> : <ScatteredLogo />}
+            </div>)}
+          </div>
+        </a>
+        <div class="blog-shelf-preview-copy">
+          <ul data-blog-preview-tags>{initial.tags.map(tag => <li>{tag}</li>)}</ul>
+          <p data-blog-preview-description>{initial.description}</p>
+          <a href={initial.href} data-blog-preview-link class="blog-shelf-read">Read article <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </aside>}
+  </div>
+</section>
+<script>
+  import { initBlogShelf } from '../scripts/blogShelf';
+  document.addEventListener('astro:page-load', initBlogShelf);
+  initBlogShelf();
+</script>
