@@ -1,5 +1,6 @@
 import { initNoiseReveals } from './noiseReveal';
 import { initHeroMotion } from './heroMotion';
+import { initPointer } from './pointer';
 
 const palette = ['125 151 184', '223 178 85', '82 164 126', '158 175 146', '167 182 176', '42 41 39'];
 let audio: HTMLAudioElement | undefined;
@@ -56,6 +57,7 @@ export function initReferenceUi() {
     button.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText('12512619@mail.sustech.edu.cn');
+        button.dataset.copyState = 'copied';
         button.textContent = 'Copied';
       } catch {
         button.textContent = 'Select address to copy';
@@ -68,7 +70,7 @@ export function initReferenceUi() {
           selection?.addRange(range);
         }
       }
-      window.setTimeout(() => { if (button.isConnected) button.textContent = 'Copy email'; }, 2000);
+      window.setTimeout(() => { if (button.isConnected) { button.textContent = 'Copy email'; delete button.dataset.copyState; } }, 2000);
     }, { signal });
   });
 
@@ -90,15 +92,21 @@ export function initReferenceUi() {
   // The introduction is immediately accessible; sound remains an opt-in control.
   root.dataset.entered = 'true';
   initHeroMotion(signal);
+  initPointer(signal);
 
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && matchMedia('(hover: hover)').matches) {
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  if (!reducedMotion.matches && matchMedia('(hover: hover)').matches) {
     initNoiseReveals(signal);
     const hero = document.querySelector<HTMLElement>('.hero-art');
     const logo = hero?.querySelector<SVGSVGElement>('.scattered-logo');
     const glyphs = hero?.querySelectorAll<SVGGElement>('.logo-interaction');
     const captions = hero?.querySelectorAll<HTMLElement>('.hero-caption');
+    const resetHero = () => {
+      glyphs?.forEach(glyph => glyph.style.transform = 'translate(0, 0)');
+      captions?.forEach(caption => caption.style.transform = 'translate(0, 0)');
+    };
     hero?.addEventListener('pointermove', event => {
-      if (!logo) return;
+      if (!logo || reducedMotion.matches) return;
       const box = logo.getBoundingClientRect();
       const x = (event.clientX - box.left) / box.width * 1942;
       const y = (event.clientY - box.top) / box.height * 1054;
@@ -117,10 +125,9 @@ export function initReferenceUi() {
         caption.style.transform = `translate(${dx * attraction}px, ${dy * attraction}px)`;
       });
     }, { signal });
-    hero?.addEventListener('pointerleave', () => {
-      glyphs?.forEach(glyph => glyph.style.transform = 'translate(0, 0)');
-      captions?.forEach(caption => caption.style.transform = 'translate(0, 0)');
-    }, { signal });
+    hero?.addEventListener('pointerleave', resetHero, { signal });
+    reducedMotion.addEventListener('change', resetHero, { signal });
+    signal.addEventListener('abort', resetHero, { once: true });
     document.querySelectorAll<HTMLElement>('.featured-entry').forEach(entry => {
       entry.addEventListener('pointermove', event => {
         const box = entry.getBoundingClientRect();
@@ -128,17 +135,5 @@ export function initReferenceUi() {
         entry.style.setProperty('--preview-y', `${(event.clientY - box.top) / box.height * 100}%`);
       }, { signal });
     });
-    const pointer = document.querySelector<HTMLElement>('.reference-pointer');
-    const label = pointer?.querySelector('[data-pointer-label]');
-    document.addEventListener('pointermove', event => {
-      if (!pointer) return;
-      pointer.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0)`;
-      const target = event.target instanceof Element ? event.target.closest('a, button') : null;
-      const featured = target?.matches('.featured-entry, .archive-entry, .home-profile, .contact-marquee');
-      pointer.classList.add('is-visible');
-      pointer.classList.toggle('is-large', Boolean(featured));
-      if (label) label.textContent = target?.matches('.contact-marquee') ? 'Contact' : 'View';
-    }, { signal });
-    document.addEventListener('pointerleave', () => pointer?.classList.remove('is-visible'), { signal });
   }
 }

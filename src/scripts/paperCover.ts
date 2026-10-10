@@ -61,8 +61,8 @@ export class PaperCover {
     return new Promise(resolve => {
       this.finish = resolve;
       if (!this.gl) {
-        // The reference also uses a 400ms paper fade when WebGL is unavailable.
-        this.fallback = this.element.animate([{ opacity: fromOpacity }, { opacity: visible ? 1 : 0 }], { duration: 400, fill: 'forwards' });
+        // Keep the fallback brief so navigation never waits on a long fade.
+        this.fallback = this.element.animate([{ opacity: fromOpacity }, { opacity: visible ? 1 : 0 }], { duration: Math.min(duration, 240), fill: 'forwards' });
         this.fallback.onfinish = () => {
           this.progress = visible ? 1 : 0;
           this.element.style.opacity = visible ? '1' : '0';

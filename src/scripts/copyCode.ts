@@ -20,6 +20,7 @@ export function initCopyCode() {
       const code = pre.querySelector('code')?.textContent ?? pre.textContent ?? '';
       try {
         await navigator.clipboard.writeText(code);
+        btn.dataset.copyState = 'copied';
         btn.textContent = english ? 'Copied' : '已复制';
       } catch {
         btn.textContent = english ? 'Select to copy' : '请选中复制';
@@ -29,7 +30,7 @@ export function initCopyCode() {
         selection?.removeAllRanges();
         selection?.addRange(range);
       }
-      window.setTimeout(() => { if (btn.isConnected) btn.textContent = idle; }, 2000);
+      window.setTimeout(() => { if (btn.isConnected) { btn.textContent = idle; delete btn.dataset.copyState; } }, 2000);
     };
     toolbar.append(label, btn);
     pre.parentNode?.insertBefore(wrapper, pre);

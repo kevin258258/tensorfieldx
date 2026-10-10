@@ -54,7 +54,7 @@ test('navigation waits for both page loading and paper coverage before the swap'
   const next = h.dispatch('astro:before-preparation', { signal, loader: () => load.promise });
   let complete = false;
   const loading = next.loader().then(() => complete = true);
-  assert.deepEqual(h.calls, [{ visible: true, duration: 1000 }]);
+  assert.deepEqual(h.calls, [{ visible: true, duration: 420 }]);
   load.resolve();
   await flush();
   assert.equal(complete, false);
@@ -62,7 +62,7 @@ test('navigation waits for both page loading and paper coverage before the swap'
   await loading;
   h.dispatch('astro:before-swap', { signal });
   h.dispatch('astro:page-load');
-  assert.deepEqual(h.calls.at(-1), { visible: false, duration: 1800 });
+  assert.deepEqual(h.calls.at(-1), { visible: false, duration: 780 });
 });
 
 test('a superseding navigation keeps the paper in place until its own page swaps', async () => {
@@ -80,7 +80,7 @@ test('a superseding navigation keeps the paper in place until its own page swaps
   await loading;
   h.dispatch('astro:before-swap', { signal: second.signal });
   h.dispatch('astro:page-load');
-  assert.deepEqual(h.calls.at(-1), { visible: false, duration: 1800 });
+  assert.deepEqual(h.calls.at(-1), { visible: false, duration: 780 });
 });
 
 test('failed loading uncovers the current page and preserves the failure', async () => {

@@ -1,7 +1,8 @@
 /** Reference timing and geometry applied to the site's own vector lettering. */
 export function initHeroMotion(signal: AbortSignal) {
   const hero = document.querySelector<HTMLElement>('.hero-art');
-  if (!hero || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  if (!hero || reduced.matches) return;
   const glyphs = Array.from(hero.querySelectorAll<SVGGElement>('.logo-interaction'));
   const captions = Array.from(hero.querySelectorAll<HTMLElement>('.hero-caption'));
   const animations: Animation[] = [];
@@ -36,16 +37,16 @@ export function initHeroMotion(signal: AbortSignal) {
       const path = glyph.querySelector<SVGPathElement>('.logo-glyph')!;
       arrival.style.transformOrigin = `${cx}px ${cy}px`;
       rotation.style.transformOrigin = `${cx + .5 * (Math.random() - .5) * offsetX}px ${cy + .5 * (Math.random() - .5) * offsetY}px`;
-      const angle = (Math.random() < .5 ? -1 : 1) * (Math.random() + .3) * 54;
-      const delay = 1000 + order.indexOf(index) * 100;
+      const angle = (Math.random() < .5 ? -1 : 1) * (Math.random() + .3) * 18;
+      const delay = 80 + order.indexOf(index) * 55;
       const options = { delay, fill: 'backwards' as FillMode, easing: 'cubic-bezier(.19,1,.22,1)' };
       animations.push(arrival.animate([
-        { transform: `translate(${-offsetX * .1}px, ${-offsetY * .1}px) scale(3)` },
+        { transform: `translate(${-offsetX * .05}px, ${-offsetY * .05}px) scale(1.12)` },
         { transform: 'translate(0, 0) scale(1)' },
-      ], { ...options, duration: 2000 }));
-      animations.push(rotation.animate([{ transform: `rotate(${angle}deg)` }, { transform: 'rotate(0)' }], { ...options, duration: 3000 }));
+      ], { ...options, duration: 1100 }));
+      animations.push(rotation.animate([{ transform: `rotate(${angle}deg)` }, { transform: 'rotate(0)' }], { ...options, duration: 1400 }));
       const from = Math.random() < .5 ? 'inset(100% 0 0 0)' : 'inset(0 0 100% 0)';
-      animations.push(path.animate([{ opacity: 0, clipPath: from }, { opacity: 1, clipPath: 'inset(0)' }], { ...options, duration: 1400 }));
+      animations.push(path.animate([{ opacity: 0, clipPath: from }, { opacity: 1, clipPath: 'inset(0)' }], { ...options, duration: 800 }));
     });
     if (captions.length) captionTimer = setTimeout(advanceCaption, 5000);
   };
@@ -55,4 +56,10 @@ export function initHeroMotion(signal: AbortSignal) {
     animations.forEach(animation => animation.cancel());
     clearTimeout(captionTimer);
   }, { once: true });
+  reduced.addEventListener('change', () => {
+    if (!reduced.matches) return;
+    animations.forEach(animation => animation.cancel());
+    clearTimeout(captionTimer);
+    captions.forEach((caption, index) => caption.classList.toggle('is-active', index === 0));
+  }, { signal });
 }

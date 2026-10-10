@@ -22,8 +22,11 @@ export function initEntryShelf() {
   const entries = [...shelf.querySelectorAll<HTMLElement>('[data-shelf-entry]')];
   const visuals = [...shelf.querySelectorAll<HTMLElement>('[data-shelf-visual]')];
   let selected = -1;
+  let copyAnimation: Animation | undefined;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   function show(index: number) {
     if (selected === index || !data[index]) return;
+    const changing = selected >= 0;
     selected = index;
     const entry = data[index];
     for (const visual of visuals) {
@@ -47,6 +50,11 @@ export function initEntryShelf() {
     });
     const number = shelf!.querySelector('[data-shelf-preview-index]');
     if (number) number.textContent = `${String(index + 1).padStart(2, '0')} / ${String(entries.length).padStart(2, '0')}`;
+    copyAnimation?.cancel();
+    if (changing && !reduced.matches) copyAnimation = shelf!.querySelector('.blog-shelf-preview-copy')?.animate([
+      { opacity: .35, transform: 'translateY(6px)' },
+      { opacity: 1, transform: 'translateY(0)' },
+    ], { duration: 280, easing: 'cubic-bezier(.22,1,.36,1)' });
   }
   for (const link of entries) {
     const activate = () => show(Number(link.dataset.shelfEntry));
@@ -54,4 +62,6 @@ export function initEntryShelf() {
     link.addEventListener('focus', activate, { signal });
   }
   if (entries.length) show(0);
+  reduced.addEventListener('change', () => copyAnimation?.cancel(), { signal });
+  signal.addEventListener('abort', () => copyAnimation?.cancel(), { once: true });
 }

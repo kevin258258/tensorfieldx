@@ -18,7 +18,7 @@ export function initTransitions() {
   document.addEventListener('pointerdown', event => cover.setCenter(event.clientX, event.clientY));
   document.addEventListener('reference:entered', () => {
     cover.coverImmediately();
-    void cover.transition(false, 1800);
+    void cover.transition(false, 780);
   });
   document.addEventListener('astro:before-preparation', event => {
     const next = event as TransitionBeforePreparationEvent;
@@ -37,7 +37,7 @@ export function initTransitions() {
     next.loader = async () => {
       let failed = false;
       try {
-        await Promise.all([load(), cover.transition(true, 1000)]);
+        await Promise.all([load(), cover.transition(true, 420)]);
       } catch (error) {
         failed = true;
         throw error;
@@ -56,6 +56,6 @@ export function initTransitions() {
   document.addEventListener('astro:page-load', () => {
     if (!preparing || swappedNavigation !== navigation) return;
     preparing = false;
-    void cover.transition(false, 1800);
+    void cover.transition(false, 780);
   });
 }

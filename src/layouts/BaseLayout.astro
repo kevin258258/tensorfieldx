@@ -5,6 +5,7 @@ import "../styles/cards.css";
 import "../styles/reference.css";
 import "../styles/blog-ui.css";
 import "../styles/reading.css";
+import "../styles/motion.css";
 import "@fontsource/jetbrains-mono/400.css";
 import Search from "../components/Search.astro";
 import LinkPreview from "../components/LinkPreview.astro";
@@ -92,6 +93,7 @@ const currentPath = Astro.url.pathname;
       import { initTransitions } from "../scripts/transitions";
       import { initReferenceUi } from "../scripts/reference";
       import { initArticleReader } from "../scripts/articleReader";
+      import { initInteractions } from "../scripts/interactions";
 
       function setupPageUi() {
         initReveal();
@@ -99,6 +101,7 @@ const currentPath = Astro.url.pathname;
         initLightbox();
         initReferenceUi();
         initArticleReader();
+        initInteractions();
       }
 
       document.addEventListener("astro:page-load", setupPageUi);
