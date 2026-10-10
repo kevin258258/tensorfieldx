@@ -1,3 +1,5 @@
+import { initNoiseReveals } from './noiseReveal';
+
 const palette = ['125 151 184', '223 178 85', '82 164 126', '158 175 146', '167 182 176', '42 41 39'];
 let audio: HTMLAudioElement | undefined;
 let soundOn = false;
@@ -86,17 +88,26 @@ export function initReferenceUi() {
   }
 
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches && matchMedia('(hover: hover)').matches) {
+    initNoiseReveals(signal);
     const hero = document.querySelector<HTMLElement>('.hero-art');
+    const logo = hero?.querySelector<SVGSVGElement>('.scattered-logo');
+    const glyphs = hero?.querySelectorAll<SVGGElement>('.logo-interaction');
     hero?.addEventListener('pointermove', event => {
-      const box = hero.getBoundingClientRect();
-      const x = (event.clientX - box.left) / box.width - .5;
-      const y = (event.clientY - box.top) / box.height - .5;
-      hero.classList.add('is-interacting');
-      hero.style.setProperty('--pointer-x', `${x * 60}px`);
-      hero.style.setProperty('--pointer-y', `${y * 60}px`);
-      hero.style.setProperty('--pointer-angle', `${x * 20}deg`);
+      if (!logo) return;
+      const box = logo.getBoundingClientRect();
+      const x = (event.clientX - box.left) / box.width * 1942;
+      const y = (event.clientY - box.top) / box.height * 1054;
+      glyphs?.forEach(glyph => {
+        const bounds = glyph.getBBox();
+        const dx = x - bounds.x - bounds.width / 2;
+        const dy = y - bounds.y - bounds.height / 2;
+        const attraction = Math.min(1, 20 / Math.max(Math.hypot(dx, dy), .001));
+        glyph.style.transform = `translate(${dx * attraction}px, ${dy * attraction}px)`;
+      });
     }, { signal });
-    hero?.addEventListener('pointerleave', () => hero.classList.remove('is-interacting'), { signal });
+    hero?.addEventListener('pointerleave', () => {
+      glyphs?.forEach(glyph => glyph.style.transform = 'translate(0, 0)');
+    }, { signal });
     document.querySelectorAll<HTMLElement>('.featured-entry').forEach(entry => {
       entry.addEventListener('pointermove', event => {
         const box = entry.getBoundingClientRect();
@@ -111,7 +122,7 @@ export function initReferenceUi() {
       pointer.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0)`;
       const target = event.target instanceof Element ? event.target.closest('a, button') : null;
       const featured = target?.matches('.featured-entry, .archive-entry, .home-profile, .contact-marquee');
-      pointer.classList.toggle('is-visible', Boolean(target));
+      pointer.classList.add('is-visible');
       pointer.classList.toggle('is-large', Boolean(featured));
       if (label) label.textContent = target?.matches('.contact-marquee') ? 'Contact' : 'View';
     }, { signal });

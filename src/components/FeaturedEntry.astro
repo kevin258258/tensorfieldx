@@ -15,8 +15,8 @@ const { title, href, year, category, description, tags = [], image, reverse = fa
 ---
 <a href={href} class:list={['featured-entry', { 'featured-entry--reverse': reverse }]} data-astro-prefetch="hover">
   {image && <div class="featured-entry-preview" aria-hidden="true"><img src={image} alt="" loading="lazy" decoding="async" /></div>}
-  <div class="featured-entry-meta"><div><time>{year}</time><ul><li>{category}</li>{tags.slice(0, 4).map(tag => <li>{tag}</li>)}</ul></div><p>{description}</p></div>
+  <div class="featured-entry-meta"><div><time>{year}</time><ul><li>{category}</li>{tags.slice(0, 4).map(tag => <li>{tag}</li>)}</ul></div><p class="sr-only">{description}</p></div>
   <h3 class="featured-entry-title">{title}</h3>
   <PatternBand class="featured-entry-pattern" variant={pattern} />
-  <span class="featured-entry-view">View {category === 'Project' ? 'Project' : 'Article'}<span class="entry-arrow" aria-hidden="true">↗</span></span>
+  <span class="featured-entry-view"><span class="featured-entry-view-label">View {category === 'Project' ? 'Project' : 'Article'}</span><span class="entry-arrow" aria-hidden="true">↗</span></span>
 </a>

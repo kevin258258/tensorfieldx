@@ -25,7 +25,8 @@ The six theme colors are `#7d97b8`, `#dfb255`, `#52a47e`, `#9eaf92`, `#a7b6b0`, 
 ## Implementation
 
 - Shared frame, desktop/mobile navigation, palette persistence, sound entrance and sound control.
-- SVG glyph composition, staggered arrival, pointer response, outlined titles and hover previews.
+- SVG glyph composition, staggered arrival, 20-unit per-glyph pointer attraction, outlined titles, and 50/80px circular pointer feedback.
+- WebGL image reveals use the reference noise texture, per-pixel delay, sine easing, a 1.8× corner reach, and 800/600ms enter/exit timings. Reduced-motion and unavailable graphics keep the static image behavior.
 - Selected home entries from the existing blog/notes collections.
 - `/archive` with category controls, a desktop image preview, and all existing notes, published posts, and projects. `/blog` and `/projects` use the same listing vocabulary.
 - Profile typography/photo composition with the existing academic profile, internship, CV and contact links.
@@ -37,6 +38,7 @@ Verified in this worktree:
 
 - `npm run build`: 118 generated pages, success.
 - `tsc --noEmit`: success.
+- Reveal shaders: compiled and linked with `glslangValidator`; rendered in a surfaceless GLES2 context (Mesa llvmpipe). At progress 0/0.5/1, alpha was respectively all 0 / 256 graded values / all 255, and the completed image color matched the input.
 - `npm test`: all four test files passed; the detailed TAP run passed 30 assertions.
 - Built-output audit: 118 pages, 3,150 root-relative links/assets, zero missing paths.
 - Local preview HTTP responses: home, archive, profile, and the Transformer article all returned 200. The archive contains 33 notes, two published blog posts, and one project.
@@ -47,7 +49,7 @@ Still required before marking the goal complete:
 
 1. Side-by-side browser captures of the reference and local pages at desktop and mobile sizes, including 1440×900, 800px, 799px and 390×844.
 2. Verify entrance, sound on/off, all palettes, keyboard navigation, category filtering, hover previews, client navigation and reduced motion in the browser.
-3. Compare animated letter motion, cursor behavior, image reveal and page transitions with the reference's WebGL effects. The current implementation uses SVG/CSS motion and image reveal; matching the original motion remains unproven.
+3. Compare animated letter motion, cursor behavior, image reveal and page transitions with the reference's WebGL effects. Image reveal now uses the reference WebGL algorithm. Letter arrival and page transitions still require comparison with the original WebGL effects; full motion fidelity remains unproven.
 4. Correct discrepancies found in those captures and interaction checks.
 
 The browser connector reported no available browsers during implementation. Full fidelity is pending this verification; the goal is active.

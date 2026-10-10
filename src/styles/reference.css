@@ -72,7 +72,7 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .hero-art { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; }
 .hero-art > .scattered-logo { width: 108.75421%; flex-shrink: 0; margin-left: -6%; }
 .logo-glyph { transform-box: fill-box; transform-origin: center; transition: transform 1.4s cubic-bezier(.19,1,.22,1); }
-.hero-art.is-interacting .logo-glyph { transform: translate(calc(var(--pointer-x, 0px) * .3), calc(var(--pointer-y, 0px) * .3)) rotate(calc(var(--pointer-angle, 0deg) * var(--glyph-index) * .15)); }
+.logo-interaction { transform-box: view-box; transition: transform 1.4s cubic-bezier(.19,1,.22,1); }
 .hero-caption { position: absolute; font-size: 12px; font-weight: 700; letter-spacing: .025em; }
 .hero-caption--1 { left: 14%; top: 26.6%; }
 .hero-caption--2 { left: 62%; top: 41%; }
@@ -315,12 +315,11 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
   .archive-preview { display: none; }
 }
 .reference-pointer { position: fixed; top: 0; left: 0; z-index: 140; pointer-events: none; width: 0; height: 0; opacity: 0; transition: opacity .2s; }
-.reference-pointer::before { content: ''; position: absolute; width: 12px; height: 12px; top: -6px; left: -6px; border: 1px solid var(--ink); background: var(--paper); transition: width .3s, height .3s, top .3s, left .3s; }
+.reference-pointer::before { content: ''; position: absolute; width: 50px; height: 50px; top: -25px; left: -25px; border: 2px solid var(--ink); border-radius: 50%; background: transparent; transition: width .8s cubic-bezier(.19,1,.22,1), height .8s cubic-bezier(.19,1,.22,1), top .8s cubic-bezier(.19,1,.22,1), left .8s cubic-bezier(.19,1,.22,1), background-color .4s; }
 .reference-pointer.is-visible { opacity: 1; }
-.reference-pointer.is-large::before { width: 90px; height: 58px; top: -29px; left: -45px; background: transparent; }
-.reference-pointer > span { position: absolute; display: none; font-size: 10px; font-weight: 700; top: -17px; left: -34px; }
+.reference-pointer.is-large::before { width: 80px; height: 80px; top: -40px; left: -40px; background: var(--ink); }
+.reference-pointer > span { position: absolute; display: none; font-size: 12px; font-weight: 700; top: 0; left: 0; transform: translate(-50%, -50%); color: #fff; }
 .reference-pointer.is-large > span { display: block; }
-.reference-pointer > .pointer-arrow { left: 14px; top: -1px; font: 500 30px/1 Quincy, serif; }
 [data-entered='true'] .hero-art .logo-glyph { animation: glyph-arrival 1.5s cubic-bezier(.19,1,.22,1) backwards; animation-delay: calc(var(--glyph-index) * 45ms); }
 @keyframes glyph-arrival { from { opacity: 0; transform: translate(200px, 180px) rotate(55deg); } to { opacity: 1; transform: none; } }
 [data-entered='true'] .hero-caption { animation: caption-arrival 1.4s .7s both; }
@@ -344,3 +343,14 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
   .nav-close > b { top: 5px; right: 0; left: 0; text-align: center; font-size: 32px; }
   .site-body .page-shell .fixed.bottom-6 { bottom: 95px; }
 }
+/* A transparent WebGL canvas reveals the full-color image through the noisy ink edge. */
+.featured-entry-preview.is-noise-ready, .archive-entry-preview.is-noise-ready { opacity: 1; background: transparent; transition: none; }
+.is-noise-ready > img { visibility: hidden; }
+.featured-entry-preview.is-noise-ready::after { display: none; }
+.noise-reveal-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.featured-entry-meta time, .featured-entry-view-label { transition: opacity .4s linear .2s; }
+@media (hover: hover) {
+  .featured-entry:hover .featured-entry-meta time, .featured-entry:hover .featured-entry-view-label { opacity: 0; }
+  .featured-entry:hover .featured-entry-meta { border-left-color: transparent; border-right-color: transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .logo-interaction { transition: none; } }
