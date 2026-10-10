@@ -107,9 +107,10 @@ export function initReferenceUi() {
     };
     hero?.addEventListener('pointermove', event => {
       if (!logo || reducedMotion.matches) return;
-      const box = logo.getBoundingClientRect();
-      const x = (event.clientX - box.left) / box.width * 1942;
-      const y = (event.clientY - box.top) / box.height * 1054;
+      const matrix = logo.getScreenCTM();
+      if (!matrix) return;
+      const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+      const { x, y } = point;
       glyphs?.forEach(glyph => {
         const bounds = glyph.getBBox();
         const dx = x - Number(glyph.dataset.centerX ?? bounds.x + bounds.width / 2);

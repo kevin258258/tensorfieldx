@@ -1,13 +1,74 @@
-/** Reference timing and geometry applied to the site's own vector lettering. */
+/** Shuffle the lettering once per home-page visit; hover and arrival use separate layers. */
+function randomizeLayout(hero: HTMLElement, glyphs: SVGGElement[]) {
+  const logo = hero.querySelector<SVGSVGElement>('.scattered-logo');
+  if (!logo || logo.dataset.layoutReady) return;
+  const { width, height } = logo.viewBox.baseVal;
+  const columns = 4;
+  const rows = Math.ceil(glyphs.length / columns);
+  const inset = 56;
+  const cellWidth = (width - inset * 2) / columns;
+  const cellHeight = (height - inset * 2) / rows;
+  const bounds = glyphs.map(glyph => glyph.querySelector<SVGGElement>('.logo-layout')!.getBBox());
+  const slots = glyphs.map((_, index) => index);
+  for (let i = slots.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [slots[i], slots[j]] = [slots[j], slots[i]];
+  }
+  const placements = bounds.map((box, index) => {
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
+    const angle = [0, 90, -90, 180][Math.floor(Math.random() * 4)] + (Math.random() - .5) * 24;
+    const radians = angle * Math.PI / 180;
+    const rotatedWidth = Math.abs(Math.cos(radians)) * box.width + Math.abs(Math.sin(radians)) * box.height;
+    const rotatedHeight = Math.abs(Math.sin(radians)) * box.width + Math.abs(Math.cos(radians)) * box.height;
+    // A spaced grid is a guaranteed fallback if an irregular arrangement cannot fit.
+    const jitterX = Math.max(0, (cellWidth - rotatedWidth - 48) / 2);
+    const jitterY = Math.max(0, (cellHeight - rotatedHeight - 48) / 2);
+    const x = inset + (slots[index] % columns + .5) * cellWidth + (Math.random() * 2 - 1) * jitterX;
+    const y = inset + (Math.floor(slots[index] / columns) + .5) * cellHeight + (Math.random() * 2 - 1) * jitterY;
+    return { cx, cy, angle, width: rotatedWidth, height: rotatedHeight, x, y };
+  });
+  const scattered: typeof placements = [];
+  for (const [index, placement] of placements.entries()) {
+    const anchor = bounds[slots[index]];
+    let candidate: typeof placement | undefined;
+    for (let attempt = 0; attempt < 160; attempt++) {
+      // Exchange the original irregular anchors, then vary their positions independently.
+      const targetX = attempt < 80 ? anchor.x + anchor.width / 2 + (Math.random() - .5) * 280 : Math.random() * width;
+      const targetY = attempt < 80 ? anchor.y + anchor.height / 2 + (Math.random() - .5) * 210 : Math.random() * height;
+      const x = Math.max(inset + placement.width / 2, Math.min(width - inset - placement.width / 2, targetX));
+      const y = Math.max(inset + placement.height / 2, Math.min(height - inset - placement.height / 2, targetY));
+      if (scattered.every(other => Math.abs(x - other.x) >= (placement.width + other.width) / 2 + 48 || Math.abs(y - other.y) >= (placement.height + other.height) / 2 + 48)) {
+        candidate = { ...placement, x, y };
+        break;
+      }
+    }
+    if (!candidate) break;
+    scattered.push(candidate);
+  }
+  const composition = scattered.length === glyphs.length ? scattered : placements;
+  glyphs.forEach((glyph, index) => {
+    const { x, y, cx, cy, angle } = composition[index];
+    glyph.querySelector<SVGGElement>('.logo-layout')!.setAttribute('transform', `translate(${x - cx} ${y - cy}) rotate(${angle} ${cx} ${cy})`);
+    glyph.dataset.centerX = String(x);
+    glyph.dataset.centerY = String(y);
+  });
+  logo.dataset.layoutReady = 'true';
+}
+
+/** Arrival timing applied to the site's own vector lettering. */
 export function initHeroMotion(signal: AbortSignal) {
   const hero = document.querySelector<HTMLElement>('.hero-art');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  if (!hero || reduced.matches) return;
+  if (!hero) return;
   const glyphs = Array.from(hero.querySelectorAll<SVGGElement>('.logo-interaction'));
   const captions = Array.from(hero.querySelectorAll<HTMLElement>('.hero-caption'));
+  randomizeLayout(hero, glyphs);
+  captions.forEach((caption, index) => caption.classList.toggle('is-active', index === 0));
+  if (reduced.matches) return;
   const animations: Animation[] = [];
   let captionTimer: ReturnType<typeof setTimeout> | undefined;
-  let currentCaption = -1;
+  let currentCaption = 0;
   let played = false;
   const advanceCaption = () => {
     captions[currentCaption]?.classList.remove('is-active');
@@ -25,14 +86,12 @@ export function initHeroMotion(signal: AbortSignal) {
       [order[i], order[j]] = [order[j], order[i]];
     }
     glyphs.forEach((glyph, index) => {
-      const bounds = glyph.getBBox();
+      const arrival = glyph.querySelector<SVGGElement>('.logo-arrival')!;
+      const bounds = arrival.getBBox();
       const cx = bounds.x + bounds.width / 2;
       const cy = bounds.y + bounds.height / 2;
-      const offsetX = cx - 1942 / 2;
-      const offsetY = cy - 1054 / 2;
-      glyph.dataset.centerX = String(cx);
-      glyph.dataset.centerY = String(cy);
-      const arrival = glyph.querySelector<SVGGElement>('.logo-arrival')!;
+      const offsetX = Number(glyph.dataset.centerX) - 1942 / 2;
+      const offsetY = Number(glyph.dataset.centerY) - 1054 / 2;
       const rotation = glyph.querySelector<SVGGElement>('.logo-rotation')!;
       const path = glyph.querySelector<SVGPathElement>('.logo-glyph')!;
       arrival.style.transformOrigin = `${cx}px ${cy}px`;
