@@ -36,7 +36,6 @@ html { scroll-behavior: smooth; }
 .blog-shelf-entry-text { transition: translate 540ms var(--motion-ease); }
 a.blog-shelf-entry:is(:hover,:focus-visible) .blog-shelf-entry-text { translate: 4px 0; }
 .blog-shelf-entry h2 { transition: color 320ms ease; }
-.blog-shelf-image-frame { transform: perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)) translate(var(--shift-x,0px),var(--shift-y,0px)); transition: transform 600ms var(--motion-ease); }
 .blog-shelf-read > span { transition: translate 450ms var(--motion-ease), transform 450ms var(--motion-ease); }
 .blog-shelf-read:is(:hover,:focus-visible) > span { transform: translate(3px,-3px); }
 .blog-shelf-read { transition: border-color 250ms; }

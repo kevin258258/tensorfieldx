@@ -10,7 +10,6 @@ export function initInteractions() {
   const enabled = () => !reduced.matches && fine.matches;
   let frame = 0;
   let magnet: HTMLElement | SVGElement | null = null;
-  let imageFrame: HTMLElement | null = null;
   let x = 0;
   let y = 0;
   const reset = () => {
@@ -18,8 +17,7 @@ export function initInteractions() {
     frame = 0;
     magnet?.style.removeProperty('--magnet-x');
     magnet?.style.removeProperty('--magnet-y');
-    for (const key of ['--tilt-x','--tilt-y','--shift-x','--shift-y']) imageFrame?.style.removeProperty(key);
-    magnet = imageFrame = null;
+    magnet = null;
   };
   document.addEventListener('pointerover', event => {
     if (!enabled() || event.pointerType === 'touch') return;
@@ -36,25 +34,15 @@ export function initInteractions() {
     const target = event.target instanceof Element ? event.target : null;
     const control = target?.closest<HTMLElement>('.nav-search,.nav-archive,.social-links a,.intro-contact a,.blog-shelf-read');
     const nextMagnet = control?.matches('.nav-search,.nav-archive') ? control.querySelector<SVGElement>('svg') : control?.matches('.blog-shelf-read') ? control.querySelector<HTMLElement>('span') : control ?? null;
-    const nextFrame = target?.closest('.blog-shelf-image-link')?.querySelector<HTMLElement>('.blog-shelf-image-frame') ?? null;
-    if (magnet !== nextMagnet || imageFrame !== nextFrame) { reset(); magnet = nextMagnet; imageFrame = nextFrame; }
+    if (magnet !== nextMagnet) { reset(); magnet = nextMagnet; }
     x = event.clientX; y = event.clientY;
-    if (frame || (!magnet && !imageFrame)) return;
+    if (frame || !magnet) return;
     frame = requestAnimationFrame(() => {
       frame = 0;
       if (magnet && control) {
         const box = control.getBoundingClientRect();
         magnet.style.setProperty('--magnet-x', `${Math.max(-3,Math.min(3,(x-box.left-box.width/2)*.08))}px`);
         magnet.style.setProperty('--magnet-y', `${Math.max(-3,Math.min(3,(y-box.top-box.height/2)*.08))}px`);
-      }
-      if (imageFrame) {
-        const box = imageFrame.getBoundingClientRect();
-        const dx = Math.max(-1,Math.min(1,(x-box.left)/box.width*2-1));
-        const dy = Math.max(-1,Math.min(1,(y-box.top)/box.height*2-1));
-        imageFrame.style.setProperty('--tilt-x', `${-dy*1.8}deg`);
-        imageFrame.style.setProperty('--tilt-y', `${dx*2.4}deg`);
-        imageFrame.style.setProperty('--shift-x', `${dx*4}px`);
-        imageFrame.style.setProperty('--shift-y', `${dy*4}px`);
       }
     });
   }, { signal, passive: true });

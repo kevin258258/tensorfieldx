@@ -1,3 +1,5 @@
+import { createShelfPaper } from './shelfPaper';
+
 export interface ShelfEntry {
   title: string;
   description: string;
@@ -21,6 +23,9 @@ export function initEntryShelf() {
   const data: ShelfEntry[] = JSON.parse(shelf.dataset.entries || '[]');
   const entries = [...shelf.querySelectorAll<HTMLElement>('[data-shelf-entry]')];
   const visuals = [...shelf.querySelectorAll<HTMLElement>('[data-shelf-visual]')];
+  const paperFrame = shelf.querySelector<HTMLElement>('.blog-shelf-image-frame');
+  const paperImages = [...(paperFrame?.querySelectorAll<HTMLImageElement>('img') ?? [])];
+  const paper = paperFrame ? createShelfPaper(paperFrame, paperImages.map(image => image.src), signal) : undefined;
   let selected = -1;
   let copyAnimation: Animation | undefined;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -28,6 +33,7 @@ export function initEntryShelf() {
     if (selected === index || !data[index]) return;
     const changing = selected >= 0;
     selected = index;
+    paper?.select(index);
     const entry = data[index];
     for (const visual of visuals) {
       const active = Number(visual.dataset.shelfVisual) === index;
@@ -62,6 +68,17 @@ export function initEntryShelf() {
     link.addEventListener('focus', activate, { signal });
   }
   if (entries.length) show(0);
+  shelf.querySelector('.blog-shelf-columns')?.addEventListener('pointermove', event => {
+    const pointer = event as PointerEvent;
+    if (pointer.pointerType === 'touch' || !paperFrame) return;
+    const target = pointer.target instanceof Element ? pointer.target.closest<HTMLElement>('[data-shelf-entry]') : null;
+    const box = (target || paperFrame).getBoundingClientRect();
+    paper?.position((pointer.clientX - box.left) / box.width * 2 - 1, 1 - (pointer.clientY - box.top) / box.height * 2);
+  }, { signal, passive: true });
+  shelf.querySelector('.blog-shelf-columns')?.addEventListener('pointerleave', () => paper?.reset(), { signal });
+  shelf.addEventListener('keydown', event => { if (event.key === 'Tab') paper?.reset(); }, { signal });
+  window.addEventListener('blur', () => paper?.reset(), { signal });
+  document.addEventListener('astro:before-swap', () => shelfController?.abort(), { signal, once: true });
   reduced.addEventListener('change', () => copyAnimation?.cancel(), { signal });
   signal.addEventListener('abort', () => copyAnimation?.cancel(), { once: true });
 }
