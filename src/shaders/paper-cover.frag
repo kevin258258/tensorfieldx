@@ -29,5 +29,6 @@ void main() {
   float edge = (radius - distance(gl_FragCoord.xy, center) * (1.0 + noiseValue * 0.8)) / max(radius, 0.0001);
   float alpha = 1.0 - smoothstep(0.0, 0.7, edge);
   vec3 color = mix(mix(paperColor.rgb, ink, 1.0 - alpha), grainColor.rgb, grainColor.a);
-  gl_FragColor = vec4(color, alpha * (1.0 - smoothstep(0.8, 1.0, phase)));
+  float opacity = alpha * (1.0 - smoothstep(0.8, 1.0, phase));
+  gl_FragColor = vec4(color * opacity, opacity);
 }

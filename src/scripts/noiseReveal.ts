@@ -26,7 +26,7 @@ class NoiseReveal {
   private animating = false;
 
   constructor(private canvas: HTMLCanvasElement, private image: HTMLImageElement, noise: HTMLImageElement, signal: AbortSignal) {
-    const gl = canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: false });
+    const gl = canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: true });
     if (!gl) throw new Error('WebGL unavailable');
     this.gl = gl;
     const compile = (kind: number, source: string) => {

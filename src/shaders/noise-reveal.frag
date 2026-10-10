@@ -21,5 +21,6 @@ void main() {
   float radius = max(reach * phase, .0001);
   float edge = (radius - distance(gl_FragCoord.xy, center) * (1.0 + grain * .8)) / radius;
   float cover = (1.0 - smoothstep(0.0, .7, edge)) * (1.0 - smoothstep(.5, 1.0, phase));
-  gl_FragColor = vec4(mix(image.rgb, ink, cover), image.a * (1.0 - cover));
+  float opacity = image.a * (1.0 - cover);
+  gl_FragColor = vec4(mix(image.rgb, ink, cover) * opacity, opacity);
 }

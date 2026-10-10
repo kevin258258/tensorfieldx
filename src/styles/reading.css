@@ -73,7 +73,7 @@ html[lang='en'] .reader-article .reading-prose { font-size: 18px; line-height: 1
   .reader-topline { margin-bottom: 22px; gap: 10px; }
   .reader-topline > .reader-eyebrow { font-size: 9px; }
   .reader-topline .reader-language { display: flex; }
-  .reader-language :is(span,a) { padding: 7px 10px; }
+  .reader-language :is(span,a) { padding: 7px 12px; min-height: 44px; }
   .reader-header h1 { font-size: 29px; line-height: 1.5; }
   .reader-header { padding-bottom: 22px; }
   .reader-mobile-contents { display: block; border-block: 1px solid rgb(var(--color-border) / .45); margin-bottom: 30px; }

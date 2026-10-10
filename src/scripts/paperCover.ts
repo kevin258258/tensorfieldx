@@ -120,7 +120,9 @@ export class PaperCover {
       const images = await Promise.all(['cover-paper.jpg', 'noise.png', 'reveal-noise.webp'].map(name => loadImage(`/design/kazuki/${name}`)));
       // Never switch renderers midway through a fallback transition.
       if (this.animating || this.progress > 0) return;
-      const gl = this.canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: false });
+      // Supply premultiplied pixels directly, including on Apple's compositor
+      // (WebKit bug 200026 ignores unpremultiplied canvas contents).
+      const gl = this.canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: true });
       if (!gl) return;
       this.gl = gl;
       const compile = (kind: number, source: string) => {

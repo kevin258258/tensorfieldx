@@ -38,7 +38,13 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
             {entry.meta && <span>{entry.meta}</span>}
             {entry.href && <span class="blog-shelf-entry-arrow" aria-hidden="true">↗</span>}
           </div>
-          <img class="blog-shelf-mobile-image" src={entry.image || DEFAULT_COVER} alt="" loading={index === 0 ? 'eager' : 'lazy'} />
+          <div class="blog-shelf-mobile-cover" aria-hidden="true">
+            <div class="blog-shelf-cover-rail">
+              <span>{String(index + 1).padStart(2, '0')} / {String(entries.length).padStart(2, '0')}</span>
+              <PatternBand variant="dots" />
+            </div>
+            <img class="blog-shelf-mobile-image" src={entry.image || DEFAULT_COVER} alt="" loading={index === 0 ? 'eager' : 'lazy'} />
+          </div>
           <p class="blog-shelf-mobile-description">{entry.description}</p>
         </div>
       </EntryTag>})}
