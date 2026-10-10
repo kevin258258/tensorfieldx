@@ -1,9 +1,9 @@
 ---
-import mark from '../assets/tensorfieldx-mark.svg?raw';
+import mark from '../assets/tao-feixiang-mark.svg?raw';
 interface Props { class?: string; }
 const { class: className = '' } = Astro.props;
 const glyphs = mark.slice(mark.indexOf('>') + 1, mark.lastIndexOf('</svg>'))
-  .replaceAll('<g class="logo-interaction">', '<g class="logo-interaction"><g class="logo-layout"><g class="logo-arrival"><g class="logo-rotation">')
+  .replace(/<g class="logo-interaction"([^>]*)>/g, '<g class="logo-interaction"$1><g class="logo-layout"><g class="logo-arrival"><g class="logo-rotation">')
   .replaceAll('</g></g>', '</g></g></g></g></g>');
 ---
 <svg class:list={['scattered-logo', className]} viewBox="0 0 1942 1054" fill="currentColor" aria-hidden="true" set:html={glyphs} />

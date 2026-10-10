@@ -3,33 +3,11 @@ import { initHeroMotion } from './heroMotion';
 import { initPointer } from './pointer';
 
 const palette = ['125 151 184', '223 178 85', '82 164 126', '158 175 146', '167 182 176', '42 41 39'];
-let audio: HTMLAudioElement | undefined;
-let soundOn = false;
 let clockTimer: ReturnType<typeof setInterval> | undefined;
 let pageController: AbortController | undefined;
 
 function save(key: string, value: string) {
   try { localStorage.setItem(key, value); } catch { /* Browsing without storage still works. */ }
-}
-
-function syncSound() {
-  document.querySelectorAll<HTMLButtonElement>('[data-sound-toggle]').forEach(button => {
-    button.setAttribute('aria-pressed', String(soundOn));
-    button.setAttribute('aria-label', soundOn ? 'Turn sound off' : 'Turn sound on');
-  });
-}
-
-async function setSound(enabled: boolean) {
-  if (enabled) {
-    audio ??= new Audio('/design/kazuki/bgm.mp3');
-    audio.loop = true;
-    audio.volume = 1;
-    try { await audio.play(); soundOn = true; } catch { soundOn = false; }
-  } else {
-    audio?.pause();
-    soundOn = false;
-  }
-  syncSound();
 }
 
 export function initReferenceUi() {
@@ -84,12 +62,6 @@ export function initReferenceUi() {
   };
   updateClock();
   clockTimer = setInterval(updateClock, 30_000);
-  syncSound();
-  document.querySelectorAll<HTMLButtonElement>('[data-sound-toggle]').forEach(button => {
-    button.addEventListener('click', () => void setSound(!soundOn), { signal });
-  });
-
-  // The introduction is immediately accessible; sound remains an opt-in control.
   root.dataset.entered = 'true';
   initHeroMotion(signal);
   initPointer(signal);

@@ -1,5 +1,4 @@
 ---
-import ScatteredLogo from '../ScatteredLogo.astro';
 import PatternBand from '../PatternBand.astro';
 import { getCollection } from 'astro:content';
 const hasNotes = (await getCollection('notes')).length > 0;
@@ -7,7 +6,7 @@ const isHome = Astro.url.pathname === '/';
 ---
 <footer class:list={['reference-footer', { 'reference-footer--home': isHome }]}>
   <div class="contact-band">
-    <a class="contact-logo" href="/" aria-label="TensorFieldX home"><ScatteredLogo /></a>
+    <a class="contact-logo" href="/" aria-label="TensorFieldX home"><PatternBand variant="dots" class="contact-dot-pattern" /></a>
     <div class="contact-content">
     <a class="contact-marquee" href="mailto:12512619@mail.sustech.edu.cn" aria-label="Email Feixiang Tao">
       <span class="contact-track"><span>@sustech.edu.cn</span><span aria-hidden="true">@sustech.edu.cn</span></span>

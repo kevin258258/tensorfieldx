@@ -42,9 +42,9 @@ const currentPath = Astro.url.pathname;
       (function () {
         function applyTheme(root) {
           var colors = ['125 151 184', '223 178 85', '82 164 126', '158 175 146', '167 182 176', '42 41 39'];
-          var index = 5;
-          try { index = Number(localStorage.getItem('palette') ?? 5); } catch (_) {}
-          if (!colors[index]) index = 5;
+          var index = 0;
+          try { index = Number(localStorage.getItem('palette') ?? 0); } catch (_) {}
+          if (!colors[index]) index = 0;
           var color = colors[index];
           root.dataset.palette = String(index);
           root.style.setProperty('--ink', 'rgb(' + color + ')');

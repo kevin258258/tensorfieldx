@@ -1,6 +1,6 @@
 ---
 import type { ArchiveEntry } from '../lib/archive';
-import ScatteredLogo from './ScatteredLogo.astro';
+import PatternBand from './PatternBand.astro';
 import { DEFAULT_COVER } from '../lib/covers';
 interface Props { entries: ArchiveEntry[]; title?: string; description?: string; filters?: boolean; }
 const { entries, title = 'Archive', description = 'Writing, projects, and experiments.', filters = false } = Astro.props;
@@ -25,7 +25,7 @@ const hasNotes = entries.some(entry => entry.category === 'Notes');
     </a>)}
     {entries.length === 0 && <p class="archive-empty">No entries yet.</p>}
   </section>
-  {filters && <aside class="archive-preview" aria-label="Selected entry preview"><div class="archive-preview-inner"><ScatteredLogo /><img src={entries[0]?.image || DEFAULT_COVER} alt="" data-archive-preview-image /><p data-archive-preview-title>{entries[0]?.title}</p></div></aside>}
+  {filters && <aside class="archive-preview" aria-label="Selected entry preview"><div class="archive-preview-inner"><PatternBand variant="dots" class="archive-preview-pattern" /><img src={entries[0]?.image || DEFAULT_COVER} alt="" data-archive-preview-image /><p data-archive-preview-title>{entries[0]?.title}</p></div></aside>}
 </div>
 <script>
   import { DEFAULT_COVER } from '../lib/covers';

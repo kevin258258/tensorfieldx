@@ -3,12 +3,12 @@
   color-scheme: light;
   --color-paper: 237 231 220;
   --color-surface: 237 231 220;
-  --color-primary: 42 41 39;
-  --color-secondary: 42 41 39;
-  --color-muted: 42 41 39;
-  --color-accent: 42 41 39;
+  --color-primary: 125 151 184;
+  --color-secondary: 125 151 184;
+  --color-muted: 125 151 184;
+  --color-accent: 125 151 184;
   --color-accent-warm: 223 178 85;
-  --color-border: 42 41 39;
+  --color-border: 125 151 184;
 }
 
 html {

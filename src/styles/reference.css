@@ -6,16 +6,16 @@
 @font-face { font-family: Lato; src: url('/design/kazuki/fonts/Lato-Black.ttf') format('truetype'); font-weight: 900; font-display: swap; }
 :root {
   --paper: #ede7dc;
-  --ink: #2a2927;
+  --ink: #7d97b8;
   --frame-inset: 20px;
   --rail: 242px;
   --color-paper: 237 231 220;
   --color-surface: 237 231 220;
-  --color-primary: 42 41 39;
-  --color-secondary: 42 41 39;
-  --color-muted: 42 41 39;
-  --color-accent: 42 41 39;
-  --color-border: 42 41 39;
+  --color-primary: 125 151 184;
+  --color-secondary: 125 151 184;
+  --color-muted: 125 151 184;
+  --color-accent: 125 151 184;
+  --color-border: 125 151 184;
   color-scheme: light;
 }
 html { background: var(--paper); scroll-padding-top: 145px; }
@@ -48,12 +48,7 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .reference-nav > * { position: relative; border-right: 2px solid var(--ink); }
 .reference-nav > :last-child { border-right: 0; }
 .nav-logo { flex: 0 0 240px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.nav-logo .scattered-logo { width: 170px; height: 90px; }
 .nav-dot-pattern { width: 100%; height: 100%; background: radial-gradient(var(--ink) 1px, transparent 1px) 0 0 / 6px 6px; }
-.sound-toggle { flex: 0 0 102px; width: 102px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 16px 0 18px; font-size: 12px; font-weight: 900; }
-.sound-toggle svg { width: 28px; height: 28px; opacity: .35; transition: opacity .4s, transform .6s; }
-.sound-toggle[aria-pressed='true'] svg { opacity: 1; animation: record-spin 7s linear infinite; }
-@keyframes record-spin { to { transform: rotate(360deg); } }
 .nav-page { flex: 1 1 0; min-width: 104px; transition: background .4s; }
 .nav-page > span { position: absolute; top: 16px; left: 20px; font-size: 12px; font-weight: 900; }
 .nav-page.is-active, .nav-page:hover { background: var(--ink); color: var(--paper); }
@@ -132,7 +127,7 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .home-profile:hover img { transform: rotate(0) scale(1.08); opacity: .8; }
 .contact-band { display: flex; height: 200px; border-bottom: 2px solid var(--ink); overflow: hidden; }
 .contact-logo { flex: 0 0 200px; border-right: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; }
-.contact-logo svg { width: 160px; }
+.contact-dot-pattern { align-self: stretch; width: 100%; }
 .contact-marquee { flex: 1; min-width: 0; overflow: hidden; font: 500 355px/.65 Quincy, serif; color: transparent; -webkit-text-stroke: 1px var(--ink); letter-spacing: 0; transition: color .4s; }
 .contact-track { display: flex; width: max-content; animation: contact-scroll 35s linear infinite; }
 .contact-track > span { padding: 0 .15em; white-space: nowrap; }
@@ -152,15 +147,6 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .footer-copyright { font: 700 34px Quincy, serif; letter-spacing: .015em; }
 .footer-utility { max-width: 360px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 16px; font-size: 10px; }
 .footer-utility a:hover, .footer-utility button:hover { text-decoration: underline; }
-.entry-gate { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; border: 0; color: var(--ink); background: var(--paper) url('/design/kazuki/paper.webp') 0 0 / 500px 500px; }
-.entry-gate::backdrop { background: var(--paper); }
-.entry-frame { position: absolute; inset: 20px; border: 2px solid var(--ink); pointer-events: none; }
-.entry-gate-content { height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 126px 20px 0; font: 700 26px/1.46 Quincy, serif; letter-spacing: .015em; }
-.entry-gate br { display: none; }
-.entry-buttons { display: flex; justify-content: space-between; width: 200px; margin-top: 46px; }
-.entry-buttons button { width: 80px; height: 80px; border: 1px solid var(--ink); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; font: 700 12px Lato, sans-serif; text-transform: uppercase; transition: transform .8s cubic-bezier(.19,1,.22,1); }
-.entry-buttons button span { opacity: .3; }
-.entry-buttons button:hover { transform: scale(1.15); }
 @media (min-width: 800px) and (max-width: 1024px) { .hero-caption { display: none; } .contact-logo { display: none; } }
 @media (max-width: 799px) {
   :root { --frame-inset: 15px; --rail: 137px; }
@@ -178,8 +164,6 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
   .nav-archive > span { font-size: 9px; order: 1; }
   .nav-archive svg { width: 22px; height: 22px; }
   .nav-archive small { display: none; }
-  .sound-toggle { position: fixed; right: 5px; top: 5px; border: 2px solid var(--ink); width: 60px; height: 60px; padding: 7px 0; font-size: 9px; background: var(--paper) url('/design/kazuki/paper.webp') 0 0 / 500px 500px; }
-  .sound-toggle svg { width: 22px; height: 22px; }
   .local-time { top: 5px; left: 15px; font-size: 10px; }
   .color-palette { left: 0; right: auto; top: auto; bottom: 100px; flex-direction: column; gap: 8px; height: auto; padding: 5px 0; width: 15px; background: var(--paper); }
   .color-palette > span { display: none; }
@@ -216,15 +200,10 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
   .footer-profile-title { font-size: 60px; }
   .footer-social { min-height: 315px; padding: 30px 20px; }
   .large-arrow { bottom: 25px; right: 25px; font-size: 60px; }
-  .entry-frame { inset: 25px 15px 15px; }
-  .entry-gate-content { font-size: 14px; line-height: 1.71; padding: 80px 15px 0; }
-  .entry-gate br { display: block; }
-  .entry-buttons { margin-top: 30px; width: 190px; }
-  .entry-buttons button { font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  body::after, .contact-track, .sound-toggle svg { animation: none !important; }
-  .logo-glyph, .featured-entry-title, .featured-entry-preview, .home-profile img, .entry-buttons button { transition: none; }
+  body::after, .contact-track { animation: none !important; }
+  .logo-glyph, .featured-entry-title, .featured-entry-preview, .home-profile img { transition: none; }
 }
 /* The archive keeps the same 242px editorial rail as the home composition. */
 .archive-layout { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); }
@@ -318,7 +297,7 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .archive-layout--all .archive-entry h2 { padding: 60px 40px 45px; min-height: 270px; font-size: clamp(40px, 4.5vw, 65px); }
 .archive-preview { position: relative; min-width: 0; }
 .archive-preview-inner { position: sticky; top: 204px; height: calc(100dvh - 224px); min-height: 350px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-.archive-preview-inner > .scattered-logo { position: absolute; width: 88%; opacity: .15; }
+.archive-preview-pattern { position: absolute; flex: none; width: 88%; height: 72%; opacity: .15; }
 .archive-preview-inner > img { width: 85%; height: 65%; object-fit: cover; transform: rotate(-5deg); filter: grayscale(.8); mix-blend-mode: multiply; }
 .archive-preview-inner > p { position: absolute; bottom: 20px; left: 30px; right: 30px; font: 500 28px/1.2 Quincy, serif; }
 @media (max-width: 799px) {

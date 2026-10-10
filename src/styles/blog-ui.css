@@ -3,7 +3,6 @@
 .footer-modules--home .footer-social { min-height: 260px; }
 .home-profile-details section { scroll-margin-top: 145px; }
 .blog-navigation .nav-logo { flex-basis: 160px; }
-.blog-navigation .sound-toggle { flex-basis: 72px; width: 72px; }
 .blog-navigation .nav-page { min-width: 0; }
 .blog-navigation .nav-page small { position: absolute; left: 20px; bottom: 18px; font: italic 500 18px Quincy, serif; }
 .blog-navigation .nav-search { flex: 0 0 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; font-size: 11px; font-weight: 700; }
@@ -14,14 +13,14 @@
 .blog-navigation .nav-archive[aria-current='page'], .nav-search:hover { background: var(--ink); color: var(--paper); }
 .home-introduction { grid-template-columns: minmax(340px, 44%) minmax(0, 1fr); height: auto; min-height: 600px; }
 .home-introduction .hero-intro { padding: 40px clamp(24px, 3.5vw, 64px); justify-content: center; font-weight: 400; }
-.home-introduction .intro-kicker { font-size: 11px; font-weight: 700; letter-spacing: .08em; margin-bottom: 24px; }
-.home-introduction .hero-intro h1 { font: 500 clamp(44px, 5.5vw, 82px)/1 Quincy, serif; letter-spacing: -.025em; margin-bottom: 22px; }
+.home-introduction .intro-kicker { font-size: 12px; font-weight: 700; letter-spacing: .08em; margin-bottom: 24px; }
+.home-introduction .hero-intro h1 { font: 500 clamp(48px, 5.5vw, 88px)/1.05 Quincy, serif; letter-spacing: -.025em; margin-bottom: 22px; }
 .home-introduction .hero-intro h1 span { font-style: italic; font-weight: 700; }
-.home-introduction .intro-affiliation { font-size: 12px; font-weight: 700; line-height: 1.6; margin-bottom: 20px; }
+.home-introduction .intro-affiliation { font-size: 14px; font-weight: 700; line-height: 1.6; margin-bottom: 20px; }
 .home-introduction .hero-copy { padding: 0; }
-.home-introduction .hero-copy p { font-size: 15px; line-height: 1.8; letter-spacing: .01em; }
+.home-introduction .hero-copy p { font-size: 17px; line-height: 1.85; letter-spacing: .01em; }
 .home-introduction .hero-copy p + p { margin-top: 12px; }
-.intro-contact { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 22px; font-size: 12px; font-weight: 700; }
+.intro-contact { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 22px; font-size: 14px; font-weight: 700; }
 .intro-contact a { padding: 5px 0; border-bottom: 1px solid var(--ink); }
 .home-introduction .hero-art { overflow: hidden; }
 .home-introduction .hero-art > .scattered-logo { width: 100%; height: 520px; margin: 0; }
@@ -61,7 +60,6 @@
 .search-footer { display: flex; justify-content: space-between; gap: 12px; padding: 14px 22px; border-top: 2px solid var(--ink); font-size: 10px; }
 @media (min-width: 800px) and (max-width: 1100px) {
   .blog-navigation .nav-logo { flex-basis: 100px; }
-  .blog-navigation .nav-logo .scattered-logo { width: 90px; }
   .blog-navigation .nav-page small { display: none; }
   .home-introduction { grid-template-columns: minmax(340px, 50%) minmax(0, 1fr); }
   .home-introduction .hero-caption { display: none; }
@@ -73,14 +71,13 @@
   .blog-navigation .nav-page, .blog-navigation.is-archive .nav-page { display: flex; justify-content: center; align-items: center; }
   .blog-navigation .nav-page small { display: none; }
   .blog-navigation .nav-archive { flex-basis: 60px; }
-  .blog-navigation .sound-toggle { top: 0; right: 5px; height: 58px; width: 52px; }
-  .blog-navigation .nav-search { position: fixed; top: 0; right: 57px; height: 58px; width: 52px; gap: 3px; background: var(--paper) url('/design/kazuki/paper.webp') 0 0 / 500px; border: 2px solid var(--ink); font-size: 9px; }
+  .blog-navigation .nav-search { position: fixed; top: 0; right: 5px; height: 58px; width: 52px; gap: 3px; background: var(--paper) url('/design/kazuki/paper.webp') 0 0 / 500px; border: 2px solid var(--ink); font-size: 9px; }
   .nav-search svg { width: 20px; height: 20px; }
-  .local-time { max-width: calc(100% - 125px); font-size: 8px; }
+  .local-time { max-width: calc(100% - 75px); font-size: 8px; }
   .home-introduction { padding-top: 0; display: flex; }
   .home-introduction .hero-intro { display: block; border-right: 0; padding: 50px 24px 24px; }
-  .home-introduction .hero-intro h1 { font-size: clamp(42px, 10vw, 68px); padding: 0; }
-  .home-introduction .hero-copy p { font-size: 14px; }
+  .home-introduction .hero-intro h1 { font-size: clamp(44px, 10vw, 72px); padding: 0; }
+  .home-introduction .hero-copy p { font-size: 16px; }
   .home-introduction .hero-art { margin: 0; height: 260px; border-top: 1px solid var(--ink); }
   .home-introduction .hero-art > .scattered-logo { width: min(100%, 480px); height: 240px; }
   .reference-section-heading h2 { flex-basis: 137px; }

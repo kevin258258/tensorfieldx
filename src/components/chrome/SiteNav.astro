@@ -1,5 +1,5 @@
 ---
-import ScatteredLogo from '../ScatteredLogo.astro';
+import PatternBand from '../PatternBand.astro';
 import { getCollection } from 'astro:content';
 interface Props { currentPath: string; }
 const { currentPath } = Astro.props;
@@ -23,17 +23,13 @@ const links = [
 <div class="color-palette" aria-label="Color palette">
   <span>color palette:</span>
   {['#7d97b8', '#dfb255', '#52a47e', '#9eaf92', '#a7b6b0', '#2a2927'].map((color, index) => (
-    <button type="button" data-palette={index} style={`--swatch: ${color}`} aria-label={`Color: ${['Blue', 'Ochre', 'Green', 'Sage', 'Mist', 'Black'][index]}`} aria-pressed={index === 5}></button>
+    <button type="button" data-palette={index} style={`--swatch: ${color}`} aria-label={`Color: ${['Blue', 'Ochre', 'Green', 'Sage', 'Mist', 'Black'][index]}`} aria-pressed={index === 0}></button>
   ))}
 </div>
 <nav class:list={['reference-nav', 'blog-navigation', { 'is-home': isHome, 'is-archive': isArchive }]} aria-label="Main navigation">
-  <a href="/" class:list={['nav-logo', { 'nav-logo--pattern': isHome }]} aria-label="TensorFieldX home">
-    {isHome ? <span class="nav-dot-pattern" aria-hidden="true" /> : <ScatteredLogo />}
+  <a href="/" class="nav-logo nav-logo--pattern" aria-label="TensorFieldX home">
+    <PatternBand variant="dots" class="nav-dot-pattern" />
   </a>
-  <button type="button" class="sound-toggle" data-sound-toggle aria-label="Turn sound on" aria-pressed="false">
-    <span>Sound</span>
-    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12" fill="currentColor" /><circle cx="14" cy="14" r="3.2" fill="var(--paper)" /><path d="M15 12 24 3" stroke="var(--paper)" stroke-width="3" /></svg>
-  </button>
   {links.map(link => <a href={link.href} class:list={['nav-page', { 'is-active': link.active }]} aria-current={link.active ? 'page' : undefined}><span>{link.label}</span><small>{link.detail}</small></a>)}
   <a href="/archive" class="nav-archive" aria-label={`Browse archive, ${count} entries`} aria-current={isArchive ? 'page' : undefined}>
     <span>Archive</span><svg viewBox="0 0 26 26" aria-hidden="true"><path fill="currentColor" d="M0 0h5.2v5.2H0zm10.4 0h5.2v5.2h-5.2zm10.4 0H26v5.2h-5.2zM0 10.4h5.2v5.2H0zm10.4 0h5.2v5.2h-5.2zm10.4 0H26v5.2h-5.2zM0 20.8h5.2V26H0zm10.4 0h5.2V26h-5.2zm10.4 0H26V26h-5.2z" /></svg>
