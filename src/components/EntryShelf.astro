@@ -25,7 +25,7 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
     <PatternBand class="blog-shelf-filter-pattern" />
   </div>
   <div class="blog-shelf-columns">
-    <div class="blog-shelf-list" aria-label={title}>
+    <div class="blog-shelf-list" role="region" tabindex="0" aria-label={`${title} entries`}>
       {entries.map((entry, index) => {
         const EntryTag = entry.href ? 'a' : 'article';
         return <EntryTag href={entry.href} class:list={['blog-shelf-entry', { 'archive-entry': !!entry.href }]} data-shelf-entry={index} data-astro-prefetch={entry.href ? 'hover' : undefined}>
@@ -45,7 +45,7 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
             </div>
             <img class="blog-shelf-mobile-image" src={entry.image || DEFAULT_COVER} alt="" loading={index === 0 ? 'eager' : 'lazy'} />
           </div>
-          <p class="blog-shelf-mobile-description">{entry.description}</p>
+          <ul class="blog-shelf-mobile-tags">{entry.tags.map(tag => <li>{tag}</li>)}</ul>
         </div>
       </EntryTag>})}
       {!initial && <div class="blog-shelf-entry blog-shelf-empty"><span></span><h2>{emptyText}</h2></div>}
@@ -64,8 +64,6 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
         </PreviewTag>})() : <div class="blog-shelf-image-link" aria-hidden="true"><div class="blog-shelf-image-frame"><div class="blog-shelf-visual is-active"><img src={DEFAULT_COVER} alt="" /></div></div></div>}
         <div class="blog-shelf-preview-copy">
           <ul data-shelf-preview-tags>{initial?.tags.map(tag => <li>{tag}</li>)}</ul>
-          <p data-shelf-preview-description>{initial?.description ?? emptyText}</p>
-          {initial?.href && <a href={initial.href} data-shelf-preview-link aria-label={`${linkLabel}: ${initial.title}`} class="blog-shelf-read">{linkLabel} <span aria-hidden="true">↗</span></a>}
         </div>
       </div>
     </aside>

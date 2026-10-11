@@ -4,4 +4,4 @@ import EntryShelf from '../../components/EntryShelf.astro';
 import { getArchiveEntries } from '../../lib/archive';
 const entries = (await getArchiveEntries()).filter(entry => entry.category === 'Blog');
 ---
-<BaseLayout title="Blog"><EntryShelf entries={entries} title="Blog" description="Research, experiments & everyday observations." previewLabel="Selected writing" linkLabel="Read article" /></BaseLayout>
+<BaseLayout shelf title="Blog"><EntryShelf entries={entries} title="Blog" description="Research, experiments & everyday observations." previewLabel="Selected writing" linkLabel="Read article" /></BaseLayout>

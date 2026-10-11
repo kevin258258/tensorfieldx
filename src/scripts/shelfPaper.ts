@@ -26,7 +26,8 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
   function resize() {
     if (!gl || !images[selected]) return;
     const box = host.getBoundingClientRect();
-    const ratio = Math.min(devicePixelRatio || 1, 2);
+    // The shared covers are small; extra retina pixels cost more than they add.
+    const ratio = Math.min(devicePixelRatio || 1, 1.5, 1400 / Math.max(box.width, box.height));
     canvas.width = Math.max(1, Math.round(box.width * ratio));
     canvas.height = Math.max(1, Math.round(box.height * ratio));
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -54,8 +55,9 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
     gl.drawArrays(gl.TRIANGLES, 0, vertices);
     host.style.setProperty('--paper-width', `${width / canvas.width * 100}%`);
     host.style.setProperty('--paper-height', `${height / canvas.height * 100}%`);
-    host.style.setProperty('--paper-shadow-top', `${50 + height / canvas.height * 45}%`);
-    host.style.setProperty('--paper-shadow-x', `${x * 6}px`);
+    host.style.setProperty('--paper-shadow-x', `${-12 - x * 18}px`);
+    host.style.setProperty('--paper-shadow-y', `${8 + y * 12}px`);
+    host.style.setProperty('--paper-shadow-angle', `${-3 - x * 4}deg`);
   }
   function tick(now: number) {
     frame = 0;

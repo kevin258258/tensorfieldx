@@ -13,4 +13,4 @@ const entries = publications.map(({ data }) => ({
   href: data.pdf || (data.doi ? `https://doi.org/${data.doi}` : undefined),
 }));
 ---
-<BaseLayout title="Publications"><EntryShelf entries={entries} title="Publications" description="Academic papers & research outputs." previewLabel="Research" linkLabel="Read paper" emptyText="tbd" /></BaseLayout>
+<BaseLayout shelf title="Publications"><EntryShelf entries={entries} title="Publications" description="Academic papers & research outputs." previewLabel="Research" linkLabel="Read paper" emptyText="tbd" /></BaseLayout>

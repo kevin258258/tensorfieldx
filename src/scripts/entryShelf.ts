@@ -28,6 +28,20 @@ export function initEntryShelf() {
   const paper = paperFrame ? createShelfPaper(paperFrame, paperImages.map(image => image.src), signal) : undefined;
   let selected = -1;
   let copyAnimation: Animation | undefined;
+  const list = shelf.querySelector<HTMLElement>('.blog-shelf-list');
+  const columns = shelf.querySelector<HTMLElement>('.blog-shelf-columns');
+  const fine = matchMedia('(hover: hover) and (pointer: fine)');
+  const wide = matchMedia('(min-width: 800px)');
+  let pointerFrame = 0, scrollFrame = 0;
+  let title: HTMLElement | null = null;
+  let pointerX = 0, pointerY = 0;
+  const resetTitle = () => {
+    title?.style.removeProperty('--title-x');
+    title?.style.removeProperty('--title-y');
+    title?.style.removeProperty('--title-angle');
+    title = null;
+  };
+  const resetPointer = () => { cancelAnimationFrame(pointerFrame); pointerFrame = 0; resetTitle(); paper?.reset(); };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   function show(index: number) {
     if (selected === index || !data[index]) return;
@@ -41,8 +55,6 @@ export function initEntryShelf() {
       visual.setAttribute('aria-hidden', String(!active));
     }
     entries.forEach(link => { link.dataset.previewActive = String(Number(link.dataset.shelfEntry) === index); });
-    const description = shelf!.querySelector('[data-shelf-preview-description]');
-    if (description) description.textContent = entry.description;
     const tags = shelf!.querySelector('[data-shelf-preview-tags]');
     tags?.replaceChildren(...entry.tags.map(tag => {
       const li = document.createElement('li');
@@ -68,17 +80,48 @@ export function initEntryShelf() {
     link.addEventListener('focus', activate, { signal });
   }
   if (entries.length) show(0);
-  shelf.querySelector('.blog-shelf-columns')?.addEventListener('pointermove', event => {
+  columns?.addEventListener('pointermove', event => {
     const pointer = event as PointerEvent;
-    if (pointer.pointerType === 'touch' || !paperFrame) return;
+    if (pointer.pointerType === 'touch' || !fine.matches || !wide.matches || reduced.matches || !paperFrame) return;
     const target = pointer.target instanceof Element ? pointer.target.closest<HTMLElement>('[data-shelf-entry]') : null;
-    const box = (target || paperFrame).getBoundingClientRect();
-    paper?.position((pointer.clientX - box.left) / box.width * 2 - 1, 1 - (pointer.clientY - box.top) / box.height * 2);
+    if (title !== target) { resetTitle(); title = target; }
+    pointerX = pointer.clientX; pointerY = pointer.clientY;
+    if (pointerFrame) return;
+    pointerFrame = requestAnimationFrame(() => {
+      pointerFrame = 0;
+      const box = (title || paperFrame).getBoundingClientRect();
+      const x = Math.max(-1, Math.min(1, (pointerX - box.left) / box.width * 2 - 1));
+      const y = Math.max(-1, Math.min(1, (pointerY - box.top) / box.height * 2 - 1));
+      paper?.position(x, -y);
+      if (title) {
+        title.style.setProperty('--title-x', `${x * 12}px`);
+        title.style.setProperty('--title-y', `${y * 8}px`);
+        title.style.setProperty('--title-angle', `${x * -.65}deg`);
+      }
+    });
   }, { signal, passive: true });
-  shelf.querySelector('.blog-shelf-columns')?.addEventListener('pointerleave', () => paper?.reset(), { signal });
-  shelf.addEventListener('keydown', event => { if (event.key === 'Tab') paper?.reset(); }, { signal });
-  window.addEventListener('blur', () => paper?.reset(), { signal });
+  columns?.addEventListener('pointerleave', resetPointer, { signal });
+  // Scroll selects the entry occupying the centre of the index, even without hover.
+  list?.addEventListener('scroll', () => {
+    if (!wide.matches || scrollFrame) return;
+    resetPointer();
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = 0;
+      const box = list.getBoundingClientRect();
+      const centre = box.top + box.height * .5;
+      let nearest = 0, distance = Infinity;
+      entries.forEach((entry, index) => {
+        const rect = entry.getBoundingClientRect();
+        const next = centre < rect.top ? rect.top - centre : centre > rect.bottom ? centre - rect.bottom : 0;
+        if (next < distance) { distance = next; nearest = index; }
+      });
+      show(nearest);
+    });
+  }, { signal, passive: true });
+  shelf.addEventListener('keydown', event => { if (event.key === 'Tab') resetPointer(); }, { signal });
+  window.addEventListener('blur', resetPointer, { signal });
   document.addEventListener('astro:before-swap', () => shelfController?.abort(), { signal, once: true });
-  reduced.addEventListener('change', () => copyAnimation?.cancel(), { signal });
-  signal.addEventListener('abort', () => copyAnimation?.cancel(), { once: true });
+  reduced.addEventListener('change', () => { copyAnimation?.cancel(); resetPointer(); }, { signal });
+  fine.addEventListener('change', resetPointer, { signal });
+  signal.addEventListener('abort', () => { copyAnimation?.cancel(); resetPointer(); cancelAnimationFrame(scrollFrame); }, { once: true });
 }

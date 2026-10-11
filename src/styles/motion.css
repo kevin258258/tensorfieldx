@@ -33,8 +33,7 @@ html { scroll-behavior: smooth; }
 :is(.social-links a,.intro-contact a,.copy-btn,[data-copy-email],.reader-language a):active { scale: .97; }
 :is(.social-links a,.intro-contact a,.copy-btn,[data-copy-email],.reader-language a) { transition: scale var(--motion-fast) var(--motion-ease), color 220ms ease, background-color 220ms ease, background-size 300ms var(--motion-ease), translate var(--motion-settle) var(--motion-ease); }
 
-.blog-shelf-entry-text { transition: translate 540ms var(--motion-ease); }
-a.blog-shelf-entry:is(:hover,:focus-visible) .blog-shelf-entry-text { translate: 4px 0; }
+.blog-shelf-entry-text { min-width: 0; }
 .blog-shelf-entry h2 { transition: color 320ms ease; }
 .blog-shelf-read > span { transition: translate 450ms var(--motion-ease), transform 450ms var(--motion-ease); }
 .blog-shelf-read:is(:hover,:focus-visible) > span { transform: translate(3px,-3px); }
@@ -72,6 +71,7 @@ a.blog-shelf-entry:is(:hover,:focus-visible) .blog-shelf-entry-text { translate:
   html { scroll-behavior: auto; }
   .hero-caption, .hero-art.is-playing .hero-caption.is-active { transition: none !important; animation: none !important; transform: none !important; }
   .contact-dot-pattern, .reference-section-heading .pattern-band { transition: none !important; transform: none !important; }
+  .blog-shelf .blog-shelf-entry h2 { transform: none; }
   .reveal, .blog-navigation *, .social-links *, .intro-contact *, .profile-detail aside a, .footer-utility *, .contact-meta *, .color-palette *, .reader-language *, .reader-toc *, .reader-progress::before, .reader-mobile-contents *, .reader-back, .reader-top, .code-block, .copy-btn, .reading-prose img, .blog-shelf-entry *, .blog-shelf-image-frame, .blog-shelf-visual, .blog-shelf-read *, .archive-search, .lightbox { transition: none !important; animation: none !important; translate: none !important; }
   .blog-navigation *::before, .social-links *::before, .archive-search::backdrop, .lightbox::backdrop { transition: none !important; animation: none !important; }
   .blog-shelf-image-frame { transform: none; }

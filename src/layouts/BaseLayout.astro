@@ -19,11 +19,12 @@ import { ClientRouter } from "astro:transitions";
 interface Props {
   title: string;
   needsKatex?: boolean;
+  shelf?: boolean;
   lang?: string;
   alternates?: { lang: string; href: string }[];
 }
 
-const { title, needsKatex = false, lang = 'en', alternates = [] } = Astro.props;
+const { title, needsKatex = false, shelf = false, lang = 'en', alternates = [] } = Astro.props;
 const currentPath = Astro.url.pathname;
 ---
 
@@ -68,7 +69,7 @@ const currentPath = Astro.url.pathname;
     )}
   </head>
 
-  <body class="site-body text-primary min-h-screen font-body relative w-full max-w-full overflow-x-hidden">
+  <body class:list={["site-body text-primary min-h-screen font-body relative w-full max-w-full overflow-x-hidden", { "site-body--shelf": shelf }]}>
     <div class="page-background" aria-hidden="true"></div>
 
     <Search />
@@ -83,7 +84,7 @@ const currentPath = Astro.url.pathname;
         <slot />
       </main>
 
-      <SiteFooter />
+      {!shelf && <SiteFooter />}
     </div>
 
     <script>
