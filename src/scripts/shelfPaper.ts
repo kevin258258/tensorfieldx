@@ -4,7 +4,9 @@ import fragmentSource from '../shaders/shelf-paper.frag?raw';
 /** A deformable paper preview. Rendering stops when its spring has settled. */
 export function createShelfPaper(host: HTMLElement, sources: string[], signal: AbortSignal) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  const desktop = matchMedia('(min-width: 800px) and (hover: hover) and (pointer: fine)');
+  // Tablets get the same paper and cover transitions, without a hover requirement.
+  const desktop = matchMedia('(min-width: 800px)');
+  const fine = matchMedia('(hover: hover) and (pointer: fine)');
   const enabled = () => !reduced.matches && desktop.matches && !document.hidden;
   const canvas = document.createElement('canvas');
   canvas.className = 'shelf-paper-canvas';
@@ -19,6 +21,12 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
   let x = 0, y = 0, dx = 0, dy = 0, targetX = 0, targetY = 0;
   let frame = 0, last = 0, vertices = 0;
   let preparing = false, failed = false, visible = true;
+  let ink = [125 / 255, 151 / 255, 184 / 255];
+  const updateInk = () => {
+    const color = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim().split(/\s+/).map(Number);
+    if (color.length === 3 && color.every(Number.isFinite)) ink = color.map(channel => channel / 255);
+    if (gl) draw();
+  };
   const stop = () => { cancelAnimationFrame(frame); frame = 0; last = 0; };
   const wake = () => {
     if (!frame && gl && enabled() && visible && !signal.aborted) frame = requestAnimationFrame(tick);
@@ -27,7 +35,7 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
     if (!gl || !images[selected]) return;
     const box = host.getBoundingClientRect();
     // The shared covers are small; extra retina pixels cost more than they add.
-    const ratio = Math.min(devicePixelRatio || 1, 1.5, 1400 / Math.max(box.width, box.height));
+    const ratio = Math.min(devicePixelRatio || 1, fine.matches ? 1.5 : 1, 1400 / Math.max(box.width, box.height));
     canvas.width = Math.max(1, Math.round(box.width * ratio));
     canvas.height = Math.max(1, Math.round(box.height * ratio));
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -36,8 +44,10 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
   function draw() {
     if (!gl || !images[selected]) return;
     const image = images[selected];
-    const aspect = image.naturalWidth / image.naturalHeight;
-    const width = Math.min(canvas.width * .86, canvas.height * .82 * aspect);
+    const imageAspect = image.naturalWidth / image.naturalHeight;
+    const aspect = Math.max(imageAspect, 1.6);
+    // Leave room around the mesh for the bent corners and tilted projection.
+    const width = Math.min(canvas.width * .94, canvas.height * .84 * aspect);
     const height = width / aspect;
     gl.useProgram(program);
     gl.clearColor(0, 0, 0, 0);
@@ -48,6 +58,8 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
     }
     gl.uniform2f(uniforms.resolution, canvas.width, canvas.height);
     gl.uniform2f(uniforms.paperSize, width, height);
+    gl.uniform2f(uniforms.imageScale, Math.min(1, aspect / imageAspect), Math.min(1, imageAspect / aspect));
+    gl.uniform3f(uniforms.ink, ink[0], ink[1], ink[2]);
     gl.uniform2f(uniforms.pointer, x, y);
     gl.uniform2f(uniforms.velocity, dx, dy);
     gl.uniform1f(uniforms.turn, turn);
@@ -55,9 +67,10 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
     gl.drawArrays(gl.TRIANGLES, 0, vertices);
     host.style.setProperty('--paper-width', `${width / canvas.width * 100}%`);
     host.style.setProperty('--paper-height', `${height / canvas.height * 100}%`);
-    host.style.setProperty('--paper-shadow-x', `${-12 - x * 18}px`);
-    host.style.setProperty('--paper-shadow-y', `${8 + y * 12}px`);
-    host.style.setProperty('--paper-shadow-angle', `${-3 - x * 4}deg`);
+    host.style.setProperty('--paper-shadow-x', `${-24 - x * 24}px`);
+    host.style.setProperty('--paper-shadow-y', `${20 + y * 18}px`);
+    host.style.setProperty('--paper-shadow-angle', `${-5 - x * 5}deg`);
+    host.style.setProperty('--paper-shadow-opacity', `${.74 - Math.sin(turn * Math.PI) * .14}`);
   }
   function tick(now: number) {
     frame = 0;
@@ -65,10 +78,10 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
     const dt = Math.min((now - (last || now - 16)) / 1000, .032);
     last = now;
     // A damped spring gives the corners a small lag, without rigid cursor locking.
-    dx += ((targetX - x) * 105 - dx * 19) * dt;
-    dy += ((targetY - y) * 105 - dy * 19) * dt;
+    dx += ((targetX - x) * 76 - dx * 15) * dt;
+    dy += ((targetY - y) * 76 - dy * 15) * dt;
     x += dx * dt; y += dy * dt;
-    turn = Math.min(1, turn + dt / .85);
+    turn = Math.min(1, turn + dt / 1.1);
     draw();
     if (turn < 1 || Math.abs(targetX - x) + Math.abs(targetY - y) + Math.abs(dx) + Math.abs(dy) > .002) {
       host.dataset.paperState = turn < 1 ? 'turning' : 'moving';
@@ -78,11 +91,11 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
       draw(); host.dataset.paperState = 'idle';
     }
   }
-  const sync = () => {
+  const sync = (entrance = false) => {
     if (!enabled()) {
       stop(); host.classList.remove('is-paper-ready'); host.dataset.paperState = 'static';
     } else if (gl) {
-      turn = 1; x = y = dx = dy = targetX = targetY = 0;
+      turn = entrance ? .3 : 1; x = y = dx = dy = targetX = targetY = 0;
       host.classList.add('is-paper-ready'); resize(); wake();
     } else void prepare();
   };
@@ -110,7 +123,9 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
         return shader;
       };
       const vertex = compile(gl.VERTEX_SHADER, vertexSource);
-      const fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
+      const lod = gl.getExtension('EXT_shader_texture_lod')
+        ? '#extension GL_EXT_shader_texture_lod : enable\n#define PAPER_EXPLICIT_LOD\n' : '';
+      const fragment = compile(gl.FRAGMENT_SHADER, lod + fragmentSource);
       program = gl.createProgram()!;
       gl.attachShader(program, vertex); gl.attachShader(program, fragment); gl.linkProgram(program);
       gl.deleteShader(vertex); gl.deleteShader(fragment);
@@ -126,18 +141,28 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
       const point = gl.getAttribLocation(program, 'point');
       gl.enableVertexAttribArray(point); gl.vertexAttribPointer(point, 2, gl.FLOAT, false, 0, 0);
-      ['resolution','paperSize','pointer','velocity','turn','direction','previousImage','nextImage'].forEach(name => uniforms[name] = gl!.getUniformLocation(program!, name));
+      ['resolution','paperSize','imageScale','ink','pointer','velocity','turn','direction','previousImage','nextImage'].forEach(name => uniforms[name] = gl!.getUniformLocation(program!, name));
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       const textureCache = new Map<HTMLImageElement, WebGLTexture>();
       textures = images.map(image => {
         if (textureCache.has(image)) return textureCache.get(image)!;
         const texture = gl!.createTexture()!;
         gl!.bindTexture(gl!.TEXTURE_2D, texture);
+        // Mip levels give a continuous soft-focus transition with two texture reads,
+        // rather than widely spaced blur taps or a full-frame CSS blur.
+        const bitmap = document.createElement('canvas');
+        const powerOfTwo = (size: number) => Math.min(1024, 2 ** Math.ceil(Math.log2(size)));
+        bitmap.width = powerOfTwo(image.naturalWidth); bitmap.height = powerOfTwo(image.naturalHeight);
+        const context = bitmap.getContext('2d');
+        if (!context) throw new Error('Paper image unavailable');
+        context.drawImage(image, 0, 0, bitmap.width, bitmap.height);
         gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_S, gl!.CLAMP_TO_EDGE);
         gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_T, gl!.CLAMP_TO_EDGE);
-        gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MIN_FILTER, gl!.LINEAR);
+        gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MIN_FILTER, gl!.LINEAR_MIPMAP_LINEAR);
         gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MAG_FILTER, gl!.LINEAR);
-        gl!.texImage2D(gl!.TEXTURE_2D, 0, gl!.RGBA, gl!.RGBA, gl!.UNSIGNED_BYTE, image);
+        gl!.texImage2D(gl!.TEXTURE_2D, 0, gl!.RGBA, gl!.RGBA, gl!.UNSIGNED_BYTE, bitmap);
+        gl!.generateMipmap(gl!.TEXTURE_2D);
+        bitmap.width = bitmap.height = 1;
         textureCache.set(image, texture); return texture;
       });
       gl.uniform1i(uniforms.previousImage, 0); gl.uniform1i(uniforms.nextImage, 1);
@@ -146,7 +171,7 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
         event.preventDefault(); stop(); gl = null; failed = true;
         host.classList.remove('is-paper-ready'); canvas.remove();
       }, { signal });
-      sync();
+      updateInk(); sync(true);
     } catch {
       failed = true; stop(); host.classList.remove('is-paper-ready');
       gl?.getExtension('WEBGL_lose_context')?.loseContext(); gl = null;
@@ -159,9 +184,10 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
     if (visible) wake(); else stop();
   });
   observer.observe(host);
-  reduced.addEventListener('change', sync, { signal });
-  desktop.addEventListener('change', sync, { signal });
-  document.addEventListener('visibilitychange', sync, { signal });
+  reduced.addEventListener('change', () => sync(), { signal });
+  desktop.addEventListener('change', () => sync(), { signal });
+  document.addEventListener('visibilitychange', () => sync(), { signal });
+  document.addEventListener('reference:palette', updateInk, { signal });
   signal.addEventListener('abort', () => {
     stop(); resizeObserver.disconnect(); observer.disconnect();
     host.classList.remove('is-paper-ready'); canvas.remove();

@@ -11,14 +11,14 @@ const browser = await engine.launch({ executablePath: process.env.PLAYWRIGHT_EXE
 const origin = process.env.TEST_ORIGIN || 'http://127.0.0.1:4327';
 const measurements = [];
 try {
-  for (const viewport of [{ width: 390, height: 844 }, { width: 820, height: 1180 }]) {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 820, height: 1180 }, { width: 1280, height: 744 }]) {
     const page = await browser.newPage({ viewport, isMobile: true, hasTouch: true });
     // The same locally served pages, with third-party timing removed from the loop.
     await page.route(/https:\/\/(?:giscus\.app|va\.vercel-scripts\.com)\//, route => route.abort());
     const cdp = engine === chromium ? await page.context().newCDPSession(page) : null;
     if (cdp) { await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 }); await cdp.send('Performance.enable'); }
     await page.addInitScript(() => {
-      const stats = window.interactionStats = { clicked: 0, frames: [], draws: 0, graphics: 0, snapshots: 0, modal: 0, focus: 0, layoutReads: 0 };
+      const stats = window.interactionStats = { clicked: 0, frames: [], draws: 0, graphics: 0, activeGraphics: 0, snapshots: 0, modal: 0, focus: 0, layoutReads: 0 };
       const show = HTMLDialogElement.prototype.showModal;
       HTMLDialogElement.prototype.showModal = function(...args) { const start = performance.now(); const result = show.apply(this, args); stats.modal = performance.now() - start; return result; };
       const focus = HTMLElement.prototype.focus;
@@ -28,9 +28,27 @@ try {
         const start = performance.now(); const result = rect.apply(this, args); stats.layoutReads += performance.now() - start; return result;
       };
       const getContext = HTMLCanvasElement.prototype.getContext;
+      const contexts = new WeakSet();
       HTMLCanvasElement.prototype.getContext = function(type, ...args) {
-        if (type === 'webgl') stats.graphics++;
-        return getContext.call(this, type, ...args);
+        const context = getContext.call(this, type, ...args);
+        if (type === 'webgl' && context && !contexts.has(context)) {
+          contexts.add(context); stats.graphics++; stats.activeGraphics++;
+          let active = true;
+          const extension = context.getExtension.bind(context);
+          context.getExtension = name => {
+            const result = extension(name);
+            if (name === 'WEBGL_lose_context' && result && !result.tracked) {
+              const lose = result.loseContext.bind(result);
+              result.tracked = true;
+              result.loseContext = () => {
+                if (active) { active = false; stats.activeGraphics--; }
+                lose();
+              };
+            }
+            return result;
+          };
+        }
+        return context;
       };
       const draw = WebGLRenderingContext.prototype.drawArrays;
       WebGLRenderingContext.prototype.drawArrays = function(...args) { stats.draws++; return draw.apply(this, args); };
@@ -45,6 +63,18 @@ try {
     });
     await page.goto(`${origin}/blog`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-paper-cover]')).opacity === '0');
+    if (viewport.width >= 800) {
+      await page.waitForFunction(() => document.querySelector('.blog-shelf-image-frame').classList.contains('is-paper-ready')
+        && document.querySelector('.blog-shelf-image-frame').dataset.paperState === 'idle');
+      const size = await page.locator('.shelf-paper-canvas').evaluate(canvas => ({ width: canvas.width, displayWidth: canvas.clientWidth }));
+      assert(size.width <= size.displayWidth + 1, 'Touch cover resolution stays at one device pixel');
+      await page.locator('.blog-shelf-list').evaluate(list => { list.scrollTop = list.scrollHeight; });
+      await page.waitForFunction(() => document.querySelector('[data-shelf-preview-index]').textContent.startsWith('02'));
+      await page.waitForFunction(() => document.querySelector('.blog-shelf-image-frame').dataset.paperState === 'idle');
+      await page.locator('.blog-shelf-list').evaluate(list => { list.scrollTop = 0; });
+      await page.waitForFunction(() => document.querySelector('[data-shelf-preview-index]').textContent.startsWith('01')
+        && document.querySelector('.blog-shelf-image-frame').dataset.paperState === 'idle');
+    }
     await page.locator('[data-shelf-entry="0"]').click();
     await page.waitForURL('**/blog/transformer-token-association');
     await page.waitForFunction(() => {
@@ -66,7 +96,7 @@ try {
     }
     await page.locator('#search-input').fill('Transformer');
     await page.waitForSelector('#search-results a');
-    const effects = await page.evaluate(() => ({ grain: getComputedStyle(document.body, '::after').animationName, graphics: interactionStats.graphics, nodes: document.querySelectorAll('.reading-prose *').length, contentVisibility: getComputedStyle(document.querySelector('.reading-prose > *')).contentVisibility }));
+    const effects = await page.evaluate(() => ({ grain: getComputedStyle(document.body, '::after').animationName, graphics: interactionStats.graphics, activeGraphics: interactionStats.activeGraphics, nodes: document.querySelectorAll('.reading-prose *').length, contentVisibility: getComputedStyle(document.querySelector('.reading-prose > *')).contentVisibility }));
     assert(await page.locator('.katex-html').count() > 0, 'Visible formulas remain rendered');
     assert(await page.locator('.katex-mathml math').count() > 0, 'Accessible formulas remain available');
     await page.locator('[data-search-close]').click();
@@ -100,7 +130,7 @@ try {
       for (const [path, ms] of Object.entries(sample.otherSearch)) {
         assert(ms < 450, `${sample.width}px search on ${path} takes ${ms.toFixed()}ms`);
       }
-      assert.equal(sample.effects.graphics, 1, 'Touch navigation retains one persisted paper renderer');
+      assert.equal(sample.effects.activeGraphics, 1, 'After leaving the shelf only the persisted page transition renderer remains');
       assert(sample.navigation.draws > 0, 'Touch navigation must draw the paper transition');
       assert.equal(sample.effects.grain, 'none', 'Touch grain must not continuously repaint');
       assert.equal(sample.search.backdrop, 'none', 'Touch search must not blur the long article');

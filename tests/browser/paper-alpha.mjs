@@ -42,14 +42,14 @@ async function sampleTransition(page, trigger) {
   return { before, after, peak };
 }
 
-export async function verifyPaperAlpha(browser, baseURL) {
+export async function verifyPaperAlpha(browser, baseURL, viewport = { width: 390, height: 844 }) {
   const bundle = await build({
     entryPoints: [new URL('../../src/scripts/paperCover.ts', import.meta.url).pathname],
     bundle: true, write: false, format: 'iife', globalName: 'CoverFixture',
     loader: { '.frag': 'text', '.vert': 'text' },
   });
   // Exercise the actual touch renderer, including Apple canvas compositing.
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await browser.newPage({ viewport, isMobile: true, hasTouch: true });
   try {
     await page.addInitScript(() => {
       const getContext = HTMLCanvasElement.prototype.getContext;
@@ -81,7 +81,7 @@ export async function verifyPaperAlpha(browser, baseURL) {
     const navigation = await sampleTransition(page, () => page.locator('.nav-page[href="/projects"]').click());
     await page.goto(`${baseURL}/blog/transformer-token-association`, { waitUntil: 'networkidle' });
     await page.waitForSelector('[data-paper-cover].is-webgl', { state: 'attached' });
-    const language = await sampleTransition(page, () => page.locator('.reader-topline [data-language-alternate]').click());
+    const language = await sampleTransition(page, () => page.locator('[data-language-alternate]:visible').click());
     assert.equal(await page.locator('html').getAttribute('lang'), 'en');
     return { minimized, navigation, language };
   } finally { await page.close(); }
@@ -91,6 +91,8 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   const { webkit } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
   const browser = await webkit.launch();
   try {
-    console.log(await verifyPaperAlpha(browser, process.env.TEST_ORIGIN || 'http://127.0.0.1:4325'));
+    for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 744 }]) {
+      console.log({ width: viewport.width, ...await verifyPaperAlpha(browser, process.env.TEST_ORIGIN || 'http://127.0.0.1:4325', viewport) });
+    }
   } finally { await browser.close(); }
 }

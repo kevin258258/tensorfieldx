@@ -7,10 +7,11 @@ const require = createRequire(import.meta.url);
 const { transformSync } = createRequire(require.resolve('astro/package.json'))('esbuild');
 const compiled = transformSync(await readFile(new URL('../src/scripts/shelfPaper.ts', import.meta.url), 'utf8'), { loader:'ts', format:'cjs' }).code;
 
-async function harness() {
+async function harness({ finePointer = true, wide = true, pixelRatio = 1 } = {}) {
   const queue = new Map(); let id = 0, now = 0, draws = 0, disposed = false;
   const reduced = Object.assign(new EventTarget(), { matches:false });
-  const desktop = Object.assign(new EventTarget(), { matches:true });
+  const desktop = Object.assign(new EventTarget(), { matches:wide });
+  const fine = Object.assign(new EventTarget(), { matches:finePointer });
   const document = Object.assign(new EventTarget(), { hidden:false });
   const classes = new Set();
   const canvas = Object.assign(new EventTarget(), { setAttribute() {}, remove() {}, width:0, height:0 });
@@ -25,7 +26,8 @@ async function harness() {
     getExtension:()=>({loseContext:()=>disposed=true}),
   }, { get:(target,key)=>target[key] ?? (()=>{}) });
   canvas.getContext = () => gl;
-  document.createElement = () => canvas;
+  let canvases = 0;
+  document.createElement = () => canvases++ === 0 ? canvas : { getContext:()=>({drawImage() {}}) };
   const host = {
     dataset:{}, style:{setProperty() {}}, append() {},
     getBoundingClientRect:()=>({width:500,height:400}),
@@ -34,8 +36,9 @@ async function harness() {
   const observer = class { observe() {} disconnect() {} };
   const module = { exports:{} };
   vm.runInNewContext(compiled, {
-    module,exports:module.exports,require:()=>'',document,devicePixelRatio:1,
-    matchMedia:q=>q.includes('reduced-motion') ? reduced : desktop,
+    module,exports:module.exports,require:()=>'',document,devicePixelRatio:pixelRatio,
+    getComputedStyle:()=>({getPropertyValue:()=> '125 151 184'}),
+    matchMedia:q=>q.includes('reduced-motion') ? reduced : q.includes('pointer') ? fine : desktop,
     requestAnimationFrame:fn=>{queue.set(++id,fn);return id;},
     cancelAnimationFrame:n=>queue.delete(n),ResizeObserver:observer,IntersectionObserver:observer,
     Image:class { naturalWidth=1000;naturalHeight=700;set src(value){this.url=value;queueMicrotask(()=>this.onload());} },
@@ -76,4 +79,16 @@ test('lost graphics contexts restore the static image and cancel pending motion'
   assert.equal(h.queue.size,0);assert(!h.classes.has('is-paper-ready'));
   h.paper.position(1,1);assert.equal(h.queue.size,0);
   h.controller.abort();
+});
+
+test('touch tablets render the paper at a bounded pixel ratio and sleep after each cover change',async()=>{
+  const h=await harness({finePointer:false,pixelRatio:3});
+  h.settle(); assert(h.classes.has('is-paper-ready'));
+  assert.equal(h.canvas.width,500); assert.equal(h.canvas.height,400);
+  h.paper.select(1); h.step(); assert.equal(h.host.dataset.paperState,'turning');
+  h.settle(); assert.equal(h.host.dataset.paperState,'idle');
+  h.controller.abort(); assert(h.disposed);
+  const phone=await harness({finePointer:false,wide:false,pixelRatio:3});
+  assert.equal(phone.draws,0); assert.equal(phone.queue.size,0);
+  phone.controller.abort();
 });

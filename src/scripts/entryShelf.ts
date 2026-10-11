@@ -35,6 +35,8 @@ export function initEntryShelf() {
   let pointerFrame = 0, scrollFrame = 0;
   let title: HTMLElement | null = null;
   let pointerX = 0, pointerY = 0;
+  let touchOrigin: { x: number; y: number } | undefined;
+  let touchDragged = false;
   const resetTitle = () => {
     title?.style.removeProperty('--title-x');
     title?.style.removeProperty('--title-y');
@@ -80,10 +82,18 @@ export function initEntryShelf() {
     link.addEventListener('focus', activate, { signal });
   }
   if (entries.length) show(0);
+  columns?.addEventListener('pointerdown', event => {
+    const pointer = event as PointerEvent;
+    const overPaper = pointer.target instanceof Element && pointer.target.closest('.blog-shelf-image-link');
+    touchOrigin = pointer.pointerType === 'touch' && overPaper ? { x: pointer.clientX, y: pointer.clientY } : undefined;
+    touchDragged = false;
+  }, { signal, passive: true });
   columns?.addEventListener('pointermove', event => {
     const pointer = event as PointerEvent;
-    if (pointer.pointerType === 'touch' || !fine.matches || !wide.matches || reduced.matches || !paperFrame) return;
-    const target = pointer.target instanceof Element ? pointer.target.closest<HTMLElement>('[data-shelf-entry]') : null;
+    const touch = pointer.pointerType === 'touch';
+    if ((!touch && !fine.matches) || (touch && !touchOrigin) || !wide.matches || reduced.matches || !paperFrame) return;
+    if (touch && touchOrigin && Math.hypot(pointer.clientX - touchOrigin.x, pointer.clientY - touchOrigin.y) > 8) touchDragged = true;
+    const target = !touch && pointer.target instanceof Element ? pointer.target.closest<HTMLElement>('[data-shelf-entry]') : null;
     if (title !== target) { resetTitle(); title = target; }
     pointerX = pointer.clientX; pointerY = pointer.clientY;
     if (pointerFrame) return;
@@ -100,6 +110,15 @@ export function initEntryShelf() {
       }
     });
   }, { signal, passive: true });
+  columns?.addEventListener('pointerup', event => {
+    if ((event as PointerEvent).pointerType === 'touch') { touchOrigin = undefined; resetPointer(); }
+  }, { signal, passive: true });
+  columns?.addEventListener('pointercancel', () => { touchOrigin = undefined; resetPointer(); }, { signal, passive: true });
+  columns?.addEventListener('click', event => {
+    if (touchDragged && event.target instanceof Element && event.target.closest('.blog-shelf-image-link')) {
+      event.preventDefault(); touchDragged = false;
+    }
+  }, { signal });
   columns?.addEventListener('pointerleave', resetPointer, { signal });
   // Scroll selects the entry occupying the centre of the index, even without hover.
   list?.addEventListener('scroll', () => {
