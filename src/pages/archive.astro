@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ArchiveView from '../components/ArchiveView.astro';
+import EntryShelf from '../components/EntryShelf.astro';
 import { getArchiveEntries } from '../lib/archive';
-const entries = await getArchiveEntries();
+const entries = (await getArchiveEntries()).map(entry => ({ ...entry, meta: entry.category }));
 ---
-<BaseLayout title="Archive"><ArchiveView entries={entries} filters /></BaseLayout>
+<BaseLayout shelf title="Archive"><EntryShelf entries={entries} title="Archive" description="Writing, projects & experiments." previewLabel="Selected entry" linkLabel="View entry" filters /></BaseLayout>

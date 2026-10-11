@@ -33,7 +33,7 @@ async function harness({ finePointer = true, wide = true, pixelRatio = 1 } = {})
     getBoundingClientRect:()=>({width:500,height:400}),
     classList:{add:name=>classes.add(name),remove:name=>classes.delete(name)},
   };
-  const observer = class { observe() {} disconnect() {} };
+  const observer = class { observe() {} unobserve() {} disconnect() {} };
   const module = { exports:{} };
   vm.runInNewContext(compiled, {
     module,exports:module.exports,require:()=>'',document,devicePixelRatio:pixelRatio,
@@ -81,7 +81,7 @@ test('lost graphics contexts restore the static image and cancel pending motion'
   h.controller.abort();
 });
 
-test('touch tablets render the paper at a bounded pixel ratio and sleep after each cover change',async()=>{
+test('touch tablets and phones render bounded paper previews and sleep after each cover change',async()=>{
   const h=await harness({finePointer:false,pixelRatio:3});
   h.settle(); assert(h.classes.has('is-paper-ready'));
   assert.equal(h.canvas.width,500); assert.equal(h.canvas.height,400);
@@ -89,6 +89,20 @@ test('touch tablets render the paper at a bounded pixel ratio and sleep after ea
   h.settle(); assert.equal(h.host.dataset.paperState,'idle');
   h.controller.abort(); assert(h.disposed);
   const phone=await harness({finePointer:false,wide:false,pixelRatio:3});
-  assert.equal(phone.draws,0); assert.equal(phone.queue.size,0);
+  phone.settle(); assert(phone.draws > 0); assert.equal(phone.canvas.width,500);
+  assert.equal(phone.host.dataset.paperState,'idle');
   phone.controller.abort();
+});
+
+test('moving the shared mobile canvas restores the old image and keeps the new cover animated',async()=>{
+  const h=await harness({finePointer:false,wide:false,pixelRatio:3}); h.settle();
+  const classes = new Set(); let appended = false;
+  const next = { dataset:{}, style:{setProperty() {}},
+    classList:{add:name=>classes.add(name),remove:name=>classes.delete(name)},
+    append:canvas=>{appended=canvas===h.canvas;}, getBoundingClientRect:()=>({width:340,height:260}) };
+  h.paper.mount(next); h.paper.select(1); h.step();
+  assert(appended); assert(!h.classes.has('is-paper-ready')); assert(classes.has('is-paper-ready'));
+  assert.equal(h.canvas.width,340); assert.equal(next.dataset.paperState,'turning');
+  h.settle(); assert.equal(next.dataset.paperState,'idle');
+  h.controller.abort(); assert(h.disposed); assert(!classes.has('is-paper-ready'));
 });

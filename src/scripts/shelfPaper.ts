@@ -4,10 +4,8 @@ import fragmentSource from '../shaders/shelf-paper.frag?raw';
 /** A deformable paper preview. Rendering stops when its spring has settled. */
 export function createShelfPaper(host: HTMLElement, sources: string[], signal: AbortSignal) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  // Tablets get the same paper and cover transitions, without a hover requirement.
-  const desktop = matchMedia('(min-width: 800px)');
   const fine = matchMedia('(hover: hover) and (pointer: fine)');
-  const enabled = () => !reduced.matches && desktop.matches && !document.hidden;
+  const enabled = () => !reduced.matches && !document.hidden;
   const canvas = document.createElement('canvas');
   canvas.className = 'shelf-paper-canvas';
   canvas.setAttribute('aria-hidden', 'true');
@@ -20,7 +18,7 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
   let selected = 0, previous = 0, turn = 1, direction = 1;
   let x = 0, y = 0, dx = 0, dy = 0, targetX = 0, targetY = 0;
   let frame = 0, last = 0, vertices = 0;
-  let preparing = false, failed = false, visible = true;
+  let preparing = false, failed = false, visible = host.getBoundingClientRect().width > 0;
   let ink = [125 / 255, 151 / 255, 184 / 255];
   const updateInk = () => {
     const color = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim().split(/\s+/).map(Number);
@@ -32,8 +30,9 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
     if (!frame && gl && enabled() && visible && !signal.aborted) frame = requestAnimationFrame(tick);
   };
   function resize() {
-    if (!gl || !images[selected]) return;
+    if (!gl || !images[selected] || !enabled() || !visible) return;
     const box = host.getBoundingClientRect();
+    if (!box.width || !box.height) return;
     // The shared covers are small; extra retina pixels cost more than they add.
     const ratio = Math.min(devicePixelRatio || 1, fine.matches ? 1.5 : 1, 1400 / Math.max(box.width, box.height));
     canvas.width = Math.max(1, Math.round(box.width * ratio));
@@ -92,7 +91,7 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
     }
   }
   const sync = (entrance = false) => {
-    if (!enabled()) {
+    if (!enabled() || !visible) {
       stop(); host.classList.remove('is-paper-ready'); host.dataset.paperState = 'static';
     } else if (gl) {
       turn = entrance ? .3 : 1; x = y = dx = dy = targetX = targetY = 0;
@@ -100,7 +99,7 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
     } else void prepare();
   };
   async function prepare() {
-    if (preparing || failed || !sources.length || !enabled()) return;
+    if (preparing || failed || !sources.length || !enabled() || !visible) return;
     preparing = true;
     try {
       const cache = new Map<string, Promise<HTMLImageElement>>();
@@ -111,7 +110,7 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
         }));
         return cache.get(src)!;
       }));
-      if (signal.aborted) return;
+      if (signal.aborted || !enabled() || !visible) return;
       gl = canvas.getContext('webgl', { alpha: true, antialias: true, premultipliedAlpha: true });
       if (!gl) throw new Error('Paper graphics unavailable');
       const compile = (type: number, source: string) => {
@@ -179,13 +178,17 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
     finally { preparing = false; }
   }
   const resizeObserver = new ResizeObserver(resize); resizeObserver.observe(host);
-  const observer = new IntersectionObserver(([entry]) => {
+  const observer = new IntersectionObserver(entries => {
+    const entry = entries.find(entry => entry.target === host);
+    if (!entry) return;
     visible = entry.isIntersecting;
-    if (visible) wake(); else stop();
+    if (visible && enabled()) {
+      if (gl) { host.classList.add('is-paper-ready'); resize(); wake(); }
+      else void prepare();
+    } else stop();
   });
   observer.observe(host);
   reduced.addEventListener('change', () => sync(), { signal });
-  desktop.addEventListener('change', () => sync(), { signal });
   document.addEventListener('visibilitychange', () => sync(), { signal });
   document.addEventListener('reference:palette', updateInk, { signal });
   signal.addEventListener('abort', () => {
@@ -200,6 +203,19 @@ export function createShelfPaper(host: HTMLElement, sources: string[], signal: A
   }, { once: true });
   void prepare();
   return {
+    // One renderer follows the visible mobile cover instead of allocating a
+    // WebGL context and image textures for every article in the scrolling list.
+    mount(next: HTMLElement) {
+      if (next === host || signal.aborted) return;
+      stop();
+      host.classList.remove('is-paper-ready'); host.dataset.paperState = 'static';
+      resizeObserver.unobserve(host); observer.unobserve(host);
+      host = next;
+      visible = host.getBoundingClientRect().width > 0;
+      if (gl) host.append(canvas);
+      resizeObserver.observe(host); observer.observe(host);
+      sync();
+    },
     select(index: number) {
       if (selected === index || index < 0 || index >= sources.length) return;
       previous = selected; direction = index > selected ? 1 : -1; selected = index;

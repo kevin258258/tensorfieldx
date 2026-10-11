@@ -9,19 +9,21 @@ interface Props {
   previewLabel: string;
   linkLabel: string;
   emptyText?: string;
+  filters?: boolean;
 }
-const { entries, title, description, previewLabel, linkLabel, emptyText = 'tbd' } = Astro.props;
+const { entries, title, description, previewLabel, linkLabel, emptyText = 'tbd', filters = false } = Astro.props;
 const initial = entries[0];
+const categories = ['All', ...new Set(entries.map(entry => entry.category).filter(Boolean))];
 const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0, 10);
 ---
 <section class="blog-shelf" data-entry-shelf data-link-label={linkLabel} data-entries={JSON.stringify(entries)} aria-labelledby="entry-shelf-title">
   <header class="blog-shelf-heading">
     <h1 id="entry-shelf-title">{title}</h1>
     <p>{description}</p>
-    {entries.length > 0 && <span>{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</span>}
+    {entries.length > 0 && <span data-shelf-count aria-live="polite">{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</span>}
   </header>
   <div class="blog-shelf-filters">
-    <span class="blog-shelf-all">All</span>
+    {filters ? <div class="blog-shelf-category-filters" role="group" aria-label="Filter archive">{categories.map(category => <button type="button" data-shelf-filter={category} aria-pressed={category === 'All'}>{category}</button>)}</div> : <span class="blog-shelf-all">All</span>}
     <PatternBand class="blog-shelf-filter-pattern" />
   </div>
   <div class="blog-shelf-columns">
@@ -40,10 +42,12 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
           </div>
           <div class="blog-shelf-mobile-cover" aria-hidden="true">
             <div class="blog-shelf-cover-rail">
-              <span>{String(index + 1).padStart(2, '0')} / {String(entries.length).padStart(2, '0')}</span>
+              <span data-shelf-mobile-index>{String(index + 1).padStart(2, '0')} / {String(entries.length).padStart(2, '0')}</span>
               <PatternBand variant="dots" />
             </div>
-            <img class="blog-shelf-mobile-image" src={entry.image || DEFAULT_COVER} alt="" loading={index === 0 ? 'eager' : 'lazy'} />
+            <div class="blog-shelf-image-frame blog-shelf-mobile-paper" data-shelf-mobile-paper={index}>
+              <div class="blog-shelf-visual is-active"><img src={entry.image || DEFAULT_COVER} alt="" loading={index === 0 ? 'eager' : 'lazy'} /></div>
+            </div>
           </div>
           <ul class="blog-shelf-mobile-tags">{entry.tags.map(tag => <li>{tag}</li>)}</ul>
         </div>

@@ -63,17 +63,42 @@ try {
     });
     await page.goto(`${origin}/blog`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-paper-cover]')).opacity === '0');
-    if (viewport.width >= 800) {
-      await page.waitForFunction(() => document.querySelector('.blog-shelf-image-frame').classList.contains('is-paper-ready')
-        && document.querySelector('.blog-shelf-image-frame').dataset.paperState === 'idle');
+    {
+      await page.waitForFunction(() => document.querySelector('.is-paper-ready')?.dataset.paperState === 'idle');
       const size = await page.locator('.shelf-paper-canvas').evaluate(canvas => ({ width: canvas.width, displayWidth: canvas.clientWidth }));
       assert(size.width <= size.displayWidth + 1, 'Touch cover resolution stays at one device pixel');
+      assert.equal(await page.locator('.shelf-paper-canvas').count(), 1, 'The shelf shares one paper renderer');
+    }
+    if (viewport.width >= 800) {
       await page.locator('.blog-shelf-list').evaluate(list => { list.scrollTop = list.scrollHeight; });
       await page.waitForFunction(() => document.querySelector('[data-shelf-preview-index]').textContent.startsWith('02'));
-      await page.waitForFunction(() => document.querySelector('.blog-shelf-image-frame').dataset.paperState === 'idle');
+      await page.waitForFunction(() => document.querySelector('.is-paper-ready')?.dataset.paperState === 'idle');
       await page.locator('.blog-shelf-list').evaluate(list => { list.scrollTop = 0; });
       await page.waitForFunction(() => document.querySelector('[data-shelf-preview-index]').textContent.startsWith('01')
-        && document.querySelector('.blog-shelf-image-frame').dataset.paperState === 'idle');
+        && document.querySelector('.is-paper-ready')?.dataset.paperState === 'idle');
+    } else {
+      const contexts = await page.evaluate(() => interactionStats.graphics);
+      await page.locator('[data-shelf-mobile-paper="1"]').evaluate(frame => window.scrollTo(0, frame.getBoundingClientRect().top + scrollY - 100));
+      await page.waitForFunction(() => document.querySelector('[data-shelf-mobile-paper="1"]')?.classList.contains('is-paper-ready')
+        && document.querySelector('[data-shelf-mobile-paper="1"]')?.dataset.paperState === 'idle');
+      assert.equal(await page.evaluate(() => interactionStats.graphics), contexts, 'Scrolling covers must reuse the graphics context');
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForFunction(() => document.querySelector('[data-shelf-mobile-paper="0"]')?.classList.contains('is-paper-ready')
+        && document.querySelector('[data-shelf-mobile-paper="0"]')?.dataset.paperState === 'idle');
+      const cover = page.locator('[data-shelf-mobile-paper="0"]');
+      assert.equal(await cover.evaluate(frame => getComputedStyle(frame).touchAction), 'pan-y', 'Paper interaction preserves native vertical scrolling');
+      await cover.evaluate(frame => {
+        const rect = frame.getBoundingClientRect();
+        const start = { pointerType:'touch', pointerId:1, bubbles:true, clientX:rect.left + rect.width * .5, clientY:rect.top + rect.height * .5 };
+        frame.dispatchEvent(new PointerEvent('pointerdown', start));
+        frame.dispatchEvent(new PointerEvent('pointermove', { ...start, clientX:rect.left + rect.width * .9 }));
+      });
+      await page.waitForFunction(() => document.querySelector('.is-paper-ready')?.dataset.paperState === 'moving');
+      assert.equal(await cover.evaluate(frame => {
+        frame.dispatchEvent(new PointerEvent('pointerup', { pointerType:'touch', bubbles:true }));
+        return frame.dispatchEvent(new MouseEvent('click', { bubbles:true, cancelable:true }));
+      }), false, 'Dragging paper must not accidentally open the article');
+      await page.waitForFunction(() => document.querySelector('.is-paper-ready')?.dataset.paperState === 'idle');
     }
     await page.locator('[data-shelf-entry="0"]').click();
     await page.waitForURL('**/blog/transformer-token-association');
@@ -101,7 +126,7 @@ try {
     assert(await page.locator('.katex-mathml math').count() > 0, 'Accessible formulas remain available');
     await page.locator('[data-search-close]').click();
     const otherSearch = {};
-    for (const path of ['/', '/blog']) {
+    for (const path of ['/', '/blog', '/archive']) {
       await page.goto(`${origin}${path}`, { waitUntil: 'networkidle' });
       await page.locator('[data-search-trigger]').first().click();
       await page.waitForFunction(() => {
@@ -113,6 +138,17 @@ try {
       await page.waitForSelector('#search-results a');
       await page.locator('[data-search-close]').click();
       await page.waitForFunction(() => !document.querySelector('#search-modal').open);
+      if (path === '/archive') {
+        await page.locator('[data-shelf-filter="Projects"]').click();
+        await page.waitForFunction(() => document.querySelector('[data-shelf-count]').textContent === '1 entry'
+          && document.querySelector('.is-paper-ready')?.dataset.paperState === 'idle');
+        assert.equal(await page.locator('[data-shelf-entry]:visible').count(), 1);
+        assert.equal(await page.locator('[data-shelf-preview-index]').textContent(), '01 / 01');
+        assert.match(await page.locator('[data-shelf-preview-link]').getAttribute('href'), /github\.com/);
+        await page.locator('[data-shelf-filter="All"]').click();
+        assert.equal(await page.locator('[data-shelf-entry]:visible').count(), 3);
+        assert.equal(await page.locator('.shelf-paper-canvas').count(), 1);
+      }
     }
     measurements.push({ engine: process.env.TEST_ENGINE || 'webkit', width: viewport.width, navigation, search, effects, otherSearch });
     await page.close();
