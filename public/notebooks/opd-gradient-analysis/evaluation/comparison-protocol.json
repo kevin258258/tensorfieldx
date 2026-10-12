@@ -1,0 +1,8 @@
+{
+  "base_label_role": "trained v4 EOPD, not initial Base model",
+  "baseline_raw_sha256": "bdc0697b97940827894e1eb6c27a0f3101ce8cb95956842ecad13bfc38f721f6",
+  "candidate": "negative-credit teacher-deficit routing v1",
+  "initialization": "Qwen3-1.7B-Base for both training runs",
+  "generation_seed": 20261006,
+  "training_steps": 174
+}

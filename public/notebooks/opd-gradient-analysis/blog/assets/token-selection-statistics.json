@@ -1,0 +1,15 @@
+{
+  "source_sha256": "b60e41a55d5173674e7ab5a10cb6d37aaacb6b5cefe1cf8617a95e60a8e600c6",
+  "tokens": 256,
+  "target_fraction": 0.2,
+  "selected_counts": {
+    "high_entropy": 52,
+    "low_probability": 52,
+    "high_score_norm": 52
+  },
+  "entropy_lowp_overlap": 1.0,
+  "entropy_highnorm_overlap": 0.9807692307692307,
+  "retained_score_norm_sum_fraction": 0.992713944406358,
+  "retained_gap_weighted_norm_sum_fraction": 0.9920527447346941,
+  "budget_definition": "sum of individual token contribution lengths, before loss reduction and optimizer"
+}

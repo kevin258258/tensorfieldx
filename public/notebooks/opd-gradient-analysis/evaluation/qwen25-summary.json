@@ -1,0 +1,90 @@
+{
+  "source": {
+    "repository": "https://github.com/QwenLM/Qwen2.5-Math",
+    "commit": "a45202bd16f1ec06f433442dc1152d0074773465",
+    "files": {
+      "grader.py": "ed9494a388e7117735fccf2985de6c444d5bdba4d493b425e92a91e9ab97742a",
+      "parser.py": "2bee38c8721c3c0ce120edd73de6ad5bf2e4aa7bf14b988f96aa1d590153e8fe",
+      "utils.py": "5c9d0c0103e556ee2f10ab9a626cb9cdc731a8594c3cf0410d1612a5f515b116",
+      "examples.py": "07aacef0144e11d7c9210beef2f4d1a9bf935d440bbb394e65a588eef861ce7b",
+      "evaluate.py": "ec397765a8049848f8e95955fe9ba80cfadc507394dc8a4854d40fce0d8f9ac0",
+      "requirements.txt": "37f0d5a539de5a6be7372602dfead35da878c59c9aca96684c58ad12373002db"
+    }
+  },
+  "grading": "Official extract_answer(math), math_eval choice postprocessing, math_equal; 3s per call",
+  "include_percentage": true,
+  "timeout_seconds": 3,
+  "labels": {
+    "base": {
+      "n": 4000,
+      "questions": 500,
+      "samples_per_question": 8,
+      "avg_at_n": 0.68275,
+      "pass_at_n": 0.876,
+      "correct": 2731,
+      "complete_box_correct": 2730,
+      "no_percentage_correct": 2730,
+      "no_box_correct": 1,
+      "last_number_fallback_correct": 1,
+      "last_number_fallback_count": 131,
+      "rescued_complete_box": 74,
+      "truncated_correct": 1,
+      "grading_errors": 0,
+      "accuracy": 0.68275,
+      "complete_box_accuracy": 0.6825,
+      "no_percentage_accuracy": 0.6825,
+      "breakdown": {
+        "stop/box=True/correct=True": 2730,
+        "stop/box=True/correct=False": 1128,
+        "length/box=False/correct=False": 132,
+        "length/box=True/correct=False": 8,
+        "length/box=False/correct=True": 1,
+        "stop/box=False/correct=False": 1
+      }
+    },
+    "final": {
+      "n": 4000,
+      "questions": 500,
+      "samples_per_question": 8,
+      "avg_at_n": 0.679,
+      "pass_at_n": 0.864,
+      "correct": 2716,
+      "complete_box_correct": 2712,
+      "no_percentage_correct": 2715,
+      "no_box_correct": 4,
+      "last_number_fallback_correct": 4,
+      "last_number_fallback_count": 122,
+      "rescued_complete_box": 65,
+      "truncated_correct": 5,
+      "grading_errors": 0,
+      "accuracy": 0.679,
+      "complete_box_accuracy": 0.678,
+      "no_percentage_accuracy": 0.67875,
+      "breakdown": {
+        "stop/box=True/correct=True": 2711,
+        "stop/box=True/correct=False": 1159,
+        "length/box=False/correct=False": 120,
+        "length/box=True/correct=True": 1,
+        "length/box=False/correct=True": 4,
+        "length/box=True/correct=False": 4,
+        "stop/box=False/correct=False": 1
+      }
+    }
+  },
+  "dependency_versions": {
+    "sympy": "1.14.0",
+    "latex2sympy2": "1.9.1",
+    "antlr4-python3-runtime": "4.7.2",
+    "word2number": "1.1"
+  },
+  "dependency_note": "latex2sympy2 requires ANTLR 4.7.2; SymPy parse_latex requires 4.11 and falls through to parse_expr/latex2sympy2 in the official grader. This is a source-identical scoring audit with a documented dependency discrepancy, not the complete paper evaluation pipeline.",
+  "paired": {
+    "questions": 500,
+    "both_pass": 416,
+    "neither_pass": 46,
+    "pass_to_fail": 22,
+    "fail_to_pass": 16,
+    "avg_at_n_delta": -0.00374999999999992,
+    "pass_at_n_delta": -0.01200000000000001
+  }
+}

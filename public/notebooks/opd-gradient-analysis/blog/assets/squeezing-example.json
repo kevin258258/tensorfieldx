@@ -1,0 +1,34 @@
+{
+  "kind": "illustrative direct-logit SGD; no neural network or optimizer preconditioning",
+  "student": [
+    0.7,
+    0.2,
+    0.1
+  ],
+  "teacher": [
+    0.2,
+    0.75,
+    0.05
+  ],
+  "effective_step": 0.2,
+  "ordinary_logit_change": [
+    0.13999999999999999,
+    0.04000000000000001,
+    -0.18000000000000002
+  ],
+  "routed_logit_change": [
+    0.0,
+    0.18000000000000002,
+    -0.18000000000000002
+  ],
+  "ordinary_after": [
+    0.7340739607946313,
+    0.1897764535236699,
+    0.07614958568169883
+  ],
+  "routed_after": [
+    0.6842817112186144,
+    0.23406684169646558,
+    0.08165144708491988
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "source_sha256": "bfa02922ed5f53b96c5bf6c04685feeb9b2f1895a7ec2d13328e32c0020f5329",
+  "tokens": 256,
+  "parameterization_note": "Early untied BF16 loader; not the final tied FP32 training model.",
+  "score_norm_range": [
+    1.7817159067187443e-12,
+    1992.6258429519578
+  ],
+  "residual_norm_quantiles": {
+    "p05": 490.78198679371445,
+    "median": 1264.2533997664975,
+    "p95": 3137.7657618718667
+  },
+  "log_regression_slope": 1.0292514711879257,
+  "log_regression_r2": 0.9970546754615809
+}
