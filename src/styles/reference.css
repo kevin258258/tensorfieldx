@@ -141,7 +141,7 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .large-arrow { position: absolute; right: 40px; bottom: 36px; font: 500 80px/1 Quincy, serif; }
 .footer-social { min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 24px; gap: 24px; }
 .footer-social > p { font-size: 12px; font-weight: 700; }
-.social-links { display: flex; gap: 15px; }
+.social-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
 .social-links a { border: 2px solid var(--ink); padding: 18px 14px; font-size: 12px; font-weight: 700; }
 .social-links a:hover { background: var(--ink); color: var(--paper); }
 .footer-copyright { font: 700 34px Quincy, serif; letter-spacing: .015em; }
