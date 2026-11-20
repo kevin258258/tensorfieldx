@@ -1,4 +1,4 @@
-import { createShelfPaper } from './shelfPaper';
+import { DEFAULT_COVER } from '../lib/covers';
 
 export interface ShelfEntry {
   title: string;
@@ -27,11 +27,11 @@ export function initEntryShelf() {
   const wide = matchMedia('(min-width: 800px)');
   const desktopFrame = shelf.querySelector<HTMLElement>('.blog-shelf-preview .blog-shelf-image-frame');
   const mobileFrames = [...shelf.querySelectorAll<HTMLElement>('[data-shelf-mobile-paper]')];
-  let paperFrame = wide.matches ? desktopFrame : mobileFrames[0];
-  const paperImages = [...(desktopFrame?.querySelectorAll<HTMLImageElement>('img') ?? [])];
-  const paper = paperFrame ? createShelfPaper(paperFrame, paperImages.map(image => image.src), signal) : undefined;
+  let paperFrame: HTMLElement | null | undefined;
+  let sheet: HTMLElement | null | undefined;
   let selected = -1;
   let copyAnimation: Animation | undefined;
+  let entrance: Animation | undefined;
   const list = shelf.querySelector<HTMLElement>('.blog-shelf-list');
   const columns = shelf.querySelector<HTMLElement>('.blog-shelf-columns');
   const fine = matchMedia('(hover: hover) and (pointer: fine)');
@@ -46,22 +46,31 @@ export function initEntryShelf() {
     title?.style.removeProperty('--title-angle');
     title = null;
   };
-  const resetPointer = () => { cancelAnimationFrame(pointerFrame); pointerFrame = 0; resetTitle(); paper?.reset(); };
+  const resetPointer = () => {
+    cancelAnimationFrame(pointerFrame);
+    pointerFrame = 0;
+    resetTitle();
+    sheet?.style.removeProperty('--cover-x');
+    sheet?.style.removeProperty('--cover-y');
+  };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const visibleEntries = () => entries.filter(entry => !entry.hidden);
   const mountPaper = (index: number) => {
-    paperFrame = wide.matches ? desktopFrame : mobileFrames[index];
-    if (paperFrame) paper?.mount(paperFrame);
+    const next = wide.matches ? desktopFrame : mobileFrames[index];
+    if (paperFrame === next) return;
+    resetPointer();
+    entrance?.cancel();
+    paperFrame = next;
+    sheet = next?.querySelector<HTMLElement>('.blog-shelf-sheet');
   };
   function show(index: number) {
     if (selected === index || !data[index]) return;
     const changing = selected >= 0;
     selected = index;
     mountPaper(index);
-    paper?.select(index);
     const entry = data[index];
     for (const visual of visuals) {
-      const active = Number(visual.dataset.shelfVisual) === index;
+      const active = visual.dataset.shelfVisual === (entry.image || DEFAULT_COVER);
       visual.classList.toggle('is-active', active);
       visual.setAttribute('aria-hidden', String(!active));
     }
@@ -81,10 +90,17 @@ export function initEntryShelf() {
     const visible = visibleEntries();
     if (number) number.textContent = `${String(visible.indexOf(entries[index]) + 1).padStart(2, '0')} / ${String(visible.length).padStart(2, '0')}`;
     copyAnimation?.cancel();
-    if (changing && !reduced.matches) copyAnimation = shelf!.querySelector('.blog-shelf-preview-copy')?.animate([
-      { opacity: .35, transform: 'translateY(6px)' },
-      { opacity: 1, transform: 'translateY(0)' },
-    ], { duration: 280, easing: 'cubic-bezier(.22,1,.36,1)' });
+    if (changing && !reduced.matches && !document.hidden) {
+      entrance?.cancel();
+      if (paperFrame?.getClientRects().length) entrance = sheet?.animate([
+        { translate: wide.matches ? '0 5px' : '0 9px', scale: '.987' },
+        { translate: '0 0', scale: '1' },
+      ], { duration: 550, easing: 'cubic-bezier(.18,.72,.25,1)' });
+      if (wide.matches) copyAnimation = shelf!.querySelector('.blog-shelf-preview-copy')?.animate([
+        { opacity: .35, transform: 'translateY(6px)' },
+        { opacity: 1, transform: 'translateY(0)' },
+      ], { duration: 280, easing: 'cubic-bezier(.22,1,.36,1)' });
+    }
   }
   const filters = [...shelf.querySelectorAll<HTMLButtonElement>('[data-shelf-filter]')];
   for (const button of filters) button.addEventListener('click', () => {
@@ -92,13 +108,11 @@ export function initEntryShelf() {
     entries.forEach((entry, index) => { entry.hidden = category !== 'All' && data[index].category !== category; });
     filters.forEach(filter => filter.setAttribute('aria-pressed', String(filter === button)));
     const visible = visibleEntries();
-    visible.forEach((entry, index) => {
-      const number = entry.querySelector('[data-shelf-mobile-index]');
-      if (number) number.textContent = `${String(index + 1).padStart(2, '0')} / ${String(visible.length).padStart(2, '0')}`;
-    });
+    entries.forEach(entry => entry.toggleAttribute('data-shelf-lead', entry === visible[0]));
     const count = shelf!.querySelector('[data-shelf-count]');
     if (count) count.textContent = `${visible.length} ${visible.length === 1 ? 'entry' : 'entries'}`;
-    list?.scrollTo({ top: 0 });
+    if (wide.matches) list?.scrollTo({ top: 0 });
+    else window.scrollTo({ top: 0, behavior: 'instant' });
     selected = -1;
     if (visible[0]) show(Number(visible[0].dataset.shelfEntry));
   }, { signal });
@@ -108,6 +122,7 @@ export function initEntryShelf() {
     link.addEventListener('focus', activate, { signal });
   }
   if (entries.length) show(0);
+  else mountPaper(0);
   columns?.addEventListener('pointerdown', event => {
     const pointer = event as PointerEvent;
     const overPaper = pointer.target instanceof Element && pointer.target.closest('.blog-shelf-image-link, [data-shelf-mobile-paper]');
@@ -126,10 +141,15 @@ export function initEntryShelf() {
     if (pointerFrame) return;
     pointerFrame = requestAnimationFrame(() => {
       pointerFrame = 0;
+      if (!paperFrame || !sheet) return;
       const box = (title || paperFrame).getBoundingClientRect();
+      if (!box.width || !box.height) return;
       const x = Math.max(-1, Math.min(1, (pointerX - box.left) / box.width * 2 - 1));
       const y = Math.max(-1, Math.min(1, (pointerY - box.top) / box.height * 2 - 1));
-      paper?.position(x, -y);
+      // The print drifts opposite the pointer. Keep it closer to rest while reading titles.
+      const strength = title ? .28 : touch ? .65 : 1;
+      sheet.style.setProperty('--cover-x', String(x * strength));
+      sheet.style.setProperty('--cover-y', String(y * strength));
       if (title) {
         title.style.setProperty('--title-x', `${x * 12}px`);
         title.style.setProperty('--title-y', `${y * 8}px`);
@@ -159,6 +179,7 @@ export function initEntryShelf() {
       entries.forEach((entry, index) => {
         if (entry.hidden) return;
         const rect = (wide.matches ? entry : mobileFrames[index]).getBoundingClientRect();
+        if (!rect.width) return;
         const next = wide.matches ? Math.max(rect.top - centre, centre - rect.bottom, 0) : Math.abs(rect.top + rect.height * .5 - centre);
         if (next < distance) { distance = next; nearest = index; }
       });
@@ -171,7 +192,7 @@ export function initEntryShelf() {
   shelf.addEventListener('keydown', event => { if (event.key === 'Tab') resetPointer(); }, { signal });
   window.addEventListener('blur', resetPointer, { signal });
   document.addEventListener('astro:before-swap', () => shelfController?.abort(), { signal, once: true });
-  reduced.addEventListener('change', () => { copyAnimation?.cancel(); resetPointer(); }, { signal });
+  reduced.addEventListener('change', () => { copyAnimation?.cancel(); entrance?.cancel(); resetPointer(); }, { signal });
   fine.addEventListener('change', resetPointer, { signal });
-  signal.addEventListener('abort', () => { copyAnimation?.cancel(); resetPointer(); cancelAnimationFrame(scrollFrame); }, { once: true });
+  signal.addEventListener('abort', () => { copyAnimation?.cancel(); entrance?.cancel(); resetPointer(); cancelAnimationFrame(scrollFrame); }, { once: true });
 }

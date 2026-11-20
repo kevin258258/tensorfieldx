@@ -13,6 +13,7 @@ interface Props {
 }
 const { entries, title, description, previewLabel, linkLabel, emptyText = 'tbd', filters = false } = Astro.props;
 const initial = entries[0];
+const coverUrls = [...new Set(entries.map(entry => entry.image || DEFAULT_COVER))];
 const categories = ['All', ...new Set(entries.map(entry => entry.category).filter(Boolean))];
 const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0, 10);
 ---
@@ -21,6 +22,7 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
     <h1 id="entry-shelf-title">{title}</h1>
     <p>{description}</p>
     {entries.length > 0 && <span data-shelf-count aria-live="polite">{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</span>}
+    <button type="button" class="blog-shelf-search" data-search-trigger aria-label="Search the blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg></button>
   </header>
   <div class="blog-shelf-filters">
     {filters ? <div class="blog-shelf-category-filters" role="group" aria-label="Filter archive">{categories.map(category => <button type="button" data-shelf-filter={category} aria-pressed={category === 'All'}>{category}</button>)}</div> : <span class="blog-shelf-all">All</span>}
@@ -30,26 +32,25 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
     <div class="blog-shelf-list" role="region" tabindex="0" aria-label={`${title} entries`}>
       {entries.map((entry, index) => {
         const EntryTag = entry.href ? 'a' : 'article';
-        return <EntryTag href={entry.href} class:list={['blog-shelf-entry', { 'archive-entry': !!entry.href }]} data-shelf-entry={index} data-astro-prefetch={entry.href ? 'hover' : undefined}>
+        return <EntryTag href={entry.href} class:list={['blog-shelf-entry', { 'archive-entry': !!entry.href }]} data-shelf-entry={index} data-shelf-lead={index === 0 ? true : undefined} data-astro-prefetch={entry.href ? 'hover' : undefined}>
         <span class="blog-shelf-year">{entry.year ?? '—'}</span>
         <div class="blog-shelf-entry-text">
           <h2>{entry.title}</h2>
           <div class="blog-shelf-entry-meta">
             {entry.date !== undefined && <time datetime={date(entry)}>{date(entry)}</time>}
+            {entry.date === undefined && entry.year !== undefined && <span class="blog-shelf-mobile-year">{entry.year}</span>}
             {entry.min !== undefined && <span>{entry.min} min read</span>}
             {entry.meta && <span>{entry.meta}</span>}
-            {entry.href && <span class="blog-shelf-entry-arrow" aria-hidden="true">↗</span>}
           </div>
+          {entry.href && <span class="blog-shelf-entry-arrow" aria-hidden="true">↗</span>}
           <div class="blog-shelf-mobile-cover" aria-hidden="true">
-            <div class="blog-shelf-cover-rail">
-              <span data-shelf-mobile-index>{String(index + 1).padStart(2, '0')} / {String(entries.length).padStart(2, '0')}</span>
-              <PatternBand variant="dots" />
-            </div>
             <div class="blog-shelf-image-frame blog-shelf-mobile-paper" data-shelf-mobile-paper={index}>
-              <div class="blog-shelf-visual is-active"><img src={entry.image || DEFAULT_COVER} alt="" loading={index === 0 ? 'eager' : 'lazy'} /></div>
+              <div class="blog-shelf-sheet">
+                <div class="blog-shelf-visual is-active"><img src={entry.image || DEFAULT_COVER} alt="" decoding="async" loading={index === 0 ? 'eager' : 'lazy'} /></div>
+              </div>
             </div>
           </div>
-          <ul class="blog-shelf-mobile-tags">{entry.tags.map(tag => <li>{tag}</li>)}</ul>
+          {entry.tags.length > 0 && <ul class="blog-shelf-mobile-tags">{entry.tags.map(tag => <li>{tag}</li>)}</ul>}
         </div>
       </EntryTag>})}
       {!initial && <div class="blog-shelf-entry blog-shelf-empty"><span></span><h2>{emptyText}</h2></div>}
@@ -61,11 +62,13 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
           const PreviewTag = initial.href ? 'a' : 'div';
           return <PreviewTag class="blog-shelf-image-link" href={initial.href} data-shelf-preview-link={initial.href ? true : undefined} aria-label={initial.href ? `${linkLabel}: ${initial.title}` : undefined}>
           <div class="blog-shelf-image-frame">
-            {entries.map((entry, index) => <div class:list={['blog-shelf-visual', { 'is-active': index === 0 }]} data-shelf-visual={index} aria-hidden={index !== 0 ? 'true' : undefined}>
-              <img src={entry.image || DEFAULT_COVER} alt="" loading={index === 0 ? 'eager' : 'lazy'} />
-            </div>)}
+            <div class="blog-shelf-sheet">
+              {coverUrls.map((image, index) => <div class:list={['blog-shelf-visual', { 'is-active': index === 0 }]} data-shelf-visual={image} aria-hidden={index !== 0 ? 'true' : undefined}>
+                <img src={image} alt="" decoding="async" loading={index === 0 ? 'eager' : 'lazy'} />
+              </div>)}
+            </div>
           </div>
-        </PreviewTag>})() : <div class="blog-shelf-image-link" aria-hidden="true"><div class="blog-shelf-image-frame"><div class="blog-shelf-visual is-active"><img src={DEFAULT_COVER} alt="" /></div></div></div>}
+        </PreviewTag>})() : <div class="blog-shelf-image-link" aria-hidden="true"><div class="blog-shelf-image-frame"><div class="blog-shelf-sheet"><div class="blog-shelf-visual is-active"><img src={DEFAULT_COVER} alt="" /></div></div></div></div>}
         <div class="blog-shelf-preview-copy">
           <ul data-shelf-preview-tags>{initial?.tags.map(tag => <li>{tag}</li>)}</ul>
         </div>
