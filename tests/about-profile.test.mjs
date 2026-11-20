@@ -9,7 +9,7 @@ test("About replaces the old interest chips with two focused research directions
   const about = await readSrc("src/components/ProfileDetails.astro");
 
   assert.match(about, /Artificial Intelligence/);
-  assert.match(about, /Agentic Reinforcement Learning/);
+  assert.match(about, /Data-efficient Pretraining/);
   assert.match(about, /Learning Theory/);
   assert.match(about, /optimization/i);
   assert.match(about, /interpretability/i);
@@ -73,7 +73,7 @@ test("homepage profile points to the new AI research identity", async () => {
 
   assert.match(home, /Artificial Intelligence/);
   assert.match(home, /<ProfileDetails\s*\/>/);
-  assert.match(profile, /Agentic RL/);
+  assert.match(profile, /Data-efficient Pretraining/);
   assert.match(profile, /Learning Theory/);
   assert.doesNotMatch(home, /Physics\s*\/\s*Math\s*\/\s*AI/);
 });

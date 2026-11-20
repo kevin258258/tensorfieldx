@@ -3,9 +3,9 @@ import PatternBand from './PatternBand.astro';
 
 const researchInterests = [
     {
-        title: 'Agentic Reinforcement Learning',
-        description: 'How autonomous agents learn to reason, plan, use tools, and coordinate through interaction and feedback, especially in long-horizon and multi-agent settings.',
-        icon: 'agent',
+        title: 'Data-efficient Pretraining',
+        description: 'Learning more from less data through better data selection, curation, and training strategies, with a focus on pretraining efficiency and generalization.',
+        icon: 'pretraining',
     },
     {
         title: 'Learning Theory',
@@ -105,7 +105,7 @@ const researchInterests = [
                     </div>
                     <div class="flex justify-between gap-4">
                         <span class="text-muted">Focus</span>
-                        <span class="text-secondary text-right">Agentic RL · Learning Theory</span>
+                        <span class="text-secondary text-right">Data-efficient Pretraining · Learning Theory</span>
                     </div>
                     <div class="flex justify-between gap-4">
                         <span class="text-muted">Location</span>
@@ -123,7 +123,7 @@ const researchInterests = [
                             <article data-research-interest class="border border-edge border-l-4 border-l-accent rounded-lg bg-surface/45 p-5 md:p-6">
                                 <div class="flex items-start gap-4">
                                     <div class="text-accent shrink-0 mt-0.5" aria-hidden="true">
-                                        {interest.icon === 'agent' ? (
+                                        {interest.icon === 'pretraining' ? (
                                             <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                                                 <path d="M12 3 9.5 8.5 4 11l5.5 2.5L12 19l2.5-5.5L20 11l-5.5-2.5L12 3Z"/><path d="m18.5 3 .7 1.6L21 5.3l-1.8.8-.7 1.6-.8-1.6-1.7-.8 1.7-.7.8-1.6Z"/>
                                             </svg>
