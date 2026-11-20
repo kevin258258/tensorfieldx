@@ -22,7 +22,6 @@ const date = (entry: ShelfEntry) => new Date(entry.date!).toISOString().slice(0,
     <h1 id="entry-shelf-title">{title}</h1>
     <p>{description}</p>
     {entries.length > 0 && <span data-shelf-count aria-live="polite">{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</span>}
-    <button type="button" class="blog-shelf-search" data-search-trigger aria-label="Search the blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg></button>
   </header>
   <div class="blog-shelf-filters">
     {filters ? <div class="blog-shelf-category-filters" role="group" aria-label="Filter archive">{categories.map(category => <button type="button" data-shelf-filter={category} aria-pressed={category === 'All'}>{category}</button>)}</div> : <span class="blog-shelf-all">All</span>}

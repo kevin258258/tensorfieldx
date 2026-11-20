@@ -21,7 +21,7 @@ export function initInteractions() {
   };
   document.addEventListener('pointerover', event => {
     if (!enabled() || event.pointerType === 'touch') return;
-    const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.nav-page,.nav-search,.social-links a') : null;
+    const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.social-links a') : null;
     if (!target || (event.relatedTarget instanceof Node && target.contains(event.relatedTarget))) return;
     const box = target.getBoundingClientRect();
     const distances = [event.clientX-box.left, box.right-event.clientX, event.clientY-box.top, box.bottom-event.clientY];

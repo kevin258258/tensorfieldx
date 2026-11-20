@@ -6,9 +6,16 @@
 @font-face { font-family: Lato; src: url('/design/kazuki/fonts/Lato-Black.ttf') format('truetype'); font-weight: 900; font-display: swap; }
 :root {
   --paper: #ede7dc;
+  --paper-surface: var(--paper) url('/design/kazuki/paper.webp') 0 0 / 500px 500px;
   --ink: #7d97b8;
   --frame-inset: 20px;
+  --frame-top: var(--frame-inset);
+  --frame-bottom: var(--frame-inset);
+  --frame-rule: 2px;
+  --nav-height: 104px;
   --rail: 242px;
+  --font-editorial: Quincy, 'Noto Serif CJK SC', 'Songti SC', Georgia, serif;
+  --font-interface: Lato, system-ui, sans-serif;
   --color-paper: 237 231 220;
   --color-surface: 237 231 220;
   --color-primary: 125 151 184;
@@ -19,8 +26,8 @@
   color-scheme: light;
 }
 html { background: var(--paper); scroll-padding-top: 145px; }
-body { color: var(--ink); -webkit-font-smoothing: antialiased; font-family: Lato, sans-serif; letter-spacing: .055em; }
-.page-background { background: var(--paper) url('/design/kazuki/paper.webp') 0 0 / 500px 500px; }
+body { color: var(--ink); -webkit-font-smoothing: antialiased; font-family: var(--font-interface); letter-spacing: .055em; }
+.page-background { background: var(--paper-surface); }
 .page-background::before { display: none; }
 body::after { content: ''; position: fixed; inset: 0; z-index: 80; pointer-events: none; background: url('/design/kazuki/noise.png') 0 0 / 250px 250px; animation: paper-grain .55s steps(1) infinite; }
 @keyframes paper-grain { 0% { background-position: 0 0; } 20% { background-position: 150px 20px; } 40% { background-position: 40px 170px; } 60% { background-position: 90px 10px; } 80% { background-position: 20px 70px; } 100% { background-position: 0 250px; } }
@@ -33,25 +40,28 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .site-body .font-body { font-family: Lato, sans-serif; }
 .site-body :where(.rounded, .rounded-md, .rounded-lg, .rounded-xl) { border-radius: 0; }
 .site-body :where(.border-edge, .border-t, .border-b) { border-color: var(--ink); }
-.page-shell { padding-top: 124px; animation: none; }
-.site-wrapper { margin: 0 var(--frame-inset); border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); }
-.viewport-frame { position: fixed; inset: 20px; border: 2px solid var(--ink); z-index: 85; pointer-events: none; }
+.page-shell { padding-top: calc(var(--frame-top) + var(--nav-height)); animation: none; }
+.site-wrapper { margin: 0 var(--frame-inset); border-inline: var(--frame-rule) solid var(--ink); }
+.viewport-frame { position: fixed; inset: var(--frame-top) var(--frame-inset) var(--frame-bottom); border: var(--frame-rule) solid var(--ink); z-index: 85; pointer-events: none; }
+/* The rails stay opaque as the content scrolls behind the fixed frame. */
+.viewport-frame::before, .viewport-frame::after { content: ''; position: fixed; inset-inline: 0; background: var(--paper-surface); }
+.viewport-frame::before { top: 0; height: var(--frame-top); }
+.viewport-frame::after { bottom: 0; height: var(--frame-bottom); background-position-y: calc(var(--frame-bottom) - 100dvh); }
 .local-time { position: fixed; top: 2px; left: 262px; z-index: 91; font: italic 700 13px Quincy, serif; letter-spacing: .015em; }
-.color-palette { position: fixed; right: 20px; top: 0; z-index: 91; display: flex; align-items: center; gap: 6px; height: 20px; }
+.color-palette { position: fixed; right: var(--frame-inset); top: 0; z-index: 91; display: flex; align-items: center; gap: 6px; height: var(--frame-top); }
 .color-palette > span { font: italic 700 13px Quincy, serif; letter-spacing: .015em; margin-right: 5px; }
 .color-palette button { position: relative; width: 10px; height: 15px; background: var(--swatch); }
 .color-palette button::before { content: ''; position: absolute; inset: -2px -3px; }
 .color-palette button[aria-pressed='true']::after { content: ''; position: absolute; bottom: -3px; height: 2px; left: 0; right: 0; background: var(--ink); }
 .skip-link { position: fixed; top: -100px; left: 30px; z-index: 150; padding: 15px; background: var(--paper); }
 .skip-link:focus { top: 25px; }
-.reference-nav { position: fixed; top: 20px; left: 20px; right: 20px; height: 104px; display: flex; z-index: 90; border: 2px solid var(--ink); background: var(--paper) url('/design/kazuki/paper.webp') 0 0 / 500px 500px; }
-.reference-nav > * { position: relative; border-right: 2px solid var(--ink); }
+.reference-nav { position: fixed; inset: var(--frame-top) var(--frame-inset) auto; height: var(--nav-height); display: flex; z-index: 90; border: var(--frame-rule) solid var(--ink); background: var(--paper-surface); font-family: var(--font-interface); }
+.reference-nav > * { position: relative; border-right: var(--frame-rule) solid var(--ink); }
 .reference-nav > :last-child { border-right: 0; }
 .nav-logo { flex: 0 0 240px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .nav-dot-pattern { width: 100%; height: 100%; background: radial-gradient(var(--ink) 1px, transparent 1px) 0 0 / 6px 6px; }
-.nav-page { flex: 1 1 0; min-width: 104px; transition: background .4s; }
+.nav-page { flex: 1 1 0; min-width: 104px; }
 .nav-page > span { position: absolute; top: 16px; left: 20px; font-size: 12px; font-weight: 900; }
-.nav-page.is-active, .nav-page:hover { background: var(--ink); color: var(--paper); }
 .nav-archive { flex: 0 0 102px; display: flex; flex-direction: column; align-items: center; padding-top: 16px; gap: 10px; }
 .nav-archive > span { font-weight: 900; font-size: 12px; }
 .nav-archive svg { width: 26px; height: 26px; transition: transform .6s; }
@@ -149,12 +159,12 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .footer-utility a:hover, .footer-utility button:hover { text-decoration: underline; }
 @media (min-width: 800px) and (max-width: 1024px) { .hero-caption { display: none; } .contact-logo { display: none; } }
 @media (max-width: 799px) {
-  :root { --frame-inset: 15px; --rail: 137px; }
+  :root { --frame-inset: 15px; --frame-top: 25px; --nav-height: 65px; --rail: 137px; }
   html { scroll-padding-top: 35px; }
-  .page-shell { padding-top: 25px; }
-  .site-wrapper { margin-bottom: 80px; }
-  .viewport-frame { inset: 25px 15px 15px; border-bottom: 0; }
-  .reference-nav { top: auto; bottom: 15px; left: 15px; right: 15px; height: 65px; }
+  .page-shell { padding-top: var(--frame-top); }
+  .site-wrapper { margin-bottom: calc(var(--frame-bottom) + var(--nav-height)); }
+  .viewport-frame { border-bottom: 0; }
+  .reference-nav { inset-block: auto var(--frame-bottom); }
   .nav-logo { display: none; }
   .nav-page { min-width: 0; }
   .nav-home { flex: 3; }
@@ -164,10 +174,11 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
   .nav-archive > span { font-size: 9px; order: 1; }
   .nav-archive svg { width: 22px; height: 22px; }
   .nav-archive small { display: none; }
-  .local-time { top: 5px; left: 15px; font-size: 10px; }
+  .local-time { top: 5px; left: var(--frame-inset); font-size: 10px; }
   .color-palette { left: 0; right: auto; top: auto; bottom: 100px; flex-direction: column; gap: 8px; height: auto; padding: 5px 0; width: 15px; background: var(--paper); }
   .color-palette > span { display: none; }
   .color-palette button { width: 10px; height: 18px; }
+  .color-palette button::before { inset: -4px -12px -4px -5px; }
   .hero-composition { display: flex; flex-direction: column; height: auto; min-height: 0; padding-top: 57px; }
   .hero-intro { display: contents; }
   .hero-intro h1 { order: 0; font-size: 17px; padding: 0 20px; margin-bottom: 23px; }

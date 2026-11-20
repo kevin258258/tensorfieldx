@@ -7,16 +7,19 @@ html { scroll-behavior: smooth; }
 .reveal.reveal-visible { transform: none; }
 .reveal[data-motion-reveal] { transition-delay: var(--reveal-delay, 0ms); }
 
-/* Ink enters a cell from the edge nearest the pointer; keyboard focus is equal. */
-.blog-navigation :is(.nav-page,.nav-search), .social-links a { isolation: isolate; overflow: hidden; transition: color 220ms ease, translate var(--motion-settle) var(--motion-ease); }
-.blog-navigation :is(.nav-page,.nav-search)::before, .social-links a::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: var(--ink); transform: var(--ink-rest, scaleY(0)); transform-origin: var(--ink-origin, 50% 100%); transition: transform var(--motion-settle) var(--motion-ease); }
-.social-links a { position: relative; }
-.blog-navigation :is(.nav-page,.nav-search):hover, .social-links a:hover { background: transparent; }
-.blog-navigation :is(.nav-page,.nav-search):is(:hover,:focus-visible,.is-active), .social-links a:is(:hover,:focus-visible) { color: var(--paper); }
-.blog-navigation :is(.nav-page,.nav-search):is(:hover,:focus-visible,.is-active)::before, .social-links a:is(:hover,:focus-visible)::before { transform: scale(1); }
+/* Navigation ink fills each cell edge to edge throughout the transition. */
+.blog-navigation :is(.nav-page,.nav-archive,.nav-search) { transition: background-color 180ms ease, color 180ms ease; }
+.blog-navigation :is(.nav-page,.nav-archive,.nav-search):is([aria-current='page'],:hover,:focus-visible) { background-color: var(--ink); color: var(--paper); }
+.blog-navigation :is(.nav-page,.nav-archive,.nav-search):focus-visible { outline: 2px dotted currentColor; outline-offset: -5px; }
 .blog-navigation .nav-page > :is(span,small) { transition: translate var(--motion-settle) var(--motion-ease); }
 .blog-navigation .nav-page:is(:hover,:focus-visible) > small { translate: 0 -3px; }
-.blog-navigation .nav-page.is-active { background: var(--ink); }
+
+/* Social links keep the directional ink reveal. */
+.social-links a { position: relative; isolation: isolate; overflow: hidden; }
+.social-links a::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: var(--ink); transform: var(--ink-rest, scaleY(0)); transform-origin: var(--ink-origin, 50% 100%); transition: transform var(--motion-settle) var(--motion-ease); }
+.social-links a:hover { background: transparent; }
+.social-links a:is(:hover,:focus-visible) { color: var(--paper); }
+.social-links a:is(:hover,:focus-visible)::before { transform: scale(1); }
 .reference-section-heading .pattern-band { transition: background-position 700ms var(--motion-ease); }
 .reference-section-heading:hover .pattern-band--stripe { background-position: 12px 0; }
 .nav-dot-pattern, .contact-dot-pattern { transition: background-position 700ms var(--motion-ease); }
@@ -73,6 +76,6 @@ html { scroll-behavior: smooth; }
   .contact-dot-pattern, .reference-section-heading .pattern-band { transition: none !important; transform: none !important; }
   .blog-shelf .blog-shelf-entry h2 { transform: none; }
   .reveal, .blog-navigation *, .social-links *, .intro-contact *, .profile-detail aside a, .footer-utility *, .contact-meta *, .color-palette *, .reader-language *, .reader-toc *, .reader-progress::before, .reader-mobile-contents *, .reader-back, .reader-top, .code-block, .copy-btn, .reading-prose img, .blog-shelf-entry *, .blog-shelf-image-frame, .blog-shelf-visual, .blog-shelf-read *, .archive-search, .lightbox { transition: none !important; animation: none !important; translate: none !important; }
-  .blog-navigation *::before, .social-links *::before, .archive-search::backdrop, .lightbox::backdrop { transition: none !important; animation: none !important; }
+  .social-links a::before, .archive-search::backdrop, .lightbox::backdrop { transition: none !important; animation: none !important; }
   .blog-shelf-image-frame { transform: none; }
 }
